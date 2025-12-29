@@ -64,7 +64,7 @@ public class ColorSelectionScreen implements Screen {
         // use default
         if (game.font != null) {
             game.font.setColor(Color.WHITE);
-            game.font.draw(game.batch, "SELECT A COLOR (CHOOSE RED TO PLAY)", redBounds.x - 50,
+            game.font.draw(game.batch, "elige un color por favor", redBounds.x - 50,
                     redBounds.y + redBounds.height + 40);
         }
 
