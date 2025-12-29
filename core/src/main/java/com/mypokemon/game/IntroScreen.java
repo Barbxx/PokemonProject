@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
+import com.badlogic.gdx.graphics.g2d.PixmapPacker.Page;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
@@ -18,7 +19,7 @@ public class IntroScreen implements Screen {
 
     // States
     private enum State {
-        INTRO_1, INTRO_2, INTRO_3, SELECT_GENDER, ASK_NAME, ENTER_NAME, PRE_CLOSING, CLOSING
+        INTRO_1, INTRO_2, INTRO_3, SELECT_GENDER, ASK_NAME, ENTER_NAME, CONFIRM_NAME, PRE_CLOSING, CLOSING
     }
 
     private State currentState;
@@ -61,6 +62,7 @@ public class IntroScreen implements Screen {
 
     // Name Entry Cursor
     private int caretPosition = 0;
+    private boolean isNameConfirmed = true; // For SÍ/NO selection
 
     // Movement in CLOSING state
     private Animation<TextureRegion> playerWalkDown, playerWalkUp, playerWalkLeft, playerWalkRight;
@@ -202,12 +204,32 @@ public class IntroScreen implements Screen {
                     }
                 }
 
+                if (currentState == State.CONFIRM_NAME) {
+                    if (keycode == Input.Keys.UP || keycode == Input.Keys.DOWN) {
+                        isNameConfirmed = !isNameConfirmed;
+                        return true;
+                    }
+                }
+
                 // Navigation
                 if (keycode == Input.Keys.ENTER || keycode == Input.Keys.SPACE) {
                     advanceState();
                     return true;
                 }
+                
 
+                // Supongamos que la página que quieres excluir se llama "MENU_PRINCIPAL"
+                if (currentState != State.CLOSING && currentPage != Page.MENU_PRINCIPAL) {
+                    if (keycode == Input.Keys.RIGHT) {
+                        advanceState();
+                        return true;
+                    }
+                    if (keycode == Input.Keys.LEFT) {
+                        goBackState();
+                        return true;
+                    }
+                }
+                
                 if (currentState != State.CLOSING) {
                     if (keycode == Input.Keys.RIGHT) {
                         advanceState();
@@ -265,11 +287,18 @@ public class IntroScreen implements Screen {
             case ENTER_NAME:
                 if (playerName.trim().isEmpty())
                     playerName = "FerxxoFan";
-                currentState = State.PRE_CLOSING;
+                currentState = State.CONFIRM_NAME;
+                isNameConfirmed = true; // Default to SÍ
+                break;
+            case CONFIRM_NAME:
+                if (isNameConfirmed) {
+                    currentState = State.PRE_CLOSING;
+                } else {
+                    currentState = State.ENTER_NAME;
+                }
                 break;
             case PRE_CLOSING:
-                currentState = State.CLOSING;
-                setupPlayerClosing();
+                startGame();
                 break;
             case CLOSING:
                 startGame();
@@ -320,8 +349,11 @@ public class IntroScreen implements Screen {
             case ENTER_NAME:
                 currentState = State.ASK_NAME;
                 break;
-            case PRE_CLOSING:
+            case CONFIRM_NAME:
                 currentState = State.ENTER_NAME;
+                break;
+            case PRE_CLOSING:
+                currentState = State.CONFIRM_NAME;
                 break;
             case CLOSING:
                 currentState = State.PRE_CLOSING;
@@ -371,7 +403,7 @@ public class IntroScreen implements Screen {
                 // Use ferxxo.png instead of feid.png for the scientist intro
                 imgToDraw = ferxxoImage;
             } else if (currentState == State.SELECT_GENDER || currentState == State.ASK_NAME
-                    || currentState == State.ENTER_NAME) {
+                    || currentState == State.ENTER_NAME || currentState == State.CONFIRM_NAME) {
                 imgToDraw = isMale ? protaMasc : protaFem;
             }
 
@@ -520,7 +552,8 @@ public class IntroScreen implements Screen {
         drawRoundedRect(nameTagX, nameTagY, nameTagW, nameTagH, 10f, new Color(0.3f, 0.5f, 0.6f, 1f)); // Frame
         drawRoundedRect(nameTagX + 3, nameTagY + 3, nameTagW - 6, nameTagH - 6, 8f, Color.WHITE); // Inner White
 
-        // 3. Gender Selection Menu
+        // 3. Gender Selection Menu (Text only, removed buttons)
+
         // 4. Name Input UI
         if (currentState == State.ENTER_NAME) {
             shapeRenderer.setColor(Color.DARK_GRAY);
@@ -594,10 +627,11 @@ public class IntroScreen implements Screen {
 
                 game.font.setColor(Color.BLACK);
                 break;
+            case CONFIRM_NAME:
+                currentText = String.format("¡Bien! ¿Así que te llamas %s?", playerName);
+                break;
             case PRE_CLOSING:
-                currentText = String.format(
-                        "¡Ah, listo! Un gusto conocerte, %s. ¡Vea pues, que te espera un mundo de aventuras bien chimbas! ¡Vacílala, nea!",
-                        playerName);
+                currentText = String.format(TEXT_CLOSING_FMT, playerName);
                 break;
             case CLOSING:
                 currentText = String.format(TEXT_CLOSING_FMT, playerName);
@@ -621,12 +655,31 @@ public class IntroScreen implements Screen {
             game.font.setColor(Color.BLACK);
         }
 
+        // 3.1 Confirmation Menu (SÍ/NO) Text
+        if (currentState == State.CONFIRM_NAME) {
+            float menuX = boxX + 610;
+            float menuY = boxY + boxH + 20;
+            float menuH = 100;
+
+            game.font.getData().setScale(1.2f);
+            game.font.setColor(Color.BLACK);
+            game.font.draw(game.batch, "SÍ", menuX + 40, menuY + menuH - 25);
+            game.font.draw(game.batch, "NO", menuX + 40, menuY + 35);
+
+            // Cursor Arrow
+            game.font.setColor(new Color(0.8f, 0.2f, 0.2f, 1f));
+            game.font.draw(game.batch, ">", menuX + 15, isNameConfirmed ? menuY + menuH - 25 : menuY + 35);
+            game.font.setColor(Color.BLACK);
+        }
+
         // Helper Text
         game.font.getData().setScale(0.9f);
         game.font.setColor(Color.BLACK);
         String helper;
         if (currentState == State.CLOSING) {
             helper = "MOVE (ARROWS/WASD)   START (ENTER)";
+        } else if (currentState == State.CONFIRM_NAME) {
+            helper = "SELECT (ARROWS)   CONFIRM (ENTER)";
         } else if (currentState == State.PRE_CLOSING) {
             helper = "CONTINUE (ENTER / ->)   BACK (<-)";
         } else {
