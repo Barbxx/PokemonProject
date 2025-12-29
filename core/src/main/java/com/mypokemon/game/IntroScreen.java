@@ -18,7 +18,7 @@ public class IntroScreen implements Screen {
 
     // States
     private enum State {
-        INTRO_1, INTRO_2, INTRO_3, SELECT_GENDER, ASK_NAME, ENTER_NAME, CLOSING
+        INTRO_1, INTRO_2, INTRO_3, SELECT_GENDER, ASK_NAME, ENTER_NAME, PRE_CLOSING, CLOSING
     }
 
     private State currentState;
@@ -62,6 +62,15 @@ public class IntroScreen implements Screen {
     // Name Entry Cursor
     private int caretPosition = 0;
 
+    // Movement in CLOSING state
+    private Animation<TextureRegion> playerWalkDown, playerWalkUp, playerWalkLeft, playerWalkRight;
+    private float playerPosX, playerPosY;
+    private float playerSpeed = 150f;
+    private TextureRegion playerCurrentFrame;
+    private float playerAnimTime = 0;
+    private boolean isPlayerMoving = false;
+    private Texture playerMascSheet, playerFemSheet;
+
     public IntroScreen(final PokemonMain game) {
         this.game = game;
         this.shapeRenderer = new ShapeRenderer();
@@ -104,6 +113,13 @@ public class IntroScreen implements Screen {
             protaFem = new Texture("ProtaFem.png");
             protaMasc = new Texture("ProtaMasc.png");
             frameTexture = new Texture("marcoPokemon.png");
+
+            // Load Walking Sheets
+            playerMascSheet = new Texture("protagonistaMasculino1.png");
+            playerFemSheet = new Texture("protagonistaFemenino.png");
+            playerMascSheet.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
+            playerFemSheet.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
+
         } catch (Exception e) {
             Gdx.app.log("IntroScreen", "Could not load assets", e);
         }
@@ -153,16 +169,46 @@ public class IntroScreen implements Screen {
 
             @Override
             public boolean keyDown(int keycode) {
-                if (currentState == State.CLOSING) {
+                // Global mapping
+
+                if (currentState == State.ENTER_NAME) {
                     if (keycode == Input.Keys.ENTER) {
-                        startGame();
+                        advanceState();
+                        return true;
+                    }
+                    if (keycode == Input.Keys.LEFT) {
+                        if (caretPosition > 0) {
+                            caretPosition--;
+                        } else {
+                            goBackState();
+                        }
+                        return true;
+                    }
+                    if (keycode == Input.Keys.RIGHT) {
+                        if (caretPosition < playerName.length()) {
+                            caretPosition++;
+                        } else {
+                            advanceState();
+                        }
                         return true;
                     }
                     return false;
                 }
 
-                // Global Navigation
-                if (currentState != State.ENTER_NAME) {
+                if (currentState == State.SELECT_GENDER) {
+                    if (keycode == Input.Keys.UP || keycode == Input.Keys.DOWN) {
+                        isMale = !isMale;
+                        return true;
+                    }
+                }
+
+                // Navigation
+                if (keycode == Input.Keys.ENTER || keycode == Input.Keys.SPACE) {
+                    advanceState();
+                    return true;
+                }
+
+                if (currentState != State.CLOSING) {
                     if (keycode == Input.Keys.RIGHT) {
                         advanceState();
                         return true;
@@ -171,38 +217,8 @@ public class IntroScreen implements Screen {
                         goBackState();
                         return true;
                     }
-                } else {
-                    // In Enter Name mode
-                    if (keycode == Input.Keys.ENTER) {
-                        advanceState(); // Confirm and showing closing
-                        return true;
-                    }
-                    if (keycode == Input.Keys.LEFT) {
-                        if (caretPosition > 0)
-                            caretPosition--;
-                        return true;
-                    }
-                    if (keycode == Input.Keys.RIGHT) {
-                        if (caretPosition < playerName.length())
-                            caretPosition++;
-                        else {
-                            advanceState();
-                        }
-                        return true;
-                    }
                 }
 
-                // Gender Selection Specifics
-                if (currentState == State.SELECT_GENDER) {
-                    if (keycode == Input.Keys.UP || keycode == Input.Keys.DOWN) {
-                        isMale = !isMale; // Toggle
-                        return true;
-                    }
-                    if (keycode == Input.Keys.ENTER || keycode == Input.Keys.SPACE) {
-                        advanceState();
-                        return true;
-                    }
-                }
                 return false;
             }
 
@@ -249,12 +265,42 @@ public class IntroScreen implements Screen {
             case ENTER_NAME:
                 if (playerName.trim().isEmpty())
                     playerName = "FerxxoFan";
+                currentState = State.PRE_CLOSING;
+                break;
+            case PRE_CLOSING:
                 currentState = State.CLOSING;
+                setupPlayerClosing();
                 break;
             case CLOSING:
                 startGame();
                 break;
         }
+
+    }
+
+    private void setupPlayerClosing() {
+        float sysW = Gdx.graphics.getWidth();
+        float sysH = Gdx.graphics.getHeight();
+        float vpX = sysW * VP_X_PCT;
+        float vpY = sysH * VP_Y_PCT;
+        float vpW = sysW * VP_W_PCT;
+
+        // Initial Position
+        playerPosX = vpX + (vpW / 4f);
+        playerPosY = vpY + TEXT_BOX_HEIGHT + 10;
+
+        // Setup animations based on isMale
+        Texture sheet = isMale ? playerMascSheet : playerFemSheet;
+        int frameW = sheet.getWidth() / 4;
+        int frameH = sheet.getHeight() / 4;
+        TextureRegion[][] frames = TextureRegion.split(sheet, frameW, frameH);
+
+        playerWalkDown = new Animation<>(0.15f, frames[0]);
+        playerWalkLeft = new Animation<>(0.15f, frames[1]);
+        playerWalkRight = new Animation<>(0.15f, frames[2]);
+        playerWalkUp = new Animation<>(0.15f, frames[3]);
+        playerCurrentFrame = frames[0][0]; // Starting idle frame
+        playerAnimTime = 0;
     }
 
     private void goBackState() {
@@ -274,8 +320,11 @@ public class IntroScreen implements Screen {
             case ENTER_NAME:
                 currentState = State.ASK_NAME;
                 break;
-            case CLOSING:
+            case PRE_CLOSING:
                 currentState = State.ENTER_NAME;
+                break;
+            case CLOSING:
+                currentState = State.PRE_CLOSING;
                 break;
             case INTRO_1:
                 break;
@@ -316,7 +365,7 @@ public class IntroScreen implements Screen {
         }
 
         // Draw Content within Viewport
-        if (currentState != State.CLOSING) {
+        if (currentState != State.CLOSING && currentState != State.PRE_CLOSING) {
             Texture imgToDraw = null;
             if (currentState == State.INTRO_1 || currentState == State.INTRO_2 || currentState == State.INTRO_3) {
                 // Use ferxxo.png instead of feid.png for the scientist intro
@@ -355,54 +404,99 @@ public class IntroScreen implements Screen {
 
                 game.batch.draw(imgToDraw, imgX, imgY, imgW, imgH);
 
-                // JIGGLYPUFF Logic (Intro 2)
-                if (currentState == State.INTRO_2 && jigglyPoses != null) {
-                    TextureRegion currentFrame = jigglyPoses.getKeyFrame(jigglyStateTime, true);
+                // JIGGLYPUFF Logic (Intro 2 & 3)
+                if ((currentState == State.INTRO_2 || currentState == State.INTRO_3) && jigglyPoses != null) {
+                    TextureRegion jigFrame = jigglyPoses.getKeyFrame(jigglyStateTime, true);
 
-                    float jW = 60; // "Pequeñito" (Smaller)
-                    // Keep aspect ratio
-                    float ratio = (float) currentFrame.getRegionHeight() / currentFrame.getRegionWidth();
+                    float jW = 60;
+                    float ratio = (float) jigFrame.getRegionHeight() / jigFrame.getRegionWidth();
                     float jH = jW * ratio;
 
-                    // Position on "Right Hand" (Viewer's Left)
-                    float jX = imgX + imgW * -0.02f; // Even more to the left
-                    float jY = imgY + imgH * 0.62f; // Higher up
+                    float jX = imgX + imgW * -0.02f;
+                    float jY = imgY + imgH * 0.62f;
 
-                    game.batch.draw(currentFrame, jX, jY, jW, jH);
+                    game.batch.draw(jigFrame, jX, jY, jW, jH);
                 }
             }
-        } else {
-            // CLOSING STATE - SPLIT VIEW within Viewport
-            Texture playerImg = isMale ? protaMasc : protaFem;
+        } else if (currentState == State.PRE_CLOSING) {
+            // PRE_CLOSING: Show both Feid and Protagonist side by side
             float availableH = vpH - TEXT_BOX_HEIGHT - 20;
 
-            if (playerImg != null) {
-                float imgH = availableH * 0.9f;
-                float scale = imgH / playerImg.getHeight();
-                float imgW = playerImg.getWidth() * scale;
+            // Draw Protagonist on the left
+            Texture protaImg = isMale ? protaMasc : protaFem;
+            if (protaImg != null) {
+                float imgScale = (protaImg.getHeight() > availableH) ? availableH / protaImg.getHeight() : 1.0f;
+                if (protaImg.getHeight() * 1.2f <= availableH)
+                    imgScale = 1.2f;
 
+                float imgW = protaImg.getWidth() * imgScale;
+                float imgH = protaImg.getHeight() * imgScale;
                 float imgX = vpX + (vpW / 4f) - imgW / 2f;
                 float imgY = vpY + TEXT_BOX_HEIGHT + 10;
-                game.batch.draw(playerImg, imgX, imgY, imgW, imgH);
+
+                game.batch.draw(protaImg, imgX, imgY, imgW, imgH);
             }
 
-            // CLOSING: Use Feid Image
-            Texture profImg = feidImage;
-            if (profImg != null) {
-                // FERXXO BIGGER
-                // Original scale was matching player. Now we force it bigger.
-                // Let's use 1.2x height of player or max available height
-                float imgH = availableH * 1.0f; // Use full available height
-                float scale = imgH / profImg.getHeight();
-                float imgW = profImg.getWidth() * scale;
+            // Draw Feid on the right
+            if (feidImage != null) {
+                float imgScale = (feidImage.getHeight() > availableH) ? availableH / feidImage.getHeight() : 1.0f;
+                if (feidImage.getHeight() * 1.2f <= availableH)
+                    imgScale = 1.2f;
 
-                // Allow it to slightly overlap top if needed or just fit tight
-
+                float imgW = feidImage.getWidth() * imgScale;
+                float imgH = feidImage.getHeight() * imgScale;
                 float imgX = vpX + (vpW * 3f / 4f) - imgW / 2f;
                 float imgY = vpY + TEXT_BOX_HEIGHT + 10;
 
-                game.batch.draw(profImg, imgX, imgY, imgW, imgH);
+                game.batch.draw(feidImage, imgX, imgY, imgW, imgH);
             }
+        } else {
+            // CLOSING STATE - Interactive Movement within Green Viewport
+            game.batch.end();
+            shapeRenderer.setProjectionMatrix(game.batch.getProjectionMatrix());
+            shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+            shapeRenderer.setColor(0.4f, 0.7f, 0.4f, 1f); // Green background
+            shapeRenderer.rect(vpX, vpY + TEXT_BOX_HEIGHT, vpW, vpH - TEXT_BOX_HEIGHT);
+            shapeRenderer.end();
+            game.batch.begin();
+
+            float availableH = vpH - TEXT_BOX_HEIGHT - 20;
+            isPlayerMoving = false;
+
+            if (Gdx.input.isKeyPressed(Input.Keys.LEFT) || Gdx.input.isKeyPressed(Input.Keys.A)) {
+                playerPosX -= playerSpeed * delta;
+                playerCurrentFrame = playerWalkLeft.getKeyFrame(playerAnimTime, true);
+                isPlayerMoving = true;
+            } else if (Gdx.input.isKeyPressed(Input.Keys.RIGHT) || Gdx.input.isKeyPressed(Input.Keys.D)) {
+                playerPosX += playerSpeed * delta;
+                playerCurrentFrame = playerWalkRight.getKeyFrame(playerAnimTime, true);
+                isPlayerMoving = true;
+            } else if (Gdx.input.isKeyPressed(Input.Keys.UP) || Gdx.input.isKeyPressed(Input.Keys.W)) {
+                playerPosY += playerSpeed * delta;
+                playerCurrentFrame = playerWalkUp.getKeyFrame(playerAnimTime, true);
+                isPlayerMoving = true;
+            } else if (Gdx.input.isKeyPressed(Input.Keys.DOWN) || Gdx.input.isKeyPressed(Input.Keys.S)) {
+                playerPosY -= playerSpeed * delta;
+                playerCurrentFrame = playerWalkDown.getKeyFrame(playerAnimTime, true);
+                isPlayerMoving = true;
+            }
+
+            if (isPlayerMoving) {
+                playerAnimTime += delta;
+            } else {
+                playerAnimTime = 0;
+            }
+
+            // Draw Animated Player
+            if (playerCurrentFrame != null) {
+                float imgH = availableH * 0.9f;
+                float scale = imgH / playerCurrentFrame.getRegionHeight();
+                float imgW = playerCurrentFrame.getRegionWidth() * scale;
+
+                game.batch.draw(playerCurrentFrame, playerPosX - imgW / 2f, playerPosY, imgW, imgH);
+            }
+
+            // CLOSING: No Professor (Professor leaves)
         }
 
         game.batch.end();
@@ -504,6 +598,11 @@ public class IntroScreen implements Screen {
 
                 game.font.setColor(Color.BLACK);
                 break;
+            case PRE_CLOSING:
+                currentText = String.format(
+                        "¡Ah, listo! Un gusto conocerte, %s. ¡Vea pues, que te espera un mundo de aventuras bien chimbas! ¡Vacílala, nea!",
+                        playerName);
+                break;
             case CLOSING:
                 currentText = String.format(TEXT_CLOSING_FMT, playerName);
                 break;
@@ -527,18 +626,17 @@ public class IntroScreen implements Screen {
         }
 
         // Helper Text
-        if (currentState != State.CLOSING) {
-            game.font.getData().setScale(0.9f);
-            game.font.setColor(Color.WHITE); // White text on Frame might look better or use Black if on UI
-            // Frame art usually has dark area? Or just draw simple text at bottom of
-            // Viewport
-            game.font.setColor(Color.BLACK);
-            game.font.draw(game.batch, "NEXT (->)   BACK (<-)", boxX, boxY - 10);
+        game.font.getData().setScale(0.9f);
+        game.font.setColor(Color.BLACK);
+        String helper;
+        if (currentState == State.CLOSING) {
+            helper = "MOVE (ARROWS/WASD)   START (ENTER)";
+        } else if (currentState == State.PRE_CLOSING) {
+            helper = "CONTINUE (ENTER / ->)   BACK (<-)";
         } else {
-            game.font.getData().setScale(0.9f);
-            game.font.setColor(Color.BLACK);
-            game.font.draw(game.batch, "PRESS ENTER TO START", boxX, boxY - 10);
+            helper = "NEXT (->)   BACK (<-)";
         }
+        game.font.draw(game.batch, helper, boxX, boxY - 10);
 
         game.batch.end();
 
@@ -600,5 +698,10 @@ public class IntroScreen implements Screen {
             protaMasc.dispose();
         if (frameTexture != null)
             frameTexture.dispose();
+        if (playerMascSheet != null)
+            playerMascSheet.dispose();
+        if (playerFemSheet != null)
+            playerFemSheet.dispose();
     }
+
 }
