@@ -7,6 +7,8 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Animation;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Align;
@@ -29,10 +31,16 @@ public class ColorSelectionScreen implements Screen {
     private Texture ferxxoImage;
     private Texture jigglypuffImage;
     private Texture protaFem, protaMasc;
+    private Texture frameTexture; // New Frame
 
     // Layout constants
-    private static final float BORDER_WIDTH = 40f;
-    private static final float TEXT_BOX_HEIGHT = 150f;
+    // Viewport relative to screen size (Estimated from image)
+    private static final float VP_X_PCT = 0.185f;
+    private static final float VP_Y_PCT = 0.19f;
+    private static final float VP_W_PCT = 0.63f;
+    private static final float VP_H_PCT = 0.62f; // Bottom padding slightly larger
+
+    private static final float TEXT_BOX_HEIGHT = 140f;
 
     // Dialogue Texts
     private static final String TEXT_1 = "¡Epaaa, qué más pues, mor! Bienvenido a la región 'One Ferxxo', el lugar más hito de todos.";
@@ -46,7 +54,10 @@ public class ColorSelectionScreen implements Screen {
 
     // Timer for blink effects
     private float stateTime = 0;
-    private float jigglyTimer = 0;
+
+    // Jigglypuff Animation
+    private Animation<TextureRegion> jigglyPoses;
+    private float jigglyStateTime = 0;
 
     // Name Entry Cursor
     private int caretPosition = 0;
@@ -60,18 +71,56 @@ public class ColorSelectionScreen implements Screen {
             feidImage = new Texture("feid.png");
             ferxxoImage = new Texture("ferxxo.png");
             jigglypuffImage = new Texture("Jigglypuff.png");
+
+            // Fix: Set Nearest filter to prevent blurring/bleeding
+            jigglypuffImage.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
+
+            // Split Jigglypuff (4x4)
+            TextureRegion[][] tmp = TextureRegion.split(jigglypuffImage,
+                    jigglypuffImage.getWidth() / 4,
+                    jigglypuffImage.getHeight() / 4);
+
+            // Flatten frames for "posing" animation and apply TRIM (Inset)
+            TextureRegion[] poseFrames = new TextureRegion[16];
+            int index = 0;
+            for (int i = 0; i < 4; i++) {
+                for (int j = 0; j < 4; j++) {
+                    // Apply a specific "Trim" or Inset to remove messy edges/whitespace
+                    // We take the split cell and shave off pixels from edges
+                    TextureRegion cell = tmp[i][j];
+                    int inset = 2; // Trim 2 pixels from each side
+                    if (cell.getRegionWidth() > 4 && cell.getRegionHeight() > 4) {
+                        poseFrames[index++] = new TextureRegion(cell, inset, inset,
+                                cell.getRegionWidth() - inset * 2,
+                                cell.getRegionHeight() - inset * 2);
+                    } else {
+                        poseFrames[index++] = cell; // Fallback if too small
+                    }
+                }
+            }
+            // Slower animation for poses (0.8s per pose)
+            jigglyPoses = new Animation<>(0.8f, poseFrames);
+
             protaFem = new Texture("ProtaFem.png");
             protaMasc = new Texture("ProtaMasc.png");
+            frameTexture = new Texture("marcoPokemon.png");
         } catch (Exception e) {
             Gdx.app.log("ColorSelectionScreen", "Could not load assets", e);
         }
 
         // Initialize button positions
-        float centerX = Gdx.graphics.getWidth() / 2f;
-        float centerY = Gdx.graphics.getHeight() / 2f;
+        float sysW = Gdx.graphics.getWidth();
+        float sysH = Gdx.graphics.getHeight();
 
-        // Gender Menu Box (Right side, like FireRed)
-        genderMenuBounds = new Rectangle(Gdx.graphics.getWidth() - BORDER_WIDTH - 220, centerY - 50, 200, 120);
+        // Calculate Viewport
+        float vpX = sysW * VP_X_PCT;
+        float vpY = sysH * VP_Y_PCT; // Bottom Y start
+        float vpW = sysW * VP_W_PCT;
+        float vpH = sysH * VP_H_PCT;
+
+        // Gender Menu Box (Right side of specific viewport)
+        // Position relative to viewport
+        genderMenuBounds = new Rectangle(vpX + vpW - 210, vpY + vpH / 2 - 60, 200, 120);
 
         // Setup Input Processor for typing and navigation
         Gdx.input.setInputProcessor(new InputAdapter() {
@@ -105,7 +154,7 @@ public class ColorSelectionScreen implements Screen {
             @Override
             public boolean keyDown(int keycode) {
                 if (currentState == State.CLOSING) {
-                    if (keycode == Input.Keys.RIGHT) {
+                    if (keycode == Input.Keys.ENTER) {
                         startGame();
                         return true;
                     }
@@ -198,7 +247,6 @@ public class ColorSelectionScreen implements Screen {
         switch (currentState) {
             case INTRO_1:
                 currentState = State.INTRO_2;
-                jigglyTimer = 0;
                 break;
             case INTRO_2:
                 currentState = State.INTRO_3;
@@ -258,79 +306,117 @@ public class ColorSelectionScreen implements Screen {
     @Override
     public void render(float delta) {
         stateTime += delta;
-        jigglyTimer += delta;
+        jigglyStateTime += delta;
 
-        Gdx.gl.glClearColor(0.85f, 0.9f, 0.9f, 1);
+        Gdx.gl.glClearColor(1f, 1f, 1f, 1); // White background
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
 
+        float sysW = Gdx.graphics.getWidth();
+        float sysH = Gdx.graphics.getHeight();
+
+        // Calculate Viewport
+        float vpX = sysW * VP_X_PCT;
+        float vpY = sysH * VP_Y_PCT;
+        float vpW = sysW * VP_W_PCT;
+        float vpH = sysH * VP_H_PCT;
+
         game.batch.begin();
 
-        // STANDARD IMAGES LOGIC
+        // DRAW FRAME (FULL SCREEN)
+        if (frameTexture != null) {
+            game.batch.draw(frameTexture, 0, 0, sysW, sysH);
+        }
+
+        // Draw Content within Viewport
         if (currentState != State.CLOSING) {
             Texture imgToDraw = null;
             if (currentState == State.INTRO_1 || currentState == State.INTRO_2 || currentState == State.INTRO_3) {
-                imgToDraw = feidImage;
+                // Use ferxxo.png instead of feid.png for the scientist intro
+                imgToDraw = ferxxoImage;
             } else if (currentState == State.SELECT_GENDER || currentState == State.ASK_NAME
                     || currentState == State.ENTER_NAME) {
                 imgToDraw = isMale ? protaMasc : protaFem;
             }
 
             if (imgToDraw != null) {
-                float imgW = 400;
-                float scale = imgW / imgToDraw.getWidth();
-                float imgH = imgToDraw.getHeight() * scale;
-                float imgX = (Gdx.graphics.getWidth() - imgW) / 2;
-                float imgY = (Gdx.graphics.getHeight() - imgH) / 2 + 50;
+                float availableH = vpH - TEXT_BOX_HEIGHT - 20; // Space above Text Box
+                float imgScale = 0;
+
+                // Scale to fit available height properly
+                if (imgToDraw.getHeight() > availableH) {
+                    imgScale = availableH / imgToDraw.getHeight();
+                } else {
+                    imgScale = 1.0f;
+                    // Scale Up Ferxxo (Scientist) slightly more if space allows
+                    if (imgToDraw == ferxxoImage) {
+                        if (imgToDraw.getHeight() * 1.5f <= availableH)
+                            imgScale = 1.5f;
+                        else
+                            imgScale = availableH / imgToDraw.getHeight(); // fallback
+                    } else {
+                        if (imgToDraw.getHeight() * 1.5f <= availableH)
+                            imgScale = 1.5f;
+                    }
+                }
+
+                float imgW = imgToDraw.getWidth() * imgScale;
+                float imgH = imgToDraw.getHeight() * imgScale;
+
+                float imgX = vpX + (vpW - imgW) / 2;
+                float imgY = vpY + TEXT_BOX_HEIGHT + 10; // Sit on top of text box area
+
                 game.batch.draw(imgToDraw, imgX, imgY, imgW, imgH);
 
                 // JIGGLYPUFF Logic (Intro 2)
-                if (currentState == State.INTRO_2 && jigglypuffImage != null) {
-                    float t = (jigglyTimer % 1.0f);
-                    float hop = 0;
-                    if (t < 0.5f) {
-                        float jumpT = t * 2;
-                        hop = 70f * (4f * jumpT * (1f - jumpT));
-                    }
+                if (currentState == State.INTRO_2 && jigglyPoses != null) {
+                    TextureRegion currentFrame = jigglyPoses.getKeyFrame(jigglyStateTime, true);
 
-                    float jW = 150;
-                    float jScale = jW / jigglypuffImage.getWidth();
-                    float jH = jigglypuffImage.getHeight() * jScale;
+                    float jW = 60; // "Pequeñito" (Smaller)
+                    // Keep aspect ratio
+                    float ratio = (float) currentFrame.getRegionHeight() / currentFrame.getRegionWidth();
+                    float jH = jW * ratio;
 
-                    float jX = imgX + imgW - 80;
-                    float jY = imgY + hop;
+                    // Position on "Right Hand" (Viewer's Left)
+                    float jX = imgX + imgW * -0.02f; // Even more to the left
+                    float jY = imgY + imgH * 0.62f; // Higher up
 
-                    game.batch.draw(jigglypuffImage, jX, jY, jW, jH);
+                    game.batch.draw(currentFrame, jX, jY, jW, jH);
                 }
             }
         } else {
-            // CLOSING STATE - SPLIT VIEW
+            // CLOSING STATE - SPLIT VIEW within Viewport
             Texture playerImg = isMale ? protaMasc : protaFem;
+            float availableH = vpH - TEXT_BOX_HEIGHT - 20;
+
             if (playerImg != null) {
-                float imgW = 300;
-                float scale = imgW / playerImg.getWidth();
-                float imgH = playerImg.getHeight() * scale;
-                float imgX = Gdx.graphics.getWidth() / 4f - imgW / 2;
-                float imgY = (Gdx.graphics.getHeight() - imgH) / 2 + 50;
+                float imgH = availableH * 0.9f;
+                float scale = imgH / playerImg.getHeight();
+                float imgW = playerImg.getWidth() * scale;
+
+                float imgX = vpX + (vpW / 4f) - imgW / 2f;
+                float imgY = vpY + TEXT_BOX_HEIGHT + 10;
                 game.batch.draw(playerImg, imgX, imgY, imgW, imgH);
             }
 
-            if (ferxxoImage != null) {
-                float imgW = 300;
-                float scale = imgW / ferxxoImage.getWidth();
-                float imgH = ferxxoImage.getHeight() * scale;
-                float imgX = (Gdx.graphics.getWidth() * 3f / 4f) - imgW / 2;
-                float imgY = (Gdx.graphics.getHeight() - imgH) / 2 + 50;
-                game.batch.draw(ferxxoImage, imgX, imgY, imgW, imgH);
-            } else if (feidImage != null) {
-                float imgW = 300;
-                float scale = imgW / feidImage.getWidth();
-                float imgH = feidImage.getHeight() * scale;
-                float imgX = (Gdx.graphics.getWidth() * 3f / 4f) - imgW / 2;
-                float imgY = (Gdx.graphics.getHeight() - imgH) / 2 + 50;
-                game.batch.draw(feidImage, imgX, imgY, imgW, imgH);
+            // CLOSING: Use Feid Image
+            Texture profImg = feidImage;
+            if (profImg != null) {
+                // FERXXO BIGGER
+                // Original scale was matching player. Now we force it bigger.
+                // Let's use 1.2x height of player or max available height
+                float imgH = availableH * 1.0f; // Use full available height
+                float scale = imgH / profImg.getHeight();
+                float imgW = profImg.getWidth() * scale;
+
+                // Allow it to slightly overlap top if needed or just fit tight
+
+                float imgX = vpX + (vpW * 3f / 4f) - imgW / 2f;
+                float imgY = vpY + TEXT_BOX_HEIGHT + 10;
+
+                game.batch.draw(profImg, imgX, imgY, imgW, imgH);
             }
         }
 
@@ -339,23 +425,20 @@ public class ColorSelectionScreen implements Screen {
         shapeRenderer.setProjectionMatrix(game.batch.getProjectionMatrix());
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 
-        // 1. Draw Background Borders (Orange)
-        shapeRenderer.setColor(new Color(0.9f, 0.5f, 0.1f, 1f));
-        shapeRenderer.rect(0, 0, BORDER_WIDTH, Gdx.graphics.getHeight());
-        shapeRenderer.rect(Gdx.graphics.getWidth() - BORDER_WIDTH, 0, BORDER_WIDTH, Gdx.graphics.getHeight());
+        // REMOVED ORANGE BORDERS (Background is handled by Frame Texture now)
 
-        // 2. Text Box with Rounded Corners
-        float boxX = BORDER_WIDTH + 10;
-        float boxY = 10;
-        float boxW = Gdx.graphics.getWidth() - (BORDER_WIDTH * 2) - 20;
+        // 2. Text Box with Rounded Corners (Inside Viewport)
+        float boxX = vpX + 10;
+        float boxY = vpY + 10;
+        float boxW = vpW - 20;
         float boxH = TEXT_BOX_HEIGHT;
 
         drawRoundedRect(boxX, boxY, boxW, boxH, 20f, new Color(0.3f, 0.5f, 0.6f, 1f)); // Frame
         drawRoundedRect(boxX + 6, boxY + 6, boxW - 12, boxH - 12, 16f, new Color(0.95f, 1.0f, 1.0f, 1f)); // Inner
 
-        // 2.5 Name Tag "Profesor Ferxxo" - WHITE BG
-        float nameTagW = 300;
-        float nameTagH = 60;
+        // 2.5 Name Tag "Profesor Ferxxo"
+        float nameTagW = 220;
+        float nameTagH = 50;
         float nameTagX = boxX;
         float nameTagY = boxY + boxH - 5;
         drawRoundedRect(nameTagX, nameTagY, nameTagW, nameTagH, 10f, new Color(0.3f, 0.5f, 0.6f, 1f)); // Frame
@@ -365,7 +448,7 @@ public class ColorSelectionScreen implements Screen {
         if (currentState == State.SELECT_GENDER) {
             drawRoundedRect(genderMenuBounds.x, genderMenuBounds.y, genderMenuBounds.width, genderMenuBounds.height,
                     10f, Color.WHITE);
-            // Draw Border (manual approx - FireRed styling)
+            // Draw Border
             shapeRenderer.setColor(new Color(0.8f, 0.2f, 0.2f, 1f));
             float b = 4f;
             shapeRenderer.rect(genderMenuBounds.x, genderMenuBounds.y, genderMenuBounds.width, b);
@@ -384,12 +467,10 @@ public class ColorSelectionScreen implements Screen {
             shapeRenderer.rect(lineX, lineY, 400, 3);
         }
 
-        // 5. Red Arrow Indicator (Blinking) - For Next logic
-        // Show in closing too (instead of button)
+        // 5. Red Arrow Indicator
         if (stateTime % 1.0f > 0.5f) {
             if (currentState != State.ENTER_NAME) {
-                // Standard arrow
-                shapeRenderer.setColor(new Color(0.8f, 0.1f, 0.1f, 1f)); // Darker Red
+                shapeRenderer.setColor(new Color(0.8f, 0.1f, 0.1f, 1f));
                 float arrowSize = 15f;
                 float arrowX = boxX + boxW - 40;
                 float arrowY = boxY + 30;
@@ -403,15 +484,15 @@ public class ColorSelectionScreen implements Screen {
         // 6. Text Rendering
         game.batch.begin();
 
-        // Name Tag Text - BLACK
+        // Name Tag Text
         game.font.setColor(Color.BLACK);
-        game.font.getData().setScale(1.4f);
+        game.font.getData().setScale(1.2f);
         game.font.draw(game.batch, "Profesor Ferxxo", nameTagX, nameTagY + nameTagH / 2 + 10, nameTagW, Align.center,
                 false);
 
-        // Main Text - BLACK
+        // Main Text
         game.font.setColor(Color.BLACK);
-        game.font.getData().setScale(1.6f);
+        game.font.getData().setScale(1.3f); // Slightly smaller to fit frame
 
         float textX = boxX + 40;
         float textY = boxY + boxH - 40;
@@ -434,7 +515,7 @@ public class ColorSelectionScreen implements Screen {
                 break;
             case ENTER_NAME:
                 currentText = TEXT_NAME_Q;
-                // Draw entered name with caret logic
+                // Draw entered name
                 float nameY = boxY + 80;
                 float nameX = boxX + 110;
 
@@ -456,7 +537,6 @@ public class ColorSelectionScreen implements Screen {
                 break;
         }
 
-        // Wrap main text
         game.font.draw(game.batch, currentText, textX, textY, textWidth, Align.left, true);
 
         // Gender Menu Text
@@ -474,15 +554,18 @@ public class ColorSelectionScreen implements Screen {
             game.font.setColor(Color.BLACK);
         }
 
-        // Helper Text - ARROWS ONLY
+        // Helper Text
         if (currentState != State.CLOSING) {
-            game.font.getData().setScale(1.0f);
+            game.font.getData().setScale(0.9f);
+            game.font.setColor(Color.WHITE); // White text on Frame might look better or use Black if on UI
+            // Frame art usually has dark area? Or just draw simple text at bottom of
+            // Viewport
             game.font.setColor(Color.BLACK);
-            game.font.draw(game.batch, "NEXT (->)   BACK (<-)", boxX, boxY + boxH + 70);
+            game.font.draw(game.batch, "NEXT (->)   BACK (<-)", boxX, boxY - 10);
         } else {
-            game.font.getData().setScale(1.0f);
+            game.font.getData().setScale(0.9f);
             game.font.setColor(Color.BLACK);
-            game.font.draw(game.batch, "NEXT (->)", boxX, boxY + boxH + 70);
+            game.font.draw(game.batch, "PRESS ENTER TO START", boxX, boxY - 10);
         }
 
         game.batch.end();
@@ -543,5 +626,7 @@ public class ColorSelectionScreen implements Screen {
             protaFem.dispose();
         if (protaMasc != null)
             protaMasc.dispose();
+        if (frameTexture != null)
+            frameTexture.dispose();
     }
 }
