@@ -31,7 +31,7 @@ public class IntroScreen implements Screen {
     private Texture ferxxoImage;
     private Texture jigglypuffImage;
     private Texture protaFem, protaMasc;
-    private Texture frameTexture; // New Frame
+    private Texture frameTexture; // Nuevo Marco
 
     // Layout constants
     // Viewport relative to screen size (Estimated from image)
@@ -42,14 +42,14 @@ public class IntroScreen implements Screen {
 
     private static final float TEXT_BOX_HEIGHT = 140f;
 
-    // Dialogue Texts
+    // Textos de Diálogo
     private static final String TEXT_1 = "¡Epaaa, qué más pues, mor! Bienvenido a la región 'One Ferxxo', el lugar más chimba de todos.";
     private static final String TEXT_2 = "Yo soy el Profesor Ferxxo, el que pone a todas estas chimbitas a vacilar. Este mundo está lleno de Pokémon; unos son para parchar y otros para dar lora peleando. Yo me encargo de estudiarlos para que todo esté bien chimba pues.";
     private static final String TEXT_3 = "Pero antes de empezar el vacile... mor, dime, ¿eres un parcero o una parcera? ¡Hágale pues!";
     private static final String TEXT_NAME_Q = "Y dígame mor... ¿cuál es tu nombre, nea?";
     private static final String TEXT_CLOSING_FMT = "¡Ah, listo! Un gusto conocerte, %s. ¡Vea pues, que te espera un mundo de aventuras bien chimbas! ¡Vacílatela, nea!";
 
-    // Buttons/Rectangles (Used for mouse checks, visuals drawn separately)
+    // Botones/Rectángulos (Usados para comprobaciones de ratón, dibujos separados)
     private Rectangle genderMenuBounds;
 
     // Timer for blink effects
@@ -495,8 +495,6 @@ public class IntroScreen implements Screen {
 
                 game.batch.draw(playerCurrentFrame, playerPosX - imgW / 2f, playerPosY, imgW, imgH);
             }
-
-            // CLOSING: No Professor (Professor leaves)
         }
 
         game.batch.end();
@@ -505,7 +503,6 @@ public class IntroScreen implements Screen {
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 
         // REMOVED ORANGE BORDERS (Background is handled by Frame Texture now)
-
         // 2. Text Box with Rounded Corners (Inside Viewport)
         float boxX = vpX + 10;
         float boxY = vpY + 10;
@@ -523,8 +520,7 @@ public class IntroScreen implements Screen {
         drawRoundedRect(nameTagX, nameTagY, nameTagW, nameTagH, 10f, new Color(0.3f, 0.5f, 0.6f, 1f)); // Frame
         drawRoundedRect(nameTagX + 3, nameTagY + 3, nameTagW - 6, nameTagH - 6, 8f, Color.WHITE); // Inner White
 
-        // 3. Gender Selection Menu (Text only, removed buttons)
-
+        // 3. Gender Selection Menu
         // 4. Name Input UI
         if (currentState == State.ENTER_NAME) {
             shapeRenderer.setColor(Color.DARK_GRAY);
