@@ -114,7 +114,7 @@ public class MainMenuScreen implements Screen {
             int target = (click && hoveredOption != -1) ? hoveredOption : currentOption;
 
             if (target == 0) { // PLAY
-                game.setScreen(new ColorSelectionScreen(game));
+                game.setScreen(new IntroScreen(game));
                 dispose();
                 return;
             }

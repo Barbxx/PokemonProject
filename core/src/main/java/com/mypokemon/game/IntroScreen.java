@@ -13,7 +13,7 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Align;
 
-public class ColorSelectionScreen implements Screen {
+public class IntroScreen implements Screen {
     final PokemonMain game;
 
     // States
@@ -43,7 +43,7 @@ public class ColorSelectionScreen implements Screen {
     private static final float TEXT_BOX_HEIGHT = 140f;
 
     // Dialogue Texts
-    private static final String TEXT_1 = "¡Epaaa, qué más pues, mor! Bienvenido a la región 'One Ferxxo', el lugar más hito de todos.";
+    private static final String TEXT_1 = "¡Epaaa, qué más pues, mor! Bienvenido a la región 'One Ferxxo', el lugar más chimba de todos.";
     private static final String TEXT_2 = "Yo soy el Profesor Ferxxo, el que pone a todas estas chimbitas a vacilar. Este mundo está lleno de Pokémon; unos son para parchar y otros para dar lora peleando. Yo me encargo de estudiarlos para que todo esté bien chimba pues.";
     private static final String TEXT_3 = "Pero antes de empezar el vacile... mor, dime, ¿eres un parcero o una parcera? ¡Hágale pues!";
     private static final String TEXT_NAME_Q = "Y dígame mor... ¿cuál es tu nombre, nea?";
@@ -62,7 +62,7 @@ public class ColorSelectionScreen implements Screen {
     // Name Entry Cursor
     private int caretPosition = 0;
 
-    public ColorSelectionScreen(final PokemonMain game) {
+    public IntroScreen(final PokemonMain game) {
         this.game = game;
         this.shapeRenderer = new ShapeRenderer();
         this.currentState = State.INTRO_1;
@@ -105,7 +105,7 @@ public class ColorSelectionScreen implements Screen {
             protaMasc = new Texture("ProtaMasc.png");
             frameTexture = new Texture("marcoPokemon.png");
         } catch (Exception e) {
-            Gdx.app.log("ColorSelectionScreen", "Could not load assets", e);
+            Gdx.app.log("IntroScreen", "Could not load assets", e);
         }
 
         // Initialize button positions
@@ -208,26 +208,11 @@ public class ColorSelectionScreen implements Screen {
 
             @Override
             public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-                float y = Gdx.graphics.getHeight() - screenY;
+                // float y = Gdx.graphics.getHeight() - screenY; // Unused now
 
                 if (currentState == State.CLOSING) {
                     startGame();
                     return true;
-                }
-
-                // Gender Selection Clicks
-                if (currentState == State.SELECT_GENDER) {
-                    float itemHeight = 40;
-                    float menuY = genderMenuBounds.y;
-                    Rectangle chicoRect = new Rectangle(genderMenuBounds.x, menuY + itemHeight, genderMenuBounds.width,
-                            itemHeight);
-                    Rectangle chicaRect = new Rectangle(genderMenuBounds.x, menuY, genderMenuBounds.width, itemHeight);
-
-                    if (chicoRect.contains(screenX, y)) {
-                        isMale = true;
-                    } else if (chicaRect.contains(screenX, y)) {
-                        isMale = false;
-                    }
                 }
 
                 if (currentState == State.ENTER_NAME) {
@@ -444,20 +429,7 @@ public class ColorSelectionScreen implements Screen {
         drawRoundedRect(nameTagX, nameTagY, nameTagW, nameTagH, 10f, new Color(0.3f, 0.5f, 0.6f, 1f)); // Frame
         drawRoundedRect(nameTagX + 3, nameTagY + 3, nameTagW - 6, nameTagH - 6, 8f, Color.WHITE); // Inner White
 
-        // 3. Gender Selection Menu
-        if (currentState == State.SELECT_GENDER) {
-            drawRoundedRect(genderMenuBounds.x, genderMenuBounds.y, genderMenuBounds.width, genderMenuBounds.height,
-                    10f, Color.WHITE);
-            // Draw Border
-            shapeRenderer.setColor(new Color(0.8f, 0.2f, 0.2f, 1f));
-            float b = 4f;
-            shapeRenderer.rect(genderMenuBounds.x, genderMenuBounds.y, genderMenuBounds.width, b);
-            shapeRenderer.rect(genderMenuBounds.x, genderMenuBounds.y + genderMenuBounds.height - b,
-                    genderMenuBounds.width, b);
-            shapeRenderer.rect(genderMenuBounds.x, genderMenuBounds.y, b, genderMenuBounds.height);
-            shapeRenderer.rect(genderMenuBounds.x + genderMenuBounds.width - b, genderMenuBounds.y, b,
-                    genderMenuBounds.height);
-        }
+        // 3. Gender Selection Menu (Text only, removed buttons)
 
         // 4. Name Input UI
         if (currentState == State.ENTER_NAME) {

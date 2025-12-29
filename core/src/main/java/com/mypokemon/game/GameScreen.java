@@ -105,7 +105,7 @@ public class GameScreen implements Screen {
             if (Gdx.input.isKeyJustPressed(Input.Keys.O)) {
                 showInstructions = false;
             } else if (Gdx.input.isKeyJustPressed(Input.Keys.B)) {
-                game.setScreen(new ColorSelectionScreen(game));
+                game.setScreen(new IntroScreen(game));
                 dispose();
                 return;
             }
