@@ -18,7 +18,7 @@ public class GameScreen implements Screen {
     boolean isMoving = false;
 
     // Popup state
-    boolean showInstructions = true;
+    boolean showInstructions = false;
     Texture blackTexture;
 
     float posX = 300;
@@ -111,6 +111,10 @@ public class GameScreen implements Screen {
             }
         } else {
             // Handle Input for Movement (only if not showing instructions)
+            if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
+                Gdx.app.exit();
+            }
+
             if (Gdx.input.isKeyPressed(Input.Keys.A) || Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
                 posX -= speed * delta;
                 currentFrame = walkLeft.getKeyFrame(stateTime, true);
