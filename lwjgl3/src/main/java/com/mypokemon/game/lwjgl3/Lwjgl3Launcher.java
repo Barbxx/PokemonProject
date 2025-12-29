@@ -7,6 +7,7 @@ import com.mypokemon.game.PokemonMain;
 //ESTÚPIDA
 //TU 
 //LOCO
+//me muero
 /** Launches the desktop (LWJGL3) application. */
 public class Lwjgl3Launcher {
     public static void main(String[] args) {
