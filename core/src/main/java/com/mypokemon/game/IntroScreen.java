@@ -185,9 +185,8 @@ public class IntroScreen implements Screen {
                     if (keycode == Input.Keys.LEFT) {
                         if (caretPosition > 0) {
                             caretPosition--;
-                        } else {
-                            goBackState();
                         }
+                        // Removed goBackState() for strict navigation
                         return true;
                     }
                     if (keycode == Input.Keys.RIGHT) {
@@ -226,7 +225,10 @@ public class IntroScreen implements Screen {
                     return true;
                 }
                 if (keycode == Input.Keys.LEFT) {
-                    goBackState();
+                    // Restrict Back Navigation to only Gender Selection
+                    if (currentState == State.SELECT_GENDER) {
+                        goBackState();
+                    }
                     return true;
                 }
 
@@ -476,7 +478,8 @@ public class IntroScreen implements Screen {
         float boxH = TEXT_BOX_HEIGHT;
 
         drawRoundedRect(boxX, boxY, boxW, boxH, 20f, new Color(0.3f, 0.5f, 0.6f, 1f)); // Frame
-        drawRoundedRect(boxX + 6, boxY + 6, boxW - 12, boxH - 12, 16f, new Color(0.95f, 1.0f, 1.0f, 1f)); // Inner
+        drawRoundedRect(boxX + 6, boxY + 6, boxW - 12, boxH - 12, 16f, new Color(0.6f, 0.8f, 1.0f, 1f)); // Inner (Light
+                                                                                                         // Blue)
 
         // 2.5 Name Tag "Profesor Ferxxo"
         float nameTagW = 220;
@@ -613,9 +616,11 @@ public class IntroScreen implements Screen {
         if (currentState == State.CONFIRM_NAME) {
             helper = "SELECT (ARROWS)   CONFIRM (ENTER)";
         } else if (currentState == State.PRE_CLOSING) {
-            helper = "CONTINUE (ENTER / ->)   BACK (<-)";
-        } else {
+            helper = "CONTINUE (ENTER / ->)";
+        } else if (currentState == State.SELECT_GENDER) {
             helper = "NEXT (->)   BACK (<-)";
+        } else {
+            helper = "NEXT (->)";
         }
 
         if (currentState != State.FADE_OUT) {
