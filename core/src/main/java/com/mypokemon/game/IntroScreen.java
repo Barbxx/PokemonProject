@@ -8,7 +8,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
-import com.badlogic.gdx.graphics.g2d.PixmapPacker.Page;
+
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
@@ -19,11 +19,12 @@ public class IntroScreen implements Screen {
 
     // States
     private enum State {
-        INTRO_1, INTRO_2, INTRO_3, SELECT_GENDER, ASK_NAME, ENTER_NAME, CONFIRM_NAME, PRE_CLOSING, CLOSING
+        INTRO_1, INTRO_2, INTRO_3, SELECT_GENDER, ASK_NAME, ENTER_NAME, CONFIRM_NAME, PRE_CLOSING, FADE_OUT
     }
 
     private State currentState;
     private ShapeRenderer shapeRenderer;
+    private float fadeAlpha = 0f;
 
     // Data
     private String playerName = "";
@@ -32,7 +33,9 @@ public class IntroScreen implements Screen {
     private Texture ferxxoImage;
     private Texture jigglypuffImage;
     private Texture protaFem, protaMasc;
+
     private Texture frameTexture; // Nuevo Marco
+    private Texture pokeballImage;
 
     // Layout constants
     // Viewport relative to screen size (Estimated from image)
@@ -63,15 +66,6 @@ public class IntroScreen implements Screen {
     // Name Entry Cursor
     private int caretPosition = 0;
     private boolean isNameConfirmed = true; // For SÍ/NO selection
-
-    // Movement in CLOSING state
-    private Animation<TextureRegion> playerWalkDown, playerWalkUp, playerWalkLeft, playerWalkRight;
-    private float playerPosX, playerPosY;
-    private float playerSpeed = 150f;
-    private TextureRegion playerCurrentFrame;
-    private float playerAnimTime = 0;
-    private boolean isPlayerMoving = false;
-    private Texture playerMascSheet, playerFemSheet;
 
     public IntroScreen(final PokemonMain game) {
         this.game = game;
@@ -115,12 +109,12 @@ public class IntroScreen implements Screen {
             protaFem = new Texture("ProtaFem.png");
             protaMasc = new Texture("ProtaMasc.png");
             frameTexture = new Texture("marcoPokemon.png");
+            pokeballImage = new Texture("pokeball.png");
 
-            // Load Walking Sheets
-            playerMascSheet = new Texture("protagonistaMasculino1.png");
-            playerFemSheet = new Texture("protagonistaFemenino.png");
-            playerMascSheet.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
-            playerFemSheet.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
+            // Overwrite first frame with Pokeball
+            if (poseFrames.length > 0) {
+                poseFrames[0] = new TextureRegion(pokeballImage);
+            }
 
         } catch (Exception e) {
             Gdx.app.log("IntroScreen", "Could not load assets", e);
@@ -216,29 +210,14 @@ public class IntroScreen implements Screen {
                     advanceState();
                     return true;
                 }
-                
 
-                // Supongamos que la página que quieres excluir se llama "MENU_PRINCIPAL"
-                if (currentState != State.CLOSING && currentPage != Page.MENU_PRINCIPAL) {
-                    if (keycode == Input.Keys.RIGHT) {
-                        advanceState();
-                        return true;
-                    }
-                    if (keycode == Input.Keys.LEFT) {
-                        goBackState();
-                        return true;
-                    }
+                if (keycode == Input.Keys.RIGHT) {
+                    advanceState();
+                    return true;
                 }
-                
-                if (currentState != State.CLOSING) {
-                    if (keycode == Input.Keys.RIGHT) {
-                        advanceState();
-                        return true;
-                    }
-                    if (keycode == Input.Keys.LEFT) {
-                        goBackState();
-                        return true;
-                    }
+                if (keycode == Input.Keys.LEFT) {
+                    goBackState();
+                    return true;
                 }
 
                 return false;
@@ -246,17 +225,6 @@ public class IntroScreen implements Screen {
 
             @Override
             public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-                // float y = Gdx.graphics.getHeight() - screenY; // Unused now
-
-                if (currentState == State.CLOSING) {
-                    startGame();
-                    return true;
-                }
-
-                if (currentState == State.ENTER_NAME) {
-                    // No confirm button to click
-                }
-
                 // Default click acts as next
                 if (currentState == State.INTRO_1 || currentState == State.INTRO_2 || currentState == State.INTRO_3) {
                     advanceState();
@@ -270,6 +238,7 @@ public class IntroScreen implements Screen {
         switch (currentState) {
             case INTRO_1:
                 currentState = State.INTRO_2;
+                jigglyStateTime = 0; // Reset animation to show Pokeball first
                 break;
             case INTRO_2:
                 currentState = State.INTRO_3;
@@ -298,38 +267,13 @@ public class IntroScreen implements Screen {
                 }
                 break;
             case PRE_CLOSING:
-                startGame();
+                // Start Fade Out
+                currentState = State.FADE_OUT;
                 break;
-            case CLOSING:
-                startGame();
+            case FADE_OUT:
                 break;
         }
 
-    }
-
-    private void setupPlayerClosing() {
-        float sysW = Gdx.graphics.getWidth();
-        float sysH = Gdx.graphics.getHeight();
-        float vpX = sysW * VP_X_PCT;
-        float vpY = sysH * VP_Y_PCT;
-        float vpW = sysW * VP_W_PCT;
-
-        // Initial Position
-        playerPosX = vpX + (vpW / 4f);
-        playerPosY = vpY + TEXT_BOX_HEIGHT + 10;
-
-        // Setup animations based on isMale
-        Texture sheet = isMale ? playerMascSheet : playerFemSheet;
-        int frameW = sheet.getWidth() / 4;
-        int frameH = sheet.getHeight() / 4;
-        TextureRegion[][] frames = TextureRegion.split(sheet, frameW, frameH);
-
-        playerWalkDown = new Animation<>(0.15f, frames[0]);
-        playerWalkLeft = new Animation<>(0.15f, frames[1]);
-        playerWalkRight = new Animation<>(0.15f, frames[2]);
-        playerWalkUp = new Animation<>(0.15f, frames[3]);
-        playerCurrentFrame = frames[0][0]; // Starting idle frame
-        playerAnimTime = 0;
     }
 
     private void goBackState() {
@@ -355,18 +299,11 @@ public class IntroScreen implements Screen {
             case PRE_CLOSING:
                 currentState = State.CONFIRM_NAME;
                 break;
-            case CLOSING:
-                currentState = State.PRE_CLOSING;
+            case FADE_OUT:
                 break;
             case INTRO_1:
                 break;
         }
-    }
-
-    private void startGame() {
-        String texturePath = isMale ? "protagonistaMasculino1.png" : "protagonistaFemenino.png";
-        game.setScreen(new GameScreen(game, texturePath, 4, 4));
-        dispose();
     }
 
     @Override
@@ -397,7 +334,7 @@ public class IntroScreen implements Screen {
         }
 
         // Draw Content within Viewport
-        if (currentState != State.CLOSING && currentState != State.PRE_CLOSING) {
+        if (currentState != State.PRE_CLOSING && currentState != State.FADE_OUT) {
             Texture imgToDraw = null;
             if (currentState == State.INTRO_1 || currentState == State.INTRO_2 || currentState == State.INTRO_3) {
                 // Use ferxxo.png instead of feid.png for the scientist intro
@@ -439,19 +376,31 @@ public class IntroScreen implements Screen {
                 // JIGGLYPUFF Logic (Intro 2 & 3)
                 if ((currentState == State.INTRO_2 || currentState == State.INTRO_3) && jigglyPoses != null) {
                     TextureRegion jigFrame = jigglyPoses.getKeyFrame(jigglyStateTime, true);
+                    int frameIndex = jigglyPoses.getKeyFrameIndex(jigglyStateTime);
 
                     float jW = 60;
+                    if (frameIndex == 0) {
+                        jW = 45; // Smaller size for Pokeball (was 60)
+                    }
+
                     float ratio = (float) jigFrame.getRegionHeight() / jigFrame.getRegionWidth();
                     float jH = jW * ratio;
 
                     float jX = imgX + imgW * -0.02f;
                     float jY = imgY + imgH * 0.62f;
 
+                    // Centering adjustment for smaller pokeball to align with hand
+                    if (frameIndex == 0) {
+                        jX += (54 - jW) / 2;
+                        jY -= 8; // Move down
+                    }
+
                     game.batch.draw(jigFrame, jX, jY, jW, jH);
                 }
             }
-        } else if (currentState == State.PRE_CLOSING) {
+        } else if (currentState == State.PRE_CLOSING || currentState == State.FADE_OUT) {
             // PRE_CLOSING: Show both Feid and Protagonist side by side
+            // Keep drawing this during FADE_OUT
             float availableH = vpH - TEXT_BOX_HEIGHT - 20;
 
             // Draw Protagonist on the left
@@ -481,51 +430,6 @@ public class IntroScreen implements Screen {
                 float imgY = vpY + TEXT_BOX_HEIGHT + 10;
 
                 game.batch.draw(feidImage, imgX, imgY, imgW, imgH);
-            }
-        } else {
-            // CLOSING STATE - Interactive Movement within Green Viewport
-            game.batch.end();
-            shapeRenderer.setProjectionMatrix(game.batch.getProjectionMatrix());
-            shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-            shapeRenderer.setColor(0.4f, 0.7f, 0.4f, 1f); // Green background
-            shapeRenderer.rect(vpX, vpY + TEXT_BOX_HEIGHT, vpW, vpH - TEXT_BOX_HEIGHT);
-            shapeRenderer.end();
-            game.batch.begin();
-
-            float availableH = vpH - TEXT_BOX_HEIGHT - 20;
-            isPlayerMoving = false;
-
-            if (Gdx.input.isKeyPressed(Input.Keys.LEFT) || Gdx.input.isKeyPressed(Input.Keys.A)) {
-                playerPosX -= playerSpeed * delta;
-                playerCurrentFrame = playerWalkLeft.getKeyFrame(playerAnimTime, true);
-                isPlayerMoving = true;
-            } else if (Gdx.input.isKeyPressed(Input.Keys.RIGHT) || Gdx.input.isKeyPressed(Input.Keys.D)) {
-                playerPosX += playerSpeed * delta;
-                playerCurrentFrame = playerWalkRight.getKeyFrame(playerAnimTime, true);
-                isPlayerMoving = true;
-            } else if (Gdx.input.isKeyPressed(Input.Keys.UP) || Gdx.input.isKeyPressed(Input.Keys.W)) {
-                playerPosY += playerSpeed * delta;
-                playerCurrentFrame = playerWalkUp.getKeyFrame(playerAnimTime, true);
-                isPlayerMoving = true;
-            } else if (Gdx.input.isKeyPressed(Input.Keys.DOWN) || Gdx.input.isKeyPressed(Input.Keys.S)) {
-                playerPosY -= playerSpeed * delta;
-                playerCurrentFrame = playerWalkDown.getKeyFrame(playerAnimTime, true);
-                isPlayerMoving = true;
-            }
-
-            if (isPlayerMoving) {
-                playerAnimTime += delta;
-            } else {
-                playerAnimTime = 0;
-            }
-
-            // Draw Animated Player
-            if (playerCurrentFrame != null) {
-                float imgH = availableH * 0.9f;
-                float scale = imgH / playerCurrentFrame.getRegionHeight();
-                float imgW = playerCurrentFrame.getRegionWidth() * scale;
-
-                game.batch.draw(playerCurrentFrame, playerPosX - imgW / 2f, playerPosY, imgW, imgH);
             }
         }
 
@@ -633,7 +537,7 @@ public class IntroScreen implements Screen {
             case PRE_CLOSING:
                 currentText = String.format(TEXT_CLOSING_FMT, playerName);
                 break;
-            case CLOSING:
+            case FADE_OUT:
                 currentText = String.format(TEXT_CLOSING_FMT, playerName);
                 break;
         }
@@ -676,18 +580,42 @@ public class IntroScreen implements Screen {
         game.font.getData().setScale(0.9f);
         game.font.setColor(Color.BLACK);
         String helper;
-        if (currentState == State.CLOSING) {
-            helper = "MOVE (ARROWS/WASD)   START (ENTER)";
-        } else if (currentState == State.CONFIRM_NAME) {
+        if (currentState == State.CONFIRM_NAME) {
             helper = "SELECT (ARROWS)   CONFIRM (ENTER)";
         } else if (currentState == State.PRE_CLOSING) {
             helper = "CONTINUE (ENTER / ->)   BACK (<-)";
         } else {
             helper = "NEXT (->)   BACK (<-)";
         }
-        game.font.draw(game.batch, helper, boxX, boxY - 10);
+
+        if (currentState != State.FADE_OUT) {
+            game.font.draw(game.batch, helper, boxX, boxY - 10);
+        }
 
         game.batch.end();
+
+        // 7. FADE OUT OVERLAY
+        if (currentState == State.FADE_OUT) {
+            fadeAlpha += delta * 1.0f; // 1 second fade
+            if (fadeAlpha >= 1f) {
+                fadeAlpha = 1f;
+                // Transition directly to GameScreen (Bypassing IntroWalkScreen as requested)
+                String texturePath = isMale ? "protagonistaMasculino1.png" : "protagonistaFemenino.png";
+                game.setScreen(new GameScreen(game, texturePath, 4, 4));
+                dispose();
+                return;
+            }
+
+            Gdx.gl.glEnable(GL20.GL_BLEND);
+            Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+
+            shapeRenderer.setProjectionMatrix(game.batch.getProjectionMatrix());
+            shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+            shapeRenderer.setColor(0, 0, 0, fadeAlpha);
+            shapeRenderer.rect(0, 0, sysW, sysH);
+            shapeRenderer.end();
+            Gdx.gl.glDisable(GL20.GL_BLEND);
+        }
 
         // Reset Font
         game.font.setColor(Color.WHITE);
@@ -747,10 +675,8 @@ public class IntroScreen implements Screen {
             protaMasc.dispose();
         if (frameTexture != null)
             frameTexture.dispose();
-        if (playerMascSheet != null)
-            playerMascSheet.dispose();
-        if (playerFemSheet != null)
-            playerFemSheet.dispose();
+        if (pokeballImage != null)
+            pokeballImage.dispose();
     }
 
 }
