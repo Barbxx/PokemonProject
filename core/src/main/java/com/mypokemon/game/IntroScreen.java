@@ -36,13 +36,15 @@ public class IntroScreen implements Screen {
 
     private Texture frameTexture; // Nuevo Marco
     private Texture pokeballImage;
+    private Texture poofImage;
+    private Animation<TextureRegion> poofAnim;
 
     // Layout constants
     // Viewport relative to screen size (Estimated from image)
-    private static final float VP_X_PCT = 0.185f;
-    private static final float VP_Y_PCT = 0.19f;
-    private static final float VP_W_PCT = 0.63f;
-    private static final float VP_H_PCT = 0.62f; // Bottom padding slightly larger
+    private static final float VP_X_PCT = 0.12f;
+    private static final float VP_Y_PCT = 0.12f;
+    private static final float VP_W_PCT = 0.76f;
+    private static final float VP_H_PCT = 0.76f; // Bottom padding slightly larger
 
     private static final float TEXT_BOX_HEIGHT = 140f;
 
@@ -110,11 +112,19 @@ public class IntroScreen implements Screen {
             protaMasc = new Texture("ProtaMasc.png");
             frameTexture = new Texture("marcoPokemon.png");
             pokeballImage = new Texture("pokeball.png");
+            poofImage = new Texture("poof.png"); // New smoke asset
 
-            // Overwrite first frame with Pokeball
-            if (poseFrames.length > 0) {
-                poseFrames[0] = new TextureRegion(pokeballImage);
+            // Setup Poof Animation (2x2 from sheet)
+            TextureRegion[][] poofTmp = TextureRegion.split(poofImage, poofImage.getWidth() / 2,
+                    poofImage.getHeight() / 2);
+            TextureRegion[] poofFrames = new TextureRegion[4];
+            int pIndex = 0;
+            for (int i = 0; i < 2; i++) {
+                for (int j = 0; j < 2; j++) {
+                    poofFrames[pIndex++] = poofTmp[i][j];
+                }
             }
+            poofAnim = new Animation<>(0.1f, poofFrames); // 0.4s total duration
 
         } catch (Exception e) {
             Gdx.app.log("IntroScreen", "Could not load assets", e);
@@ -264,6 +274,8 @@ public class IntroScreen implements Screen {
                     currentState = State.PRE_CLOSING;
                 } else {
                     currentState = State.ENTER_NAME;
+                    playerName = ""; // Clear name
+                    caretPosition = 0; // Reset cursor
                 }
                 break;
             case PRE_CLOSING:
@@ -355,8 +367,8 @@ public class IntroScreen implements Screen {
                     imgScale = 1.0f;
                     // Scale Up Ferxxo (Scientist) slightly more if space allows
                     if (imgToDraw == ferxxoImage) {
-                        if (imgToDraw.getHeight() * 1.5f <= availableH)
-                            imgScale = 1.5f;
+                        if (imgToDraw.getHeight() * 1.8f <= availableH)
+                            imgScale = 1.8f; // Increased from 1.5f
                         else
                             imgScale = availableH / imgToDraw.getHeight(); // fallback
                     } else {
@@ -375,27 +387,45 @@ public class IntroScreen implements Screen {
 
                 // JIGGLYPUFF Logic (Intro 2 & 3)
                 if ((currentState == State.INTRO_2 || currentState == State.INTRO_3) && jigglyPoses != null) {
-                    TextureRegion jigFrame = jigglyPoses.getKeyFrame(jigglyStateTime, true);
-                    int frameIndex = jigglyPoses.getKeyFrameIndex(jigglyStateTime);
+                    TextureRegion regionToDraw = null;
+                    float drawW = 60f; // Default Jigglypuff size
+                    float drawXOffset = 0.02f;
+                    float drawYOffset = 0.62f;
 
-                    float jW = 60;
-                    if (frameIndex == 0) {
-                        jW = 45; // Smaller size for Pokeball (was 60)
+                    // PHASE 1: Pokeball (0.0 - 0.8s)
+                    if (jigglyStateTime < 0.8f) {
+                        regionToDraw = new TextureRegion(pokeballImage);
+                        drawW = 45f;
+                        // Center Pokeball on hand
+                        drawXOffset = 0f; // Will calculate manually
+                    }
+                    // PHASE 2: Poof (0.8s - 1.2s)
+                    else if (jigglyStateTime < 1.2f) {
+                        regionToDraw = poofAnim.getKeyFrame(jigglyStateTime - 0.8f, false);
+                        drawW = 50f;
+                    }
+                    // PHASE 3: Jigglypuff (1.2s+)
+                    else {
+                        regionToDraw = jigglyPoses.getKeyFrame(jigglyStateTime - 1.2f, true);
                     }
 
-                    float ratio = (float) jigFrame.getRegionHeight() / jigFrame.getRegionWidth();
-                    float jH = jW * ratio;
+                    if (regionToDraw != null) {
+                        float ratio = (float) regionToDraw.getRegionHeight() / regionToDraw.getRegionWidth();
+                        float jH = drawW * ratio;
 
-                    float jX = imgX + imgW * -0.02f;
-                    float jY = imgY + imgH * 0.62f;
+                        float jX = imgX + imgW * drawXOffset;
+                        float jY = imgY + imgH * drawYOffset;
 
-                    // Centering adjustment for smaller pokeball to align with hand
-                    if (frameIndex == 0) {
-                        jX += (54 - jW) / 2;
-                        jY -= 8; // Move down
+                        // Custom Centering for Pokeball & Poof
+                        if (jigglyStateTime < 1.2f) { // Both phases
+                            jX = imgX + imgW * 0.02f + (60 - drawW) / 2; // Center relative to Jigglypuff slot
+                            if (jigglyStateTime < 0.8f) {
+                                jY -= 8; // Pokeball specific offset
+                            }
+                        }
+
+                        game.batch.draw(regionToDraw, jX, jY, drawW, jH);
                     }
-
-                    game.batch.draw(jigFrame, jX, jY, jW, jH);
                 }
             }
         } else if (currentState == State.PRE_CLOSING || currentState == State.FADE_OUT) {
@@ -494,7 +524,7 @@ public class IntroScreen implements Screen {
         game.font.getData().setScale(1.3f); // Slightly smaller to fit frame
 
         float textX = boxX + 40;
-        float textY = boxY + boxH - 40;
+        float textY = boxY + boxH - 30; // Adjusted down slightly (was -20)
         float textWidth = boxW - 80;
 
         String currentText = "";
@@ -561,11 +591,11 @@ public class IntroScreen implements Screen {
 
         // 3.1 Confirmation Menu (SÍ/NO) Text
         if (currentState == State.CONFIRM_NAME) {
-            float menuX = boxX + 610;
+            float menuX = boxX + 680; // Moved right (was 610)
             float menuY = boxY + boxH + 20;
             float menuH = 100;
 
-            game.font.getData().setScale(1.2f);
+            game.font.getData().setScale(1.6f); // Larger text (was 1.2)
             game.font.setColor(Color.BLACK);
             game.font.draw(game.batch, "SÍ", menuX + 40, menuY + menuH - 25);
             game.font.draw(game.batch, "NO", menuX + 40, menuY + 35);
@@ -589,7 +619,7 @@ public class IntroScreen implements Screen {
         }
 
         if (currentState != State.FADE_OUT) {
-            game.font.draw(game.batch, helper, boxX, boxY - 10);
+            game.font.draw(game.batch, helper, boxX + 40, boxY + 30); // Moved RIGHT (was boxX)
         }
 
         game.batch.end();
@@ -677,6 +707,8 @@ public class IntroScreen implements Screen {
             frameTexture.dispose();
         if (pokeballImage != null)
             pokeballImage.dispose();
+        if (poofImage != null)
+            poofImage.dispose();
     }
 
 }
