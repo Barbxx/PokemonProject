@@ -54,8 +54,6 @@ public class GameScreen extends BaseScreen {
     Texture playerSheet;
 
     // UI elements
-    boolean showInstructions = false; // Disabled - player can move immediately
-    Texture blackTexture;
 
     public GameScreen(final PokemonMain game, String texturePath, int cols, int rows, String playerName) {
         super(game);
@@ -202,9 +200,6 @@ public class GameScreen extends BaseScreen {
             createFallback();
         }
 
-        // Create black texture for dim effect
-        blackTexture = TextureUtils.createSolidTexture(1, 1, Color.BLACK);
-
         // Initialize UI projection matrix
         uiMatrix = new com.badlogic.gdx.math.Matrix4().setToOrtho2D(0, 0, 800, 480);
     }
@@ -229,16 +224,7 @@ public class GameScreen extends BaseScreen {
     public void render(float delta) {
         isMoving = false;
 
-        if (showInstructions) {
-            // Logic for instruction popup
-            if (Gdx.input.isKeyJustPressed(Input.Keys.O)) {
-                showInstructions = false;
-            } else if (Gdx.input.isKeyJustPressed(Input.Keys.B)) {
-                game.setScreen(new IntroScreen(game));
-                dispose();
-                return;
-            }
-        } else {
+        {
             // Handle Input for Movement (only if not showing instructions)
             if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
                 Gdx.app.exit();
@@ -336,19 +322,6 @@ public class GameScreen extends BaseScreen {
             }
         }
 
-        // Debug Info
-        if (game.font != null) {
-            game.font.getData().setScale(0.8f);
-            game.font.setColor(com.badlogic.gdx.graphics.Color.YELLOW);
-            String debugMsg = String.format("Pos: %.1f,%.1f | BG: %d", posX, posY,
-                    (backgroundLayers != null ? backgroundLayers.length : 0));
-            game.font.draw(game.batch, debugMsg, posX - 150, posY - 50, 300, com.badlogic.gdx.utils.Align.center,
-                    false);
-
-            // Restaurar matriz de cámara para otros posibles dibujos
-            game.batch.setProjectionMatrix(camera.combined);
-        }
-
         game.batch.end();
 
         // Render top layer above player (Objetos_superiores)
@@ -359,19 +332,6 @@ public class GameScreen extends BaseScreen {
         // Draw HUD in screen coordinates (800x480 virtual resolution)
         game.batch.setProjectionMatrix(uiMatrix);
 
-        // Instruction Overlay
-        if (showInstructions) {
-            game.batch.begin();
-            game.batch.setColor(0, 0, 0, 0.8f);
-            game.batch.draw(blackTexture, 0, 0, 800, 480);
-            game.batch.setColor(Color.WHITE);
-            if (game.font != null) {
-                game.font.draw(game.batch, "PRESS 'O' TO CONTINUE", 400 - 70, 240 + 20);
-                game.font.draw(game.batch, "PRESS 'B' TO GO BACK", 400 - 70, 240 - 20);
-            }
-            game.batch.end();
-            game.batch.setColor(Color.WHITE); // Reset color for safety
-        }
     }
 
     private int getIntProperty(com.badlogic.gdx.maps.MapProperties props, String key, int defaultValue) {
@@ -434,8 +394,6 @@ public class GameScreen extends BaseScreen {
     public void dispose() {
         if (playerSheet != null)
             playerSheet.dispose();
-        if (blackTexture != null)
-            blackTexture.dispose();
         if (map != null)
             map.dispose();
         if (mapRenderer != null)

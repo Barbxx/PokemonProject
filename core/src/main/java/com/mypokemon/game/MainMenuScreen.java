@@ -133,12 +133,9 @@ public class MainMenuScreen extends BaseScreen {
         }
 
         if (isStarting) {
-            fadeAlpha += delta * 1.5f;
-            if (fadeAlpha >= 1f) {
-                game.setScreen(new IntroScreen(game));
-                dispose();
-                return;
-            }
+            game.setScreen(new IntroScreen(game));
+            dispose();
+            return;
         }
 
         // --- 2. Draw Logic ---
