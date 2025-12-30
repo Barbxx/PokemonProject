@@ -344,6 +344,9 @@ public class GameScreen extends BaseScreen {
                     (backgroundLayers != null ? backgroundLayers.length : 0));
             game.font.draw(game.batch, debugMsg, posX - 150, posY - 50, 300, com.badlogic.gdx.utils.Align.center,
                     false);
+
+            // Restaurar matriz de cámara para otros posibles dibujos
+            game.batch.setProjectionMatrix(camera.combined);
         }
 
         game.batch.end();
