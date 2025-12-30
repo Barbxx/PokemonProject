@@ -3,7 +3,7 @@
         <editorsettings>
             <export target="Tilesets_logica.tsx" format="tsx" />
         </editorsettings>
-        <image source="../Tilesets_Pokemon/pokemon_tileset_from_public_tiles_32x32_by_chaoticcherrycake_dab2byf.png" width="256" height="20832" />
+        <image source="Tilesets.png" width="256" height="20832" />
         <tile id="8">
             <properties>
                 <property name="Colision" type="bool" value="true" />

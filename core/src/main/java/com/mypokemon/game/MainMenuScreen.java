@@ -2,15 +2,14 @@ package com.mypokemon.game;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
+import com.mypokemon.game.utils.BaseScreen;
 
-public class MainMenuScreen implements Screen {
+public class MainMenuScreen extends BaseScreen {
 
-    final PokemonMain game;
     Texture background;
 
     // Arrays to hold textures for each option [0]=Play, [1]=Profile, etc.
@@ -23,13 +22,16 @@ public class MainMenuScreen implements Screen {
     String[] filePrefixes = { "boton_jugar", "boton_perfil", "boton_ayuda", "boton_acercade" };
 
     int currentOption = -1;
+    float fadeAlpha = 0f;
+    boolean isStarting = false;
+    String currentSubScreen = null; // null, "PROFILE", "HELP", "ABOUT"
 
     // Layout constants
     float menuBoxWidth = 370;
     float menuBoxHeight = 260;
 
     public MainMenuScreen(final PokemonMain game) {
-        this.game = game;
+        super(game);
 
         try {
             background = new Texture("menu_bg.jpg");
@@ -114,11 +116,29 @@ public class MainMenuScreen implements Screen {
             int target = (click && hoveredOption != -1) ? hoveredOption : currentOption;
 
             if (target == 0) { // PLAY
+                isStarting = true;
+            } else if (target == 1) {
+                currentSubScreen = "PROFILE";
+            } else if (target == 2) {
+                currentSubScreen = "HELP";
+            } else if (target == 3) {
+                currentSubScreen = "ABOUT";
+            }
+        }
+
+        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE) || Gdx.input.isKeyJustPressed(Input.Keys.BACKSPACE)) {
+            if (currentSubScreen != null) {
+                currentSubScreen = null;
+            }
+        }
+
+        if (isStarting) {
+            fadeAlpha += delta * 1.5f;
+            if (fadeAlpha >= 1f) {
                 game.setScreen(new IntroScreen(game));
                 dispose();
                 return;
             }
-            // Add other cases here
         }
 
         // --- 2. Draw Logic ---
@@ -161,27 +181,28 @@ public class MainMenuScreen implements Screen {
                 game.font.draw(game.batch, layout, textX, textY);
             }
         }
+
+        if (currentSubScreen != null) {
+            game.batch.setColor(0, 0, 0, 0.8f);
+            game.batch.draw(selectedTextures[0], 50, 50, screenWidth - 100, screenHeight - 100); // Use any texture for
+                                                                                                 // bg
+            game.batch.setColor(Color.WHITE);
+            game.font.getData().setScale(1.5f);
+            game.font.draw(game.batch, "SCREEN: " + currentSubScreen, 0, screenHeight / 2 + 20, screenWidth,
+                    com.badlogic.gdx.utils.Align.center, false);
+            game.font.getData().setScale(1.0f);
+            game.font.draw(game.batch, "PRESS ESC TO GO BACK", 0, screenHeight / 2 - 40, screenWidth,
+                    com.badlogic.gdx.utils.Align.center, false);
+        }
+
+        if (fadeAlpha > 0) {
+            game.batch.setColor(0, 0, 0, fadeAlpha);
+            // Draw a black rectangle using a small texture stretched
+            game.batch.draw(selectedTextures[0], 0, 0, screenWidth, screenHeight);
+            game.batch.setColor(Color.WHITE);
+        }
+
         game.batch.end();
-    }
-
-    @Override
-    public void resize(int width, int height) {
-    }
-
-    @Override
-    public void show() {
-    }
-
-    @Override
-    public void hide() {
-    }
-
-    @Override
-    public void pause() {
-    }
-
-    @Override
-    public void resume() {
     }
 
     @Override

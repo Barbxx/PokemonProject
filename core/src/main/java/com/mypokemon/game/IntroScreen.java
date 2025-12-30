@@ -3,19 +3,18 @@ package com.mypokemon.game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputAdapter;
-import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
-
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Align;
+import com.mypokemon.game.utils.BaseScreen;
+import com.mypokemon.game.utils.RenderUtils;
 
-public class IntroScreen implements Screen {
-    final PokemonMain game;
+public class IntroScreen extends BaseScreen {
 
     // States
     private enum State {
@@ -70,7 +69,7 @@ public class IntroScreen implements Screen {
     private boolean isNameConfirmed = true; // For SÍ/NO selection
 
     public IntroScreen(final PokemonMain game) {
-        this.game = game;
+        super(game);
         this.shapeRenderer = new ShapeRenderer();
         this.currentState = State.INTRO_1;
 
@@ -267,7 +266,7 @@ public class IntroScreen implements Screen {
                 break;
             case ENTER_NAME:
                 if (playerName.trim().isEmpty())
-                    playerName = "FerxxoFan";
+                    playerName = "Directioner";
                 currentState = State.CONFIRM_NAME;
                 isNameConfirmed = true; // Default to SÍ
                 break;
@@ -477,17 +476,19 @@ public class IntroScreen implements Screen {
         float boxW = vpW - 20;
         float boxH = TEXT_BOX_HEIGHT;
 
-        drawRoundedRect(boxX, boxY, boxW, boxH, 20f, new Color(0.3f, 0.5f, 0.6f, 1f)); // Frame
-        drawRoundedRect(boxX + 6, boxY + 6, boxW - 12, boxH - 12, 16f, new Color(0.6f, 0.8f, 1.0f, 1f)); // Inner (Light
-                                                                                                         // Blue)
+        RenderUtils.drawRoundedRect(shapeRenderer, boxX, boxY, boxW, boxH, 20f, new Color(0.3f, 0.5f, 0.6f, 1f)); // Frame
+        RenderUtils.drawRoundedRect(shapeRenderer, boxX + 6, boxY + 6, boxW - 12, boxH - 12, 16f,
+                new Color(0.6f, 0.8f, 1.0f, 1f)); // Inner (Light Blue)
 
         // 2.5 Name Tag "Profesor Ferxxo"
         float nameTagW = 220;
         float nameTagH = 50;
         float nameTagX = boxX;
         float nameTagY = boxY + boxH - 5;
-        drawRoundedRect(nameTagX, nameTagY, nameTagW, nameTagH, 10f, new Color(0.3f, 0.5f, 0.6f, 1f)); // Frame
-        drawRoundedRect(nameTagX + 3, nameTagY + 3, nameTagW - 6, nameTagH - 6, 8f, Color.WHITE); // Inner White
+        RenderUtils.drawRoundedRect(shapeRenderer, nameTagX, nameTagY, nameTagW, nameTagH, 10f,
+                new Color(0.3f, 0.5f, 0.6f, 1f)); // Frame
+        RenderUtils.drawRoundedRect(shapeRenderer, nameTagX + 3, nameTagY + 3, nameTagW - 6, nameTagH - 6, 8f,
+                Color.WHITE); // Inner White
 
         // 3. Gender Selection Menu (Text only, removed buttons)
 
@@ -636,7 +637,7 @@ public class IntroScreen implements Screen {
                 fadeAlpha = 1f;
                 // Transition directly to GameScreen (Bypassing IntroWalkScreen as requested)
                 String texturePath = isMale ? "protagonistaMasculino1.png" : "protagonistaFemenino.png";
-                game.setScreen(new GameScreen(game, texturePath, 4, 4));
+                game.setScreen(new GameScreen(game, texturePath, 4, 4, playerName));
                 dispose();
                 return;
             }
@@ -655,44 +656,6 @@ public class IntroScreen implements Screen {
         // Reset Font
         game.font.setColor(Color.WHITE);
         game.font.getData().setScale(1.0f);
-    }
-
-    // Custom Rounded Rect Helper
-    private void drawRoundedRect(float x, float y, float width, float height, float radius, Color color) {
-        shapeRenderer.setColor(color);
-        // Central Rect
-        shapeRenderer.rect(x + radius, y + radius, width - 2 * radius, height - 2 * radius);
-        // Side Rects
-        shapeRenderer.rect(x + radius, y, width - 2 * radius, radius);
-        shapeRenderer.rect(x + radius, y + height - radius, width - 2 * radius, radius);
-        shapeRenderer.rect(x, y + radius, radius, height - 2 * radius);
-        shapeRenderer.rect(x + width - radius, y + radius, radius, height - 2 * radius);
-        // Corner Circles
-        shapeRenderer.circle(x + radius, y + radius, radius);
-        shapeRenderer.circle(x + width - radius, y + radius, radius);
-        shapeRenderer.circle(x + radius, y + height - radius, radius);
-        shapeRenderer.circle(x + width - radius, y + height - radius, radius);
-    }
-
-    @Override
-    public void resize(int width, int height) {
-        // Recalculate positions if needed
-    }
-
-    @Override
-    public void show() {
-    }
-
-    @Override
-    public void hide() {
-    }
-
-    @Override
-    public void pause() {
-    }
-
-    @Override
-    public void resume() {
     }
 
     @Override
@@ -715,5 +678,4 @@ public class IntroScreen implements Screen {
         if (poofImage != null)
             poofImage.dispose();
     }
-
 }
