@@ -24,36 +24,15 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 import com.mypokemon.game.utils.BaseScreen;
 import com.mypokemon.game.utils.TextureUtils;
 
-public class GameScreen extends BaseScreen {
+// Intro Animation State
+private enum IntroState {
+        SLIDING_IN, WAITING, SLIDING_OUT, FINISHED
+    }
 
-    // Map details
-    TiledMap map;
-    OrthogonalTiledMapRenderer mapRenderer;
-    OrthographicCamera camera;
-    Viewport viewport;
-    TiledMapTileLayer collisionLayer;
-    com.badlogic.gdx.math.Matrix4 uiMatrix;
-    String playerName;
-    int[] backgroundLayers;
-    int[] foregroundLayers;
-
-    float mapWidth, mapHeight;
-    float posX = 1600;
-    float posY = 1600;
-    float speed = 150;
-    float playerWidth = 32;
-    float playerHeight = 32;
-
-    // Movement state
-    boolean isMoving = false;
-    float stateTime = 0f;
-
-    // Animations
-    Animation<TextureRegion> walkDown, walkUp, walkLeft, walkRight;
-    TextureRegion currentFrame;
-    Texture playerSheet;
-
-    // UI elements
+    private Texture introTexture;
+    private IntroState introState;
+    private float introY;
+    private float introSpeed = 200f; // Pixels per second
 
     public GameScreen(final PokemonMain game, String texturePath, int cols, int rows, String playerName) {
         super(game);
@@ -63,6 +42,17 @@ public class GameScreen extends BaseScreen {
         camera = new OrthographicCamera();
         viewport = new FitViewport(800, 480, camera);
         uiMatrix = new com.badlogic.gdx.math.Matrix4().setToOrtho2D(0, 0, 800, 480);
+
+        // Load Intro Texture
+        try {
+            introTexture = new Texture(Gdx.files.internal("praderaObsidiana.png"));
+            introState = IntroState.SLIDING_IN;
+            // Start completely off-screen (above the viewport)
+            introY = 480; 
+        } catch (Exception e) {
+            Gdx.app.log("GameScreen", "Could not load praderaObsidiana.png", e);
+            introState = IntroState.FINISHED;
+        }
 
         // Load Map with explicit file resolver
         try {
@@ -233,22 +223,50 @@ public class GameScreen extends BaseScreen {
             float oldX = posX;
             float oldY = posY;
 
+            boolean movementAttempted = false;
+            
             if (Gdx.input.isKeyPressed(Input.Keys.A) || Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
                 posX -= speed * delta;
                 currentFrame = walkLeft.getKeyFrame(stateTime, true);
                 isMoving = true;
+                movementAttempted = true;
             } else if (Gdx.input.isKeyPressed(Input.Keys.D) || Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
                 posX += speed * delta;
                 currentFrame = walkRight.getKeyFrame(stateTime, true);
                 isMoving = true;
+                movementAttempted = true;
             } else if (Gdx.input.isKeyPressed(Input.Keys.W) || Gdx.input.isKeyPressed(Input.Keys.UP)) {
                 posY += speed * delta;
                 currentFrame = walkUp.getKeyFrame(stateTime, true);
                 isMoving = true;
+                movementAttempted = true;
             } else if (Gdx.input.isKeyPressed(Input.Keys.S) || Gdx.input.isKeyPressed(Input.Keys.DOWN)) {
                 posY -= speed * delta;
                 currentFrame = walkDown.getKeyFrame(stateTime, true);
                 isMoving = true;
+                movementAttempted = true;
+            }
+
+            // Update Intro Animation Logic
+            if (introState == IntroState.SLIDING_IN) {
+                // targetY is near top left area. Let's say top padding 0.
+                float targetY = 480 - (introTexture != null ? introTexture.getHeight() : 0);
+                if (introY > targetY) {
+                    introY -= introSpeed * delta;
+                } else {
+                    introY = targetY;
+                    introState = IntroState.WAITING;
+                }
+            } else if (introState == IntroState.WAITING) {
+                if (movementAttempted) {
+                    introState = IntroState.SLIDING_OUT;
+                }
+            } else if (introState == IntroState.SLIDING_OUT) {
+                if (introY < 480) {
+                   introY += introSpeed * delta;
+                } else {
+                   introState = IntroState.FINISHED;
+                }
             }
 
             // Simple Collision Detection
@@ -321,7 +339,6 @@ public class GameScreen extends BaseScreen {
                         com.badlogic.gdx.utils.Align.center, false);
             }
         }
-
         game.batch.end();
 
         // Render top layer above player (Objetos_superiores)
@@ -329,9 +346,16 @@ public class GameScreen extends BaseScreen {
             mapRenderer.render(foregroundLayers);
         }
 
-        // Draw HUD in screen coordinates (800x480 virtual resolution)
+        // Draw HUD/UI in screen coordinates (800x480 virtual resolution)
         game.batch.setProjectionMatrix(uiMatrix);
+        game.batch.begin();
+        
+        // Draw Intro Texture if active
+        if (introState != IntroState.FINISHED && introTexture != null) {
+            game.batch.draw(introTexture, 0, introY);
+        }
 
+        game.batch.end();
     }
 
     private int getIntProperty(com.badlogic.gdx.maps.MapProperties props, String key, int defaultValue) {
@@ -394,6 +418,8 @@ public class GameScreen extends BaseScreen {
     public void dispose() {
         if (playerSheet != null)
             playerSheet.dispose();
+        if (introTexture != null)
+            introTexture.dispose();
         if (map != null)
             map.dispose();
         if (mapRenderer != null)
