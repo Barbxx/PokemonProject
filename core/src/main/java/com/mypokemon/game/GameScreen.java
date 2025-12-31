@@ -24,8 +24,36 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 import com.mypokemon.game.utils.BaseScreen;
 import com.mypokemon.game.utils.TextureUtils;
 
-// Intro Animation State
-private enum IntroState {
+// Main Game Screen
+public class GameScreen extends BaseScreen {
+
+    private OrthographicCamera camera;
+    private Viewport viewport;
+    private com.badlogic.gdx.math.Matrix4 uiMatrix;
+
+    private TiledMap map;
+    private OrthogonalTiledMapRenderer mapRenderer;
+    private TiledMapTileLayer collisionLayer;
+    private int[] backgroundLayers;
+    private int[] foregroundLayers;
+    private int mapWidth;
+    private int mapHeight;
+
+    private float posX;
+    private float posY;
+    private float speed = 150f;
+
+    private Texture playerSheet;
+    private Animation<TextureRegion> walkDown, walkLeft, walkRight, walkUp;
+    private TextureRegion currentFrame;
+    private float stateTime;
+    private boolean isMoving;
+    private float playerWidth = 32f;
+    private float playerHeight = 32f;
+    private String playerName;
+
+    // Intro Animation State
+    private enum IntroState {
         SLIDING_IN, WAITING, SLIDING_OUT, FINISHED
     }
 
@@ -48,7 +76,7 @@ private enum IntroState {
             introTexture = new Texture(Gdx.files.internal("praderaObsidiana.png"));
             introState = IntroState.SLIDING_IN;
             // Start completely off-screen (above the viewport)
-            introY = 480; 
+            introY = 480;
         } catch (Exception e) {
             Gdx.app.log("GameScreen", "Could not load praderaObsidiana.png", e);
             introState = IntroState.FINISHED;
@@ -224,33 +252,59 @@ private enum IntroState {
             float oldY = posY;
 
             boolean movementAttempted = false;
-            
-            if (Gdx.input.isKeyPressed(Input.Keys.A) || Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
-                posX -= speed * delta;
-                currentFrame = walkLeft.getKeyFrame(stateTime, true);
-                isMoving = true;
-                movementAttempted = true;
-            } else if (Gdx.input.isKeyPressed(Input.Keys.D) || Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
-                posX += speed * delta;
-                currentFrame = walkRight.getKeyFrame(stateTime, true);
-                isMoving = true;
-                movementAttempted = true;
-            } else if (Gdx.input.isKeyPressed(Input.Keys.W) || Gdx.input.isKeyPressed(Input.Keys.UP)) {
-                posY += speed * delta;
-                currentFrame = walkUp.getKeyFrame(stateTime, true);
-                isMoving = true;
-                movementAttempted = true;
-            } else if (Gdx.input.isKeyPressed(Input.Keys.S) || Gdx.input.isKeyPressed(Input.Keys.DOWN)) {
-                posY -= speed * delta;
-                currentFrame = walkDown.getKeyFrame(stateTime, true);
-                isMoving = true;
-                movementAttempted = true;
+
+            // Handle Input for Movement
+            // Only allow movement if intro is NOT sliding in
+            if (introState != IntroState.SLIDING_IN) {
+                float moveX = 0;
+                float moveY = 0;
+
+                if (Gdx.input.isKeyPressed(Input.Keys.A) || Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
+                    moveX = -1;
+                }
+                if (Gdx.input.isKeyPressed(Input.Keys.D) || Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
+                    moveX = 1;
+                }
+                if (Gdx.input.isKeyPressed(Input.Keys.W) || Gdx.input.isKeyPressed(Input.Keys.UP)) {
+                    moveY = 1;
+                }
+                if (Gdx.input.isKeyPressed(Input.Keys.S) || Gdx.input.isKeyPressed(Input.Keys.DOWN)) {
+                    moveY = -1;
+                }
+
+                if (moveX != 0 || moveY != 0) {
+                    // Start movement logic
+                    movementAttempted = true;
+                    isMoving = true;
+
+                    // Normalize diagonal speed? Optional. For now, keep it simple.
+                    // If we want consistent speed:
+                    // if (moveX != 0 && moveY != 0) { moveX *= 0.7071f; moveY *= 0.7071f; }
+
+                    posX += moveX * speed * delta;
+                    posY += moveY * speed * delta;
+
+                    // Update Animation
+                    if (moveX < 0) {
+                        currentFrame = walkLeft.getKeyFrame(stateTime, true);
+                    } else if (moveX > 0) {
+                        currentFrame = walkRight.getKeyFrame(stateTime, true);
+                    } else if (moveY > 0) {
+                        currentFrame = walkUp.getKeyFrame(stateTime, true);
+                    } else if (moveY < 0) {
+                        currentFrame = walkDown.getKeyFrame(stateTime, true);
+                    }
+                }
             }
 
             // Update Intro Animation Logic
+            // Update Intro Animation Logic
+            float introScale = 0.5f;
+            float introH = (introTexture != null ? introTexture.getHeight() * introScale : 0);
+
             if (introState == IntroState.SLIDING_IN) {
-                // targetY is near top left area. Let's say top padding 0.
-                float targetY = 480 - (introTexture != null ? introTexture.getHeight() : 0);
+                // targetY is near top left area.
+                float targetY = 480 - introH;
                 if (introY > targetY) {
                     introY -= introSpeed * delta;
                 } else {
@@ -263,9 +317,9 @@ private enum IntroState {
                 }
             } else if (introState == IntroState.SLIDING_OUT) {
                 if (introY < 480) {
-                   introY += introSpeed * delta;
+                    introY += introSpeed * delta;
                 } else {
-                   introState = IntroState.FINISHED;
+                    introState = IntroState.FINISHED;
                 }
             }
 
@@ -349,10 +403,13 @@ private enum IntroState {
         // Draw HUD/UI in screen coordinates (800x480 virtual resolution)
         game.batch.setProjectionMatrix(uiMatrix);
         game.batch.begin();
-        
+
         // Draw Intro Texture if active
         if (introState != IntroState.FINISHED && introTexture != null) {
-            game.batch.draw(introTexture, 0, introY);
+            float introScale = 0.5f;
+            float introW = introTexture.getWidth() * introScale;
+            float introH = introTexture.getHeight() * introScale;
+            game.batch.draw(introTexture, 0, introY, introW, introH);
         }
 
         game.batch.end();
