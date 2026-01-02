@@ -1,0 +1,79 @@
+package com.mypokemon.game;
+
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
+
+public class Pokedex implements Serializable {
+    private static final long serialVersionUID = 2L;
+    private Map<String, EspeciePokemon> registro;
+    private int especiesCompletas;
+
+    public Pokedex() {
+        this.registro = new HashMap<>();
+        this.especiesCompletas = 0;
+    }
+
+    public void registrarAccion(String nombre, boolean esCaptura) {
+        // Corazón de la Misión 2
+        // Si el Pokémon no existe en el mapa, se añade.
+        registro.putIfAbsent(nombre, new EspeciePokemon(nombre));
+
+        EspeciePokemon especie = registro.get(nombre);
+
+        // Si esCaptura es true, suma +2 puntos.
+        // Si es victoria en combate (esCaptura false), suma +1 punto.
+        int puntos = esCaptura ? 2 : 1;
+
+        // Verificar si ya estaba completo antes de añadir puntos para no contar doble
+        boolean estabaCompleta = especie.isCompleta();
+
+        especie.añadirPuntos(puntos);
+        System.out.println("Progreso de " + nombre + ": " + especie.getNivelInvestigacion() + "/10");
+
+        // Actualizar contador si se completó recién
+        if (!estabaCompleta && especie.isCompleta()) {
+            especiesCompletas++;
+        }
+    }
+
+    public int verificarProgreso() {
+        // Recorre el mapa y cuenta cuántas especies han alcanzado el nivel 10.
+        // Opcionalmente podemos recalcularlo si queremos ser seguros,
+        // pero mantenemos el contador especiesCompletas actualizado en registrarAccion.
+        // Para adherirnos a la solicitud que dice "Recorre el mapa...":
+        int completas = 0;
+        for (EspeciePokemon e : registro.values()) {
+            if (e.isCompleta()) {
+                completas++;
+            }
+        }
+        // Sincronizamos por si acaso
+        this.especiesCompletas = completas;
+        return completas;
+    }
+
+    public boolean puedeAccederAlHito() {
+        // Retorna true si especiesCompletas >= 5.
+        // Aseguramos que el contador esté al día
+        return verificarProgreso() >= 5;
+    }
+
+    public void completarInstantaneamente(String nombre) {
+        // Específico para el Hito Final.
+        registro.putIfAbsent(nombre, new EspeciePokemon(nombre));
+        EspeciePokemon especie = registro.get(nombre);
+
+        boolean estabaCompleta = especie.isCompleta();
+        especie.setInvestigacionMaxica();
+
+        if (!estabaCompleta) {
+            especiesCompletas++;
+        }
+    }
+
+    // Método de compatibilidad para Explorador.java que usaba puedeRetarArceus()
+    public boolean puedeRetarArceus() {
+        return puedeAccederAlHito();
+    }
+}

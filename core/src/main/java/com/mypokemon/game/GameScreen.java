@@ -52,6 +52,17 @@ public class GameScreen extends BaseScreen {
     private float playerHeight = 32f;
     private String playerName;
 
+    private Explorador explorador;
+
+    // NPC State
+    // NPC State
+    private Texture feidSprite;
+    private Texture dialogIconTexture;
+    private Texture uiWhitePixel;
+    private float feidX, feidY;
+    private boolean showDialog;
+    private String npcDialogText = "¡Epa, qué más pues, mor! Bienvenido a la región de Hisui, vea que esto por aquí está una chimba pero bien peligroso. Usted no puede andar por ahí 'Normal' sin con qué defenderse. Necesito que se ponga las pilas y me trabaje esa autosuficiencia. El flujo está en el inventario, pero ojo que el espacio es limitado, no se me embolete con la capacidad. Vaya y me recolecta unos Guijarros y Plantas para que se haga unas Poké Balls bien melas. ¡Hágale pues, que ese Pokedex no se va a llenar solo, Nea!";
+
     // Intro Animation State
     private enum IntroState {
         SLIDING_IN, WAITING, SLIDING_OUT, FINISHED
@@ -65,6 +76,11 @@ public class GameScreen extends BaseScreen {
     public GameScreen(final PokemonMain game, String texturePath, int cols, int rows, String playerName) {
         super(game);
         this.playerName = playerName;
+        // Check for saved progress or create new
+        this.explorador = Explorador.cargarProgreso(playerName);
+        if (this.explorador == null) {
+            this.explorador = new Explorador(playerName, 20); // Capacidad inicial
+        }
 
         // Initialize Camera and Viewport
         camera = new OrthographicCamera();
@@ -218,8 +234,32 @@ public class GameScreen extends BaseScreen {
             createFallback();
         }
 
+        // Initialize NPC and UI Assets
+        try {
+            feidSprite = new Texture(Gdx.files.internal("ferxxo.png"));
+            dialogIconTexture = new Texture(Gdx.files.internal("ferxxoCientifico.png"));
+        } catch (Exception e) {
+            Gdx.app.log("GameScreen", "NPC textures not found", e);
+        }
+
+        // Create UI utilities
+        uiWhitePixel = TextureUtils.createSolidTexture(1, 1, Color.WHITE);
+
+        // Place NPC near spawn but slightly to the right
+        feidX = posX + 60;
+        feidY = posY;
+
         // Initialize UI projection matrix
         uiMatrix = new com.badlogic.gdx.math.Matrix4().setToOrtho2D(0, 0, 800, 480);
+    }
+
+    @Override
+    public void show() {
+        // Register InputHandler for shortcuts
+        if (explorador != null) {
+            InputHandler inputHandler = new InputHandler(this.explorador);
+            Gdx.input.setInputProcessor(inputHandler);
+        }
     }
 
     private void createFallback() {
@@ -393,6 +433,12 @@ public class GameScreen extends BaseScreen {
                         com.badlogic.gdx.utils.Align.center, false);
             }
         }
+
+        // Draw NPC
+        if (feidSprite != null) {
+            game.batch.draw(feidSprite, feidX, feidY, 32, 48); // Assuming 32x48 size
+        }
+
         game.batch.end();
 
         // Render top layer above player (Objetos_superiores)
@@ -410,6 +456,88 @@ public class GameScreen extends BaseScreen {
             float introW = introTexture.getWidth() * introScale;
             float introH = introTexture.getHeight() * introScale;
             game.batch.draw(introTexture, 0, introY, introW, introH);
+        }
+
+        // --- HUD / INTERFAZ DE USUARIO ---
+        if (explorador != null && game.font != null) {
+            game.font.setColor(Color.WHITE);
+            // Títulos y estado del explorador
+            game.font.draw(game.batch, "EXPLORADOR: " + explorador.getNombre(), 20, 460);
+
+            // Datos del Inventario (Misión 1)
+            game.font.draw(game.batch, "--- INVENTARIO ---", 20, 430);
+            game.font.draw(game.batch, "Plantas: " + explorador.getMochila().getPlantas(), 20, 410);
+            game.font.draw(game.batch, "Guijarros: " + explorador.getMochila().getGuijarros(), 20, 390);
+            game.font.draw(game.batch, "Poké Balls: " + explorador.getMochila().getPokeBalls(), 20, 370);
+
+            // Validación de espacio
+            int ocupado = explorador.getMochila().getEspacioOcupado();
+            int max = explorador.getMochila().getCapacidadMaxima();
+            game.font.draw(game.batch, "Carga: " + ocupado + " / " + max, 20, 340);
+
+            // Guía de controles (Ayuda) - Bottom Left
+            game.font.draw(game.batch, "[P] Planta  [G] Guijarro  [C] Craftear  [K] Pokedex", 20, 40);
+        }
+
+        // --- NPC DIALOG ---
+        // Check proximity
+        float dist = com.badlogic.gdx.math.Vector2.dst(posX, posY, feidX, feidY);
+        if (dist < 80) { // 80px range
+            // Constants for UI
+            float screenW = 800;
+            float screenH = 480;
+            float dialogHeight = 150;
+            float portraitSize = 250;
+
+            // Draw Portrait (Right side)
+            if (dialogIconTexture != null) {
+                game.batch.draw(dialogIconTexture, screenW - portraitSize - 20, dialogHeight - 20, portraitSize,
+                        portraitSize);
+            }
+
+            // Draw Main Dialog Box Background (Blue-ish/White style)
+            // Outer border (Dark Blue)
+            game.batch.setColor(com.badlogic.gdx.graphics.Color.valueOf("355D80")); // Dark blue
+            if (uiWhitePixel != null)
+                game.batch.draw(uiWhitePixel, 20, 20, screenW - 40, dialogHeight);
+
+            // Inner content (Light Blue)
+            game.batch.setColor(com.badlogic.gdx.graphics.Color.valueOf("84C5FA")); // Light blue
+            if (uiWhitePixel != null)
+                game.batch.draw(uiWhitePixel, 25, 25, screenW - 50, dialogHeight - 10);
+
+            // Name Tag Box (Top-Left of dialog, overlapping)
+            float nameTagW = 200;
+            float nameTagH = 40;
+            float nameTagX = 40;
+            float nameTagY = dialogHeight + 10;
+
+            // Name Tag Background (White)
+            game.batch.setColor(Color.WHITE);
+            if (uiWhitePixel != null)
+                game.batch.draw(uiWhitePixel, nameTagX, nameTagY, nameTagW, nameTagH);
+
+            // Reset Color for Text
+            game.batch.setColor(Color.WHITE);
+
+            // Draw Text
+            // Name
+            game.font.setColor(Color.BLACK);
+            game.font.getData().setScale(0.9f);
+            game.font.draw(game.batch, "Profesor Ferxxo", nameTagX + 10, nameTagY + 28);
+
+            // Dialog Body
+            game.font.setColor(Color.BLACK);
+            game.font.getData().setScale(0.85f);
+            game.font.draw(game.batch, npcDialogText, 40, dialogHeight - 10, screenW - 80,
+                    com.badlogic.gdx.utils.Align.left, true);
+            game.font.getData().setScale(1.0f);
+            game.font.setColor(Color.WHITE);
+
+            // "Continue" hint
+            game.font.getData().setScale(0.6f);
+            game.font.draw(game.batch, "CONTINUE (ENTER / ->)", 40, 50);
+            game.font.getData().setScale(1.0f);
         }
 
         game.batch.end();
