@@ -58,10 +58,18 @@ public class GameScreen extends BaseScreen {
     // NPC State
     private Texture feidSprite;
     private Texture dialogIconTexture;
+    private Texture dialogFrameTexture;
     private Texture uiWhitePixel;
     private float feidX, feidY;
-    private boolean showDialog;
-    private String npcDialogText = "¡Epa, qué más pues, mor! Bienvenido a la región de Hisui, vea que esto por aquí está una chimba pero bien peligroso. Usted no puede andar por ahí 'Normal' sin con qué defenderse. Necesito que se ponga las pilas y me trabaje esa autosuficiencia. El flujo está en el inventario, pero ojo que el espacio es limitado, no se me embolete con la capacidad. Vaya y me recolecta unos Guijarros y Plantas para que se haga unas Poké Balls bien melas. ¡Hágale pues, que ese Pokedex no se va a llenar solo, Nea!";
+    private boolean showDialog = false;
+    private boolean isNearFeid = false;
+    private int currentDialogPage = 0;
+    private String[] feidDialogPages = {
+            "¡Epa! ¿Qué más pues, mor? Bienvenido a la región de Hisui, vea que esto por aquí está una chimba pero bien peligroso... Usted no puede andar por ahí \"Normal\" sin con qué defenderse.",
+            "Póngase la pilas pues y trabaje esa autosuficiencia.",
+            "El flujo está en el inventario, pero ojo que el espacio es limitado, no se me embolete con la capacidad.",
+            "Vaya y me recolecta unos Guijarros y Plantas para que se haga unas Poké Balls bien chimbas. ¡Hágale pues, que ese Pokedex no se va a llenar solo, Nea!"
+    };
 
     // Intro Animation State
     private enum IntroState {
@@ -236,21 +244,23 @@ public class GameScreen extends BaseScreen {
 
         // Initialize NPC and UI Assets
         try {
-            feidSprite = new Texture(Gdx.files.internal("ferxxo.png"));
+            feidSprite = new Texture(Gdx.files.internal("feidSprite.png"));
             dialogIconTexture = new Texture(Gdx.files.internal("ferxxoCientifico.png"));
+            dialogFrameTexture = new Texture(Gdx.files.internal("marcoDialogo.png"));
         } catch (Exception e) {
-            Gdx.app.log("GameScreen", "NPC textures not found", e);
+            Gdx.app.log("GameScreen", "NPC/UI textures not found", e);
         }
 
         // Create UI utilities
         uiWhitePixel = TextureUtils.createSolidTexture(1, 1, Color.WHITE);
 
-        // Place NPC near spawn but slightly to the right
-        feidX = posX + 60;
-        feidY = posY;
+        // Place NPC next to the blue house (approximate coordinates from player spawn)
+        feidX = posX - 220;
+        feidY = posY - 20;
 
         // Initialize UI projection matrix
         uiMatrix = new com.badlogic.gdx.math.Matrix4().setToOrtho2D(0, 0, 800, 480);
+        game.font.setUseIntegerPositions(true);
     }
 
     @Override
@@ -280,6 +290,35 @@ public class GameScreen extends BaseScreen {
 
     @Override
     public void render(float delta) {
+        // --- NPC INTERACTION LOGIC ---
+        float dist = com.badlogic.gdx.math.Vector2.dst(posX, posY, feidX, feidY);
+        isNearFeid = dist < 80;
+
+        // Toggle dialog on interaction key (E)
+        if (isNearFeid && Gdx.input.isKeyJustPressed(Input.Keys.E)) {
+            if (!showDialog) {
+                showDialog = true;
+                currentDialogPage = 0;
+            } else {
+                showDialog = false;
+            }
+        }
+
+        // Advance dialog with Enter only
+        if (showDialog && Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
+            currentDialogPage++;
+            if (currentDialogPage >= feidDialogPages.length) {
+                showDialog = false;
+                currentDialogPage = 0;
+            }
+        }
+
+        // Hide dialog if we walk away
+        if (!isNearFeid) {
+            showDialog = false;
+            currentDialogPage = 0;
+        }
+
         isMoving = false;
 
         {
@@ -420,23 +459,21 @@ public class GameScreen extends BaseScreen {
 
         game.batch.setProjectionMatrix(camera.combined);
         game.batch.begin();
-        // Draw the player. size scaled to match tiles somewhat (32x34 approx)
-        if (currentFrame != null) {
-            game.batch.draw(currentFrame, posX - playerWidth / 2, posY - playerHeight / 2, playerWidth,
-                    playerHeight * 1.2f);
 
-            // Draw player name above the sprite
-            if (playerName != null && !playerName.isEmpty()) {
-                game.font.getData().setScale(0.8f);
-                game.font.setColor(Color.WHITE);
-                game.font.draw(game.batch, playerName, posX - playerWidth / 2, posY + playerHeight * 0.8f, playerWidth,
-                        com.badlogic.gdx.utils.Align.center, false);
-            }
-        }
+        // Y-Sorting: Draw the one with higher Y coordinate first (further away)
+        // Player's feet are at posY - playerHeight / 2
+        // NPC's feet are at feidY
+        float playerFeetY = posY - playerHeight / 2;
+        float feidFeetY = feidY;
 
-        // Draw NPC
-        if (feidSprite != null) {
-            game.batch.draw(feidSprite, feidX, feidY, 32, 48); // Assuming 32x48 size
+        if (playerFeetY > feidFeetY) {
+            // Draw Player first (behind NPC)
+            drawPlayer();
+            drawNPC();
+        } else {
+            // Draw NPC first (behind Player)
+            drawNPC();
+            drawPlayer();
         }
 
         game.batch.end();
@@ -461,32 +498,48 @@ public class GameScreen extends BaseScreen {
         // --- HUD / INTERFAZ DE USUARIO ---
         if (explorador != null && game.font != null) {
             game.font.setColor(Color.WHITE);
-            // Títulos y estado del explorador
-            game.font.draw(game.batch, "EXPLORADOR: " + explorador.getNombre(), 20, 460);
+            float hudX = 780; // Right side margin
+
+            // Títulos y estado del explorador - Top Right
+            game.font.draw(game.batch, "EXPLORADOR: " + explorador.getNombre(), hudX, 460, 0,
+                    com.badlogic.gdx.utils.Align.right, false);
 
             // Datos del Inventario (Misión 1)
-            game.font.draw(game.batch, "--- INVENTARIO ---", 20, 430);
-            game.font.draw(game.batch, "Plantas: " + explorador.getMochila().getPlantas(), 20, 410);
-            game.font.draw(game.batch, "Guijarros: " + explorador.getMochila().getGuijarros(), 20, 390);
-            game.font.draw(game.batch, "Poké Balls: " + explorador.getMochila().getPokeBalls(), 20, 370);
+            game.font.draw(game.batch, "--- INVENTARIO ---", hudX, 430, 0, com.badlogic.gdx.utils.Align.right, false);
+            game.font.draw(game.batch, "Plantas: " + explorador.getMochila().getPlantas(), hudX, 410, 0,
+                    com.badlogic.gdx.utils.Align.right, false);
+            game.font.draw(game.batch, "Guijarros: " + explorador.getMochila().getGuijarros(), hudX, 390, 0,
+                    com.badlogic.gdx.utils.Align.right, false);
+            game.font.draw(game.batch, "Poké Balls: " + explorador.getMochila().getPokeBalls(), hudX, 370, 0,
+                    com.badlogic.gdx.utils.Align.right, false);
 
             // Validación de espacio
             int ocupado = explorador.getMochila().getEspacioOcupado();
             int max = explorador.getMochila().getCapacidadMaxima();
-            game.font.draw(game.batch, "Carga: " + ocupado + " / " + max, 20, 340);
+            game.font.draw(game.batch, "Carga: " + ocupado + " / " + max, hudX, 340, 0,
+                    com.badlogic.gdx.utils.Align.right, false);
 
-            // Guía de controles (Ayuda) - Bottom Left
-            game.font.draw(game.batch, "[P] Planta  [G] Guijarro  [C] Craftear  [K] Pokedex", 20, 40);
+            // Guía de controles (Ayuda) - Bottom Right
+            game.font.draw(game.batch, "[P] Planta  [G] Guijarro  [C] Craftear  [K] Pokedex", hudX, 40, 0,
+                    com.badlogic.gdx.utils.Align.right, false);
         }
 
-        // --- NPC DIALOG ---
-        // Check proximity
-        float dist = com.badlogic.gdx.math.Vector2.dst(posX, posY, feidX, feidY);
-        if (dist < 80) { // 80px range
+        // --- NPC INTERACTION / DIALOG ---
+        // Interaction Hint
+        if (isNearFeid && !showDialog) {
+            game.font.getData().setScale(0.8f);
+            game.font.setColor(Color.YELLOW);
+            game.font.draw(game.batch, "Presiona [E] para hablar con Feid", 300, 100);
+            game.font.getData().setScale(1.0f);
+            game.font.setColor(Color.WHITE);
+        }
+
+        // Show Dialog
+        if (showDialog) {
             // Constants for UI
             float screenW = 800;
             float screenH = 480;
-            float dialogHeight = 150;
+            float dialogHeight = 110;
             float portraitSize = 250;
 
             // Draw Portrait (Right side)
@@ -495,16 +548,16 @@ public class GameScreen extends BaseScreen {
                         portraitSize);
             }
 
-            // Draw Main Dialog Box Background (Blue-ish/White style)
-            // Outer border (Dark Blue)
-            game.batch.setColor(com.badlogic.gdx.graphics.Color.valueOf("355D80")); // Dark blue
-            if (uiWhitePixel != null)
-                game.batch.draw(uiWhitePixel, 20, 20, screenW - 40, dialogHeight);
-
-            // Inner content (Light Blue)
-            game.batch.setColor(com.badlogic.gdx.graphics.Color.valueOf("84C5FA")); // Light blue
+            // Draw Main Dialog Box
+            // Background (White - slightly offset to leave margin for frame)
+            game.batch.setColor(Color.WHITE);
             if (uiWhitePixel != null)
                 game.batch.draw(uiWhitePixel, 25, 25, screenW - 50, dialogHeight - 10);
+
+            // Frame (The custom texture)
+            game.batch.setColor(Color.WHITE);
+            if (dialogFrameTexture != null)
+                game.batch.draw(dialogFrameTexture, 20, 20, screenW - 40, dialogHeight);
 
             // Name Tag Box (Top-Left of dialog, overlapping)
             float nameTagW = 200;
@@ -529,18 +582,41 @@ public class GameScreen extends BaseScreen {
             // Dialog Body
             game.font.setColor(Color.BLACK);
             game.font.getData().setScale(0.85f);
-            game.font.draw(game.batch, npcDialogText, 40, dialogHeight - 10, screenW - 80,
+            game.font.draw(game.batch, feidDialogPages[currentDialogPage], 40, dialogHeight - 10, screenW - 80,
                     com.badlogic.gdx.utils.Align.left, true);
             game.font.getData().setScale(1.0f);
             game.font.setColor(Color.WHITE);
 
             // "Continue" hint
             game.font.getData().setScale(0.6f);
-            game.font.draw(game.batch, "CONTINUE (ENTER / ->)", 40, 50);
+            String hint = (currentDialogPage < feidDialogPages.length - 1) ? "SIGUIENTE (ENTER)"
+                    : "CERRAR (ENTER / E)";
+            game.font.draw(game.batch, hint, 40, 50);
             game.font.getData().setScale(1.0f);
         }
 
         game.batch.end();
+    }
+
+    private void drawPlayer() {
+        if (currentFrame != null) {
+            game.batch.draw(currentFrame, posX - playerWidth / 2, posY - playerHeight / 2, playerWidth,
+                    playerHeight * 1.2f);
+
+            // Draw player name above the sprite
+            if (playerName != null && !playerName.isEmpty()) {
+                game.font.getData().setScale(0.8f);
+                game.font.setColor(Color.WHITE);
+                game.font.draw(game.batch, playerName, posX - playerWidth / 2, posY + playerHeight * 0.8f, playerWidth,
+                        com.badlogic.gdx.utils.Align.center, false);
+            }
+        }
+    }
+
+    private void drawNPC() {
+        if (feidSprite != null) {
+            game.batch.draw(feidSprite, feidX, feidY, 25, 35);
+        }
     }
 
     private int getIntProperty(com.badlogic.gdx.maps.MapProperties props, String key, int defaultValue) {
@@ -560,6 +636,16 @@ public class GameScreen extends BaseScreen {
     }
 
     private boolean isColliding(float x, float y) {
+        // Check collision with Feid NPC (25x35 size)
+        float feidW = 25;
+        float feidH = 35;
+
+        // Define Feid's bounding box
+        float feidLeft = feidX;
+        float feidRight = feidX + feidW;
+        float feidBottom = feidY;
+        float feidTop = feidY + feidH;
+
         if (collisionLayer == null)
             return false;
 
@@ -572,6 +658,11 @@ public class GameScreen extends BaseScreen {
         };
 
         for (float[] p : points) {
+            // Check NPC collision
+            if (p[0] >= feidLeft && p[0] <= feidRight && p[1] >= feidBottom && p[1] <= feidTop) {
+                return true;
+            }
+
             int cellX = (int) (p[0] / collisionLayer.getTileWidth());
             int cellY = (int) (p[1] / collisionLayer.getTileHeight());
 
@@ -605,6 +696,14 @@ public class GameScreen extends BaseScreen {
             playerSheet.dispose();
         if (introTexture != null)
             introTexture.dispose();
+        if (feidSprite != null)
+            feidSprite.dispose();
+        if (dialogIconTexture != null)
+            dialogIconTexture.dispose();
+        if (dialogFrameTexture != null)
+            dialogFrameTexture.dispose();
+        if (uiWhitePixel != null)
+            uiWhitePixel.dispose();
         if (map != null)
             map.dispose();
         if (mapRenderer != null)

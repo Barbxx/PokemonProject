@@ -12,6 +12,8 @@ public class PokemonMain extends Game {
     public void create() {
         batch = new SpriteBatch();
         font = new BitmapFont(); // Use LibGDX default font for now
+        font.getRegion().getTexture().setFilter(com.badlogic.gdx.graphics.Texture.TextureFilter.Nearest,
+                com.badlogic.gdx.graphics.Texture.TextureFilter.Nearest);
         this.setScreen(new MainMenuScreen(this));
     }
 
