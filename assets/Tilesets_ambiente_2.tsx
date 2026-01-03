@@ -2202,6 +2202,36 @@
    <property name="Colision" type="bool" value="true"/>
   </properties>
  </tile>
+ <tile id="2952">
+  <properties>
+   <property name="Colision" type="bool" value="true"/>
+  </properties>
+ </tile>
+ <tile id="2953">
+  <properties>
+   <property name="Colision" type="bool" value="true"/>
+  </properties>
+ </tile>
+ <tile id="2954">
+  <properties>
+   <property name="Colision" type="bool" value="true"/>
+  </properties>
+ </tile>
+ <tile id="2960">
+  <properties>
+   <property name="Colision" type="bool" value="true"/>
+  </properties>
+ </tile>
+ <tile id="2961">
+  <properties>
+   <property name="Colision" type="bool" value="true"/>
+  </properties>
+ </tile>
+ <tile id="2962">
+  <properties>
+   <property name="Colision" type="bool" value="true"/>
+  </properties>
+ </tile>
  <tile id="3048">
   <properties>
    <property name="Colision" type="bool" value="true"/>

@@ -121,6 +121,18 @@ public class GameScreen extends BaseScreen {
     private int menuSelectedIndex = 0;
     private String[] menuOptions = { "POKÉMON", "MOCHILA", "GUARDAR", "OPCIONES", "SALIR" };
 
+    // Pokemon Encounter System
+    private boolean inEncounter = false;
+    private Texture jigglypuffTexture;
+    private com.badlogic.gdx.audio.Sound grassSound;
+    private float encounterTimer = 0;
+    private static final float ENCOUNTER_CHECK_INTERVAL = 0.5f; // Check every 0.5 seconds
+    private static final float ENCOUNTER_CHANCE = 0.7f; // 70% chance when on grass
+    private int battleMenuSelection = 0;
+    private String[] battleMenuOptions = { "LUCHA", "MOCHILA", "HUIDA", "POKÉMON" };
+    private int lastGrassTileX = -1;
+    private int lastGrassTileY = -1;
+
     // Intro Animation State
     private enum IntroState {
         SLIDING_IN, WAITING, SLIDING_OUT, FINISHED
@@ -344,8 +356,16 @@ public class GameScreen extends BaseScreen {
             dialogIconTexture = new Texture(Gdx.files.internal("ferxxoCientifico.png"));
             dialogFrameTexture = new Texture(Gdx.files.internal("marcoDialogo.png"));
             missionCompleteTexture = new Texture(Gdx.files.internal("misionCompletada.png"));
+            jigglypuffTexture = new Texture(Gdx.files.internal("Jigglypuff.png"));
         } catch (Exception e) {
             Gdx.app.log("GameScreen", "NPC/UI textures not found", e);
+        }
+
+        // Load grass sound effect
+        try {
+            grassSound = Gdx.audio.newSound(Gdx.files.internal("grass.wav"));
+        } catch (Exception e) {
+            Gdx.app.log("GameScreen", "Grass sound not found, will continue without it", e);
         }
 
         // Create UI utilities
@@ -660,6 +680,88 @@ public class GameScreen extends BaseScreen {
                 stateTime = 0;
             }
 
+            // --- POKEMON ENCOUNTER LOGIC ---
+            if (!inEncounter && !showDialog && !showMenu) {
+                encounterTimer += delta;
+
+                if (encounterTimer >= ENCOUNTER_CHECK_INTERVAL) {
+                    encounterTimer = 0;
+
+                    // Check if player is on grass with NivelDificultad and ZonaEncuentro
+                    int playerTileX = (int) (posX / 16); // Assuming 16x16 tiles
+                    int playerTileY = (int) (posY / 16);
+
+                    // Check ALL layers for grass properties, not just collision layer
+                    boolean foundGrass = false;
+                    int nivelDificultad = 0;
+
+                    if (map != null) {
+                        for (com.badlogic.gdx.maps.MapLayer layer : map.getLayers()) {
+                            if (layer instanceof TiledMapTileLayer) {
+                                TiledMapTileLayer tileLayer = (TiledMapTileLayer) layer;
+                                TiledMapTileLayer.Cell cell = tileLayer.getCell(playerTileX, playerTileY);
+
+                                if (cell != null && cell.getTile() != null) {
+                                    com.badlogic.gdx.maps.MapProperties props = cell.getTile().getProperties();
+
+                                    Object nivelDificultadObj = props.get("NivelDificultad");
+                                    Object zonaEncuentroObj = props.get("ZonaEncuentro");
+
+                                    // Debug logging for ANY tile with these properties
+                                    if (nivelDificultadObj != null || zonaEncuentroObj != null) {
+                                        Gdx.app.log("GameScreen", "Layer: " + layer.getName() +
+                                                " Tile at (" + playerTileX + "," + playerTileY + "): " +
+                                                "NivelDificultad=" + nivelDificultadObj +
+                                                ", ZonaEncuentro=" + zonaEncuentroObj);
+                                        foundGrass = true;
+
+                                        // Parse NivelDificultad
+                                        if (nivelDificultadObj instanceof Integer) {
+                                            nivelDificultad = (Integer) nivelDificultadObj;
+                                        } else if (nivelDificultadObj != null) {
+                                            try {
+                                                nivelDificultad = Integer.parseInt(nivelDificultadObj.toString());
+                                            } catch (NumberFormatException e) {
+                                                nivelDificultad = 0;
+                                            }
+                                        }
+
+                                        // Play grass sound if this is a new tile
+                                        if (zonaEncuentroObj != null
+                                                && (playerTileX != lastGrassTileX || playerTileY != lastGrassTileY)) {
+                                            if (grassSound != null) {
+                                                grassSound.play(0.5f);
+                                            }
+                                            lastGrassTileX = playerTileX;
+                                            lastGrassTileY = playerTileY;
+                                            Gdx.app.log("GameScreen", "Stepped on grass tile!");
+                                        }
+
+                                        break; // Found grass, no need to check more layers
+                                    }
+                                }
+                            }
+                        }
+
+                        // Check for encounter if we found grass with NivelDificultad = 1
+                        if (foundGrass && nivelDificultad == 1) {
+                            Gdx.app.log("GameScreen", "Checking encounter: NivelDificultad=" + nivelDificultad);
+
+                            if (Math.random() < ENCOUNTER_CHANCE) {
+                                inEncounter = true;
+                                Gdx.app.log("GameScreen", "Pokemon encounter! Jigglypuff appeared!");
+                            }
+                        }
+
+                        // Reset last tile if not on grass
+                        if (!foundGrass) {
+                            lastGrassTileX = -1;
+                            lastGrassTileY = -1;
+                        }
+                    }
+                }
+            }
+
             // Clamping camera within map bounds (3200x3200 map, 800x480 viewport)
             float camX = posX;
             float camY = posY;
@@ -916,6 +1018,114 @@ public class GameScreen extends BaseScreen {
             game.batch.draw(missionCompleteTexture, missionX, missionY, missionW, missionH);
         }
 
+        // --- POKEMON ENCOUNTER RENDERING ---
+        if (inEncounter && jigglypuffTexture != null) {
+            // Semi-transparent black background
+            game.batch.setColor(0, 0, 0, 0.8f);
+            if (uiWhitePixel != null) {
+                game.batch.draw(uiWhitePixel, 0, 0, 800, 480);
+            }
+            game.batch.setColor(Color.WHITE);
+
+            // Draw Jigglypuff in center-top area
+            float pokemonW = 150;
+            float pokemonH = jigglypuffTexture.getHeight() * (pokemonW / jigglypuffTexture.getWidth());
+            float pokemonX = (800 - pokemonW) / 2;
+            float pokemonY = 280;
+
+            game.batch.draw(jigglypuffTexture, pokemonX, pokemonY, pokemonW, pokemonH);
+
+            // Draw encounter text
+            game.font.setColor(Color.WHITE);
+            game.font.getData().setScale(1.3f);
+            game.font.draw(game.batch, "¡Un Jigglypuff salvaje apareció!", 400, 420, 0,
+                    com.badlogic.gdx.utils.Align.center, false);
+            game.font.getData().setScale(1.0f);
+
+            // Draw battle menu (similar to the uploaded image)
+            float menuW = 500;
+            float menuH = 120;
+            float menuX = (800 - menuW) / 2;
+            float menuY = 40;
+
+            // Menu background (dark)
+            game.batch.setColor(0.1f, 0.1f, 0.2f, 0.95f);
+            if (uiWhitePixel != null) {
+                game.batch.draw(uiWhitePixel, menuX, menuY, menuW, menuH);
+            }
+
+            // Menu border
+            game.batch.setColor(0.3f, 0.3f, 0.4f, 1f);
+            if (uiWhitePixel != null) {
+                // Top border
+                game.batch.draw(uiWhitePixel, menuX, menuY + menuH - 3, menuW, 3);
+                // Bottom border
+                game.batch.draw(uiWhitePixel, menuX, menuY, menuW, 3);
+                // Left border
+                game.batch.draw(uiWhitePixel, menuX, menuY, 3, menuH);
+                // Right border
+                game.batch.draw(uiWhitePixel, menuX + menuW - 3, menuY, 3, menuH);
+            }
+            game.batch.setColor(Color.WHITE);
+
+            // Draw menu options in 2x2 grid
+            game.font.getData().setScale(1.1f);
+            float optionSpacingX = menuW / 2;
+            float optionSpacingY = menuH / 2;
+            float startX = menuX + 60;
+            float startY = menuY + menuH - 35;
+
+            for (int i = 0; i < battleMenuOptions.length; i++) {
+                int row = i / 2;
+                int col = i % 2;
+                float optX = startX + (col * optionSpacingX);
+                float optY = startY - (row * optionSpacingY);
+
+                // Draw selection arrow
+                if (i == battleMenuSelection) {
+                    game.font.setColor(Color.YELLOW);
+                    game.font.draw(game.batch, ">", optX - 30, optY);
+                } else {
+                    game.font.setColor(Color.WHITE);
+                }
+
+                game.font.draw(game.batch, battleMenuOptions[i], optX, optY);
+            }
+
+            game.font.getData().setScale(1.0f);
+            game.font.setColor(Color.WHITE);
+
+            // Handle menu navigation
+            if (Gdx.input.isKeyJustPressed(Input.Keys.UP)) {
+                battleMenuSelection -= 2;
+                if (battleMenuSelection < 0)
+                    battleMenuSelection += 4;
+            } else if (Gdx.input.isKeyJustPressed(Input.Keys.DOWN)) {
+                battleMenuSelection += 2;
+                if (battleMenuSelection >= 4)
+                    battleMenuSelection -= 4;
+            } else if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT)) {
+                if (battleMenuSelection % 2 == 1)
+                    battleMenuSelection--;
+            } else if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT)) {
+                if (battleMenuSelection % 2 == 0 && battleMenuSelection < 3)
+                    battleMenuSelection++;
+            }
+
+            // Handle selection
+            if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
+                String selected = battleMenuOptions[battleMenuSelection];
+                Gdx.app.log("GameScreen", "Selected: " + selected);
+
+                if (selected.equals("HUIDA")) {
+                    inEncounter = false;
+                    battleMenuSelection = 0;
+                    Gdx.app.log("GameScreen", "Escaped from encounter");
+                }
+                // TODO: Implement other options (LUCHA, MOCHILA, POKÉMON)
+            }
+        }
+
         // Draw side menu if open
         if (showMenu) {
             drawMenu();
@@ -1040,14 +1250,16 @@ public class GameScreen extends BaseScreen {
                 // Check if the tile has a "Colision" property set (as String or Boolean)
                 Object col = cell.getTile().getProperties().get("Colision");
                 if (col != null) {
+                    // Only block if Colision is explicitly true
                     if (col instanceof Boolean && (Boolean) col)
                         return true;
                     if (col instanceof String && "true".equalsIgnoreCase((String) col))
                         return true;
+                    // If Colision is false or any other value, allow movement
+                    return false;
                 }
-                // Fallback: if no property but it's in the collision layer,
-                // we'll assume it's a collision unless it's designated otherwise
-                return true;
+                // If no Colision property, don't block (allow grass with nivel to be walkable)
+                return false;
             }
         }
 
@@ -1075,6 +1287,10 @@ public class GameScreen extends BaseScreen {
             uiWhitePixel.dispose();
         if (missionCompleteTexture != null)
             missionCompleteTexture.dispose();
+        if (jigglypuffTexture != null)
+            jigglypuffTexture.dispose();
+        if (grassSound != null)
+            grassSound.dispose();
         if (map != null)
             map.dispose();
         if (mapRenderer != null)
