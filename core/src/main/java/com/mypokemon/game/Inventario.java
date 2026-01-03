@@ -32,25 +32,32 @@ public class Inventario implements Serializable {
         return getEspacioOcupado() + cantidad <= capacidadMaxima;
     }
 
-    public void recolectarRecurso(String tipo) {
-        if (!puedeAgregar(1)) {
-            throw new RuntimeException("¡Límite de espacio superado!");
+    public boolean recolectarRecurso(String tipo, int cantidad) {
+        if (!puedeAgregar(cantidad)) {
+            System.err.println("¡Límite de espacio superado! No se pueden agregar " + cantidad + " " + tipo);
+            return false;
         }
 
         switch (tipo.toLowerCase()) {
             case "guijarro":
-                guijarros++;
+                guijarros += cantidad;
                 break;
             case "planta":
-                plantas++;
+                plantas += cantidad;
                 break;
             case "baya":
-                bayas++;
+                bayas += cantidad;
+                break;
+            case "pocion":
+                pociones += cantidad;
                 break;
             default:
                 System.out.println("Tipo de recurso desconocido: " + tipo);
-                break;
+                return false;
         }
+        System.out.println(
+                "Recogiste " + cantidad + " " + tipo + "(s). Total: " + getEspacioOcupado() + "/" + capacidadMaxima);
+        return true;
     }
 
     public boolean fabricarPokeBall() {

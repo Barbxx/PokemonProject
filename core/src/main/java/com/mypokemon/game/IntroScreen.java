@@ -527,9 +527,9 @@ public class IntroScreen extends BaseScreen {
         game.font.setColor(Color.BLACK);
         game.font.getData().setScale(1.3f); // Slightly smaller to fit frame
 
-        float textX = boxX + 40;
-        float textY = boxY + boxH - 30; // Adjusted down slightly (was -20)
-        float textWidth = boxW - 80;
+        float textX = boxX + 60;
+        float textY = boxY + boxH - 35; // Adjusted down slightly
+        float textWidth = boxW - 120;
 
         String currentText = "";
         switch (currentState) {
@@ -625,7 +625,7 @@ public class IntroScreen extends BaseScreen {
         }
 
         if (currentState != State.FADE_OUT) {
-            game.font.draw(game.batch, helper, boxX + 40, boxY + 30); // Moved RIGHT (was boxX)
+            game.font.draw(game.batch, helper, boxX + 60, boxY + 30); // Moved RIGHT
         }
 
         game.batch.end();

@@ -23,6 +23,8 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.mypokemon.game.utils.BaseScreen;
 import com.mypokemon.game.utils.TextureUtils;
+import java.util.ArrayList;
+import java.util.List;
 
 // Main Game Screen
 public class GameScreen extends BaseScreen {
@@ -53,6 +55,49 @@ public class GameScreen extends BaseScreen {
     private String playerName;
 
     private Explorador explorador;
+
+    // Resource System
+    private static class RecursoMapa {
+        int cellX, cellY;
+        String tipo;
+        int cantidad;
+        // Map layers and their corresponding cells at (cellX, cellY)
+        java.util.Map<TiledMapTileLayer, TiledMapTileLayer.Cell> cellsPorCapa = new java.util.HashMap<>();
+        float timerRespawn = 0;
+        boolean recolectado = false;
+
+        public RecursoMapa(int x, int y, String tipo, int cantidad) {
+            this.cellX = x;
+            this.cellY = y;
+            this.tipo = tipo;
+            this.cantidad = cantidad;
+        }
+
+        public void registrarCapa(TiledMapTileLayer capa, TiledMapTileLayer.Cell cell) {
+            cellsPorCapa.put(capa, cell);
+        }
+    }
+
+    private List<RecursoMapa> recursosMapa = new ArrayList<>();
+
+    // Notification System
+    private String notificationMessage = "";
+    private float notificationTimer = 0;
+    private static final float NOTIFICATION_DURATION = 3f; // 3 seconds
+
+    // Crafting Dialog System
+    private enum CraftingState {
+        CLOSED, SHOWING_RECIPES, CONFIRMING
+    }
+
+    private CraftingState craftingState = CraftingState.CLOSED;
+    private String craftingRecipe = "";
+
+    // Mission Completion System
+    private boolean showMissionComplete = false;
+    private float missionCompleteTimer = 0;
+    private static final float MISSION_COMPLETE_DURATION = 5f; // 5 seconds
+    private Texture missionCompleteTexture;
 
     // NPC State
     // NPC State
@@ -87,7 +132,7 @@ public class GameScreen extends BaseScreen {
         // Check for saved progress or create new
         this.explorador = Explorador.cargarProgreso(playerName);
         if (this.explorador == null) {
-            this.explorador = new Explorador(playerName, 20); // Capacidad inicial
+            this.explorador = new Explorador(playerName, 30); // Capacidad inicial
         }
 
         // Initialize Camera and Viewport
@@ -204,6 +249,54 @@ public class GameScreen extends BaseScreen {
             mapHeight = 3200;
         }
 
+        // Scan for collectable resources in the collision layer
+        if (collisionLayer != null) {
+            for (int y = 0; y < collisionLayer.getHeight(); y++) {
+                for (int x = 0; x < collisionLayer.getWidth(); x++) {
+                    TiledMapTileLayer.Cell cell = collisionLayer.getCell(x, y);
+                    if (cell != null && cell.getTile() != null) {
+                        Object tipoRecurso = cell.getTile().getProperties().get("TipoRecurso");
+                        if (tipoRecurso != null) {
+                            String tipo = tipoRecurso.toString();
+                            Object cantObj = cell.getTile().getProperties().get("Cantidad");
+                            int cantidad = 1;
+                            if (cantObj != null) {
+                                if (cantObj instanceof Integer) {
+                                    cantidad = (Integer) cantObj;
+                                } else {
+                                    try {
+                                        cantidad = Integer.parseInt(cantObj.toString());
+                                    } catch (NumberFormatException e) {
+                                        cantidad = 1;
+                                    }
+                                }
+                            }
+                            RecursoMapa recurso = new RecursoMapa(x, y, tipo, cantidad);
+                            // Find and store cells from resource layers, EXCEPT background and foreground
+                            // decorations
+                            for (com.badlogic.gdx.maps.MapLayer layer : map.getLayers()) {
+                                if (layer instanceof TiledMapTileLayer) {
+                                    String layerName = layer.getName().toLowerCase();
+                                    // Skip background layer and superior objects layer to preserve them
+                                    if (layerName.contains("suelo_fondo") || layerName.contains("objetos_superiores")) {
+                                        continue;
+                                    }
+                                    TiledMapTileLayer tileLayer = (TiledMapTileLayer) layer;
+                                    TiledMapTileLayer.Cell layerCell = tileLayer.getCell(x, y);
+                                    if (layerCell != null) {
+                                        recurso.registrarCapa(tileLayer, layerCell);
+                                    }
+                                }
+                            }
+                            recursosMapa.add(recurso);
+                            Gdx.app.log("GameScreen",
+                                    "Found resource: " + tipo + " (qty: " + cantidad + ") at " + x + "," + y);
+                        }
+                    }
+                }
+            }
+        }
+
         // Set camera to player spawn position
         // Higher Z value (e.g., 10) ensures XY plane (Z=0) is within frustum (near=1,
         // far=100)
@@ -247,6 +340,7 @@ public class GameScreen extends BaseScreen {
             feidSprite = new Texture(Gdx.files.internal("feidSprite.png"));
             dialogIconTexture = new Texture(Gdx.files.internal("ferxxoCientifico.png"));
             dialogFrameTexture = new Texture(Gdx.files.internal("marcoDialogo.png"));
+            missionCompleteTexture = new Texture(Gdx.files.internal("misionCompletada.png"));
         } catch (Exception e) {
             Gdx.app.log("GameScreen", "NPC/UI textures not found", e);
         }
@@ -265,11 +359,54 @@ public class GameScreen extends BaseScreen {
 
     @Override
     public void show() {
-        // Register InputHandler for shortcuts
+        // Create InputMultiplexer to handle both keyboard and mouse
+        com.badlogic.gdx.InputMultiplexer multiplexer = new com.badlogic.gdx.InputMultiplexer();
+
+        // Register InputHandler for keyboard shortcuts
         if (explorador != null) {
             InputHandler inputHandler = new InputHandler(this.explorador);
-            Gdx.input.setInputProcessor(inputHandler);
+            multiplexer.addProcessor(inputHandler);
         }
+
+        // Add mouse/touch processor for resource collection
+        multiplexer.addProcessor(new com.badlogic.gdx.InputAdapter() {
+            @Override
+            public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+                // Convert screen coordinates to world coordinates
+                com.badlogic.gdx.math.Vector3 worldCoords = new com.badlogic.gdx.math.Vector3(screenX, screenY, 0);
+                camera.unproject(worldCoords);
+
+                // Check if click is near any resource
+                for (RecursoMapa r : recursosMapa) {
+                    if (!r.recolectado) {
+                        float resX = r.cellX * collisionLayer.getTileWidth() + collisionLayer.getTileWidth() / 2;
+                        float resY = r.cellY * collisionLayer.getTileHeight() + collisionLayer.getTileHeight() / 2;
+                        float d = com.badlogic.gdx.math.Vector2.dst(worldCoords.x, worldCoords.y, resX, resY);
+
+                        // Click radius of ~40 pixels to make it easier to click
+                        if (d < 40) {
+                            if (explorador.getMochila().recolectarRecurso(r.tipo, r.cantidad)) {
+                                r.recolectado = true;
+                                r.timerRespawn = 120f; // 120 seconds respawn
+                                // Clear all layers at this position
+                                for (TiledMapTileLayer layer : r.cellsPorCapa.keySet()) {
+                                    layer.setCell(r.cellX, r.cellY, null);
+                                }
+                                Gdx.app.log("GameScreen", "Collected and hid: " + r.cantidad + " " + r.tipo);
+                            } else {
+                                // Show inventory full notification
+                                notificationMessage = "Inventario lleno";
+                                notificationTimer = NOTIFICATION_DURATION;
+                            }
+                            return true; // Consume the event
+                        }
+                    }
+                }
+                return false;
+            }
+        });
+
+        Gdx.input.setInputProcessor(multiplexer);
     }
 
     private void createFallback() {
@@ -301,6 +438,78 @@ public class GameScreen extends BaseScreen {
                 currentDialogPage = 0;
             } else {
                 showDialog = false;
+            }
+        }
+
+        // --- RESOURCE RESPAWN LOGIC ---
+        for (RecursoMapa r : recursosMapa) {
+            if (r.recolectado) {
+                r.timerRespawn -= delta;
+                if (r.timerRespawn <= 0) {
+                    r.recolectado = false;
+                    // Restore all layers at this position
+                    for (java.util.Map.Entry<TiledMapTileLayer, TiledMapTileLayer.Cell> entry : r.cellsPorCapa
+                            .entrySet()) {
+                        entry.getKey().setCell(r.cellX, r.cellY, entry.getValue());
+                    }
+                    Gdx.app.log("GameScreen", "Resource respawned: " + r.tipo + " at " + r.cellX + "," + r.cellY);
+                }
+            }
+        }
+
+        // --- CRAFTING DIALOG LOGIC ---
+        if (Gdx.input.isKeyJustPressed(Input.Keys.C) && craftingState == CraftingState.CLOSED) {
+            // Open crafting dialog
+            int plantas = explorador.getMochila().getPlantas();
+            int guijarros = explorador.getMochila().getGuijarros();
+
+            if (plantas == 0 && guijarros == 0) {
+                notificationMessage = "Inventario vacío";
+                notificationTimer = NOTIFICATION_DURATION;
+            } else {
+                craftingState = CraftingState.SHOWING_RECIPES;
+                craftingRecipe = "2 Plantas + 3 Guijarros = 1 Poké Ball";
+            }
+        }
+
+        // Handle crafting confirmation with S/N keys
+        if (craftingState == CraftingState.SHOWING_RECIPES) {
+            if (Gdx.input.isKeyJustPressed(Input.Keys.S)) {
+                // User wants to craft
+                if (explorador.getMochila().fabricarPokeBall()) {
+                    notificationMessage = "¡Poké Ball creada!";
+                    notificationTimer = NOTIFICATION_DURATION;
+                    // Check if this is the first Poké Ball (Mission 1 complete)
+                    if (explorador.getMochila().getPokeBalls() == 1) {
+                        showMissionComplete = true;
+                        missionCompleteTimer = MISSION_COMPLETE_DURATION;
+                    }
+                } else {
+                    notificationMessage = "Materiales insuficientes";
+                    notificationTimer = NOTIFICATION_DURATION;
+                }
+                craftingState = CraftingState.CLOSED;
+            } else if (Gdx.input.isKeyJustPressed(Input.Keys.N)) {
+                // User cancelled
+                craftingState = CraftingState.CLOSED;
+            }
+        }
+
+        // Update notification timer
+        if (notificationTimer > 0) {
+            notificationTimer -= delta;
+            if (notificationTimer < 0) {
+                notificationTimer = 0;
+                notificationMessage = "";
+            }
+        }
+
+        // Update mission complete timer
+        if (missionCompleteTimer > 0) {
+            missionCompleteTimer -= delta;
+            if (missionCompleteTimer < 0) {
+                missionCompleteTimer = 0;
+                showMissionComplete = false;
             }
         }
 
@@ -510,17 +719,21 @@ public class GameScreen extends BaseScreen {
                     com.badlogic.gdx.utils.Align.right, false);
             game.font.draw(game.batch, "Guijarros: " + explorador.getMochila().getGuijarros(), hudX, 390, 0,
                     com.badlogic.gdx.utils.Align.right, false);
-            game.font.draw(game.batch, "Poké Balls: " + explorador.getMochila().getPokeBalls(), hudX, 370, 0,
+            game.font.draw(game.batch, "Bayas: " + explorador.getMochila().getBayas(), hudX, 370, 0,
+                    com.badlogic.gdx.utils.Align.right, false);
+            game.font.draw(game.batch, "Poké Balls: " + explorador.getMochila().getPokeBalls(), hudX, 350, 0,
+                    com.badlogic.gdx.utils.Align.right, false);
+            game.font.draw(game.batch, "Pociones: " + explorador.getMochila().getPociones(), hudX, 330, 0,
                     com.badlogic.gdx.utils.Align.right, false);
 
             // Validación de espacio
             int ocupado = explorador.getMochila().getEspacioOcupado();
             int max = explorador.getMochila().getCapacidadMaxima();
-            game.font.draw(game.batch, "Carga: " + ocupado + " / " + max, hudX, 340, 0,
+            game.font.draw(game.batch, "Carga: " + ocupado + " / " + max, hudX, 300, 0,
                     com.badlogic.gdx.utils.Align.right, false);
 
             // Guía de controles (Ayuda) - Bottom Right
-            game.font.draw(game.batch, "[P] Planta  [G] Guijarro  [C] Craftear  [K] Pokedex", hudX, 40, 0,
+            game.font.draw(game.batch, "[Click] Recolectar  [C] Craftear  [K] Pokedex", hudX, 40, 0,
                     com.badlogic.gdx.utils.Align.right, false);
         }
 
@@ -582,7 +795,9 @@ public class GameScreen extends BaseScreen {
             // Dialog Body
             game.font.setColor(Color.BLACK);
             game.font.getData().setScale(0.85f);
-            game.font.draw(game.batch, feidDialogPages[currentDialogPage], 40, dialogHeight - 10, screenW - 80,
+            float textMargin = 100;
+            game.font.draw(game.batch, feidDialogPages[currentDialogPage], textMargin, dialogHeight - 15,
+                    screenW - (textMargin * 2),
                     com.badlogic.gdx.utils.Align.left, true);
             game.font.getData().setScale(1.0f);
             game.font.setColor(Color.WHITE);
@@ -591,8 +806,72 @@ public class GameScreen extends BaseScreen {
             game.font.getData().setScale(0.6f);
             String hint = (currentDialogPage < feidDialogPages.length - 1) ? "SIGUIENTE (ENTER)"
                     : "CERRAR (ENTER / E)";
-            game.font.draw(game.batch, hint, 40, 50);
+            game.font.draw(game.batch, hint, 100, 50);
             game.font.getData().setScale(1.0f);
+        }
+
+        // --- NOTIFICATION RENDERING ---
+        if (notificationTimer > 0 && !notificationMessage.isEmpty()) {
+            float notifW = 400;
+            float notifH = 60;
+            float notifX = (800 - notifW) / 2;
+            float notifY = 400;
+
+            // Semi-transparent background
+            game.batch.setColor(0, 0, 0, 0.7f);
+            if (uiWhitePixel != null) {
+                game.batch.draw(uiWhitePixel, notifX, notifY, notifW, notifH);
+            }
+            game.batch.setColor(Color.WHITE);
+
+            // Notification text
+            game.font.setColor(Color.YELLOW);
+            game.font.getData().setScale(1.2f);
+            game.font.draw(game.batch, notificationMessage, notifX, notifY + notifH / 2 + 10, notifW,
+                    com.badlogic.gdx.utils.Align.center, false);
+            game.font.getData().setScale(1.0f);
+            game.font.setColor(Color.WHITE);
+        }
+
+        // --- CRAFTING DIALOG RENDERING ---
+        if (craftingState == CraftingState.SHOWING_RECIPES) {
+            float craftW = 500;
+            float craftH = 150;
+            float craftX = (800 - craftW) / 2;
+            float craftY = 200;
+
+            // Background
+            game.batch.setColor(0.2f, 0.2f, 0.2f, 0.9f);
+            if (uiWhitePixel != null) {
+                game.batch.draw(uiWhitePixel, craftX, craftY, craftW, craftH);
+            }
+            game.batch.setColor(Color.WHITE);
+
+            // Title
+            game.font.setColor(Color.CYAN);
+            game.font.getData().setScale(1.1f);
+            game.font.draw(game.batch, "RECETAS DISPONIBLES", craftX, craftY + craftH - 20, craftW,
+                    com.badlogic.gdx.utils.Align.center, false);
+
+            // Recipe
+            game.font.setColor(Color.WHITE);
+            game.font.getData().setScale(0.9f);
+            game.font.draw(game.batch, craftingRecipe, craftX, craftY + craftH - 60, craftW,
+                    com.badlogic.gdx.utils.Align.center, false);
+
+            // Question
+            game.font.setColor(Color.YELLOW);
+            game.font.draw(game.batch, "¿Deseas craftear esto?", craftX, craftY + craftH - 90, craftW,
+                    com.badlogic.gdx.utils.Align.center, false);
+
+            // Options
+            game.font.setColor(Color.GREEN);
+            game.font.draw(game.batch, "[S] Sí", craftX + 100, craftY + 30);
+            game.font.setColor(Color.RED);
+            game.font.draw(game.batch, "[N] No", craftX + craftW - 150, craftY + 30);
+
+            game.font.getData().setScale(1.0f);
+            game.font.setColor(Color.WHITE);
         }
 
         game.batch.end();
@@ -704,6 +983,8 @@ public class GameScreen extends BaseScreen {
             dialogFrameTexture.dispose();
         if (uiWhitePixel != null)
             uiWhitePixel.dispose();
+        if (missionCompleteTexture != null)
+            missionCompleteTexture.dispose();
         if (map != null)
             map.dispose();
         if (mapRenderer != null)
