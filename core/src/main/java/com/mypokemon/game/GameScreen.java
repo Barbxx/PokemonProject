@@ -48,7 +48,7 @@ public class GameScreen extends BaseScreen {
     private TextureRegion currentFrame;
     private float stateTime;
     private boolean isMoving;
-    private float playerWidth = 32f;
+    private float playerWidth = 40f;
     private float playerHeight = 32f;
     private String playerName;
 
@@ -70,6 +70,11 @@ public class GameScreen extends BaseScreen {
             "El flujo está en el inventario, pero ojo que el espacio es limitado, no se me embolete con la capacidad.",
             "Vaya y me recolecta unos Guijarros y Plantas para que se haga unas Poké Balls bien chimbas. ¡Hágale pues, que ese Pokedex no se va a llenar solo, Nea!"
     };
+
+    // Menu State
+    private boolean showMenu = false;
+    private int menuSelectedIndex = 0;
+    private String[] menuOptions = { "POKÉMON", "MOCHILA", "ZHECARE", "GUARDAR", "OPCIONES", "SALIR" };
 
     // Intro Animation State
     private enum IntroState {
@@ -205,8 +210,6 @@ public class GameScreen extends BaseScreen {
         }
 
         // Set camera to player spawn position
-        // Higher Z value (e.g., 10) ensures XY plane (Z=0) is within frustum (near=1,
-        // far=100)
         camera.position.set(posX, posY, 10);
         camera.update();
 
@@ -319,9 +322,37 @@ public class GameScreen extends BaseScreen {
             currentDialogPage = 0;
         }
 
-        isMoving = false;
+        // --- MENU LOGIC ---
+        if (Gdx.input.isKeyJustPressed(Input.Keys.I)) {
+            showMenu = !showMenu;
+            if (showMenu)
+                showDialog = false; // Close dialog if menu is opened
+        }
 
-        {
+        if (showMenu) {
+            if (Gdx.input.isKeyJustPressed(Input.Keys.UP)) {
+                menuSelectedIndex--;
+                if (menuSelectedIndex < 0)
+                    menuSelectedIndex = menuOptions.length - 1;
+            } else if (Gdx.input.isKeyJustPressed(Input.Keys.DOWN)) {
+                menuSelectedIndex++;
+                if (menuSelectedIndex >= menuOptions.length)
+                    menuSelectedIndex = 0;
+            }
+
+            if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
+                if (menuOptions[menuSelectedIndex].equals("SALIR")) {
+                    Gdx.app.exit();
+                }
+                // Other options can be implemented here later
+                showMenu = false;
+            }
+
+            // If menu is open, we skip movement
+            isMoving = false;
+        } else {
+            isMoving = false;
+
             // Handle Input for Movement (only if not showing instructions)
             if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
                 Gdx.app.exit();
@@ -428,8 +459,6 @@ public class GameScreen extends BaseScreen {
             float hw = viewport.getWorldWidth() / 2;
             float hh = viewport.getWorldHeight() / 2;
 
-            // camX, camY already initialized
-
             if (camX < hw)
                 camX = hw;
             if (camX > mapWidth - hw)
@@ -439,7 +468,7 @@ public class GameScreen extends BaseScreen {
             if (camY > mapHeight - hh)
                 camY = mapHeight - hh;
 
-            camera.position.set(camX, camY, 0); // Z=0 is safer for 2D if near/far are standard
+            camera.position.set(camX, camY, 0);
             camera.update();
         }
 
@@ -549,26 +578,30 @@ public class GameScreen extends BaseScreen {
             }
 
             // Draw Main Dialog Box
-            // Background (White - slightly offset to leave margin for frame)
+            // Border (Dark Gray)
+            game.batch.setColor(Color.DARK_GRAY);
+            if (uiWhitePixel != null)
+                game.batch.draw(uiWhitePixel, 20, 20, screenW - 40, dialogHeight);
+
+            // Body (White)
             game.batch.setColor(Color.WHITE);
             if (uiWhitePixel != null)
-                game.batch.draw(uiWhitePixel, 25, 25, screenW - 50, dialogHeight - 10);
-
-            // Frame (The custom texture)
-            game.batch.setColor(Color.WHITE);
-            if (dialogFrameTexture != null)
-                game.batch.draw(dialogFrameTexture, 20, 20, screenW - 40, dialogHeight);
+                game.batch.draw(uiWhitePixel, 23, 23, screenW - 46, dialogHeight - 6);
 
             // Name Tag Box (Top-Left of dialog, overlapping)
             float nameTagW = 200;
-            float nameTagH = 40;
-            float nameTagX = 40;
+            float nameTagH = 35; // Slightly shorter
             float nameTagY = dialogHeight + 10;
+
+            // Name Tag Border (Dark Gray)
+            game.batch.setColor(Color.DARK_GRAY);
+            if (uiWhitePixel != null)
+                game.batch.draw(uiWhitePixel, 45, nameTagY, nameTagW, nameTagH);
 
             // Name Tag Background (White)
             game.batch.setColor(Color.WHITE);
             if (uiWhitePixel != null)
-                game.batch.draw(uiWhitePixel, nameTagX, nameTagY, nameTagW, nameTagH);
+                game.batch.draw(uiWhitePixel, 47, nameTagY + 2, nameTagW - 4, nameTagH - 4);
 
             // Reset Color for Text
             game.batch.setColor(Color.WHITE);
@@ -577,12 +610,12 @@ public class GameScreen extends BaseScreen {
             // Name
             game.font.setColor(Color.BLACK);
             game.font.getData().setScale(0.9f);
-            game.font.draw(game.batch, "Profesor Ferxxo", nameTagX + 10, nameTagY + 28);
+            game.font.draw(game.batch, "Profesor Ferxxo", 55, nameTagY + 25);
 
             // Dialog Body
             game.font.setColor(Color.BLACK);
             game.font.getData().setScale(0.85f);
-            game.font.draw(game.batch, feidDialogPages[currentDialogPage], 40, dialogHeight - 10, screenW - 80,
+            game.font.draw(game.batch, feidDialogPages[currentDialogPage], 45, dialogHeight - 10, screenW - 90,
                     com.badlogic.gdx.utils.Align.left, true);
             game.font.getData().setScale(1.0f);
             game.font.setColor(Color.WHITE);
@@ -591,11 +624,59 @@ public class GameScreen extends BaseScreen {
             game.font.getData().setScale(0.6f);
             String hint = (currentDialogPage < feidDialogPages.length - 1) ? "SIGUIENTE (ENTER)"
                     : "CERRAR (ENTER / E)";
-            game.font.draw(game.batch, hint, 40, 50);
+            game.font.draw(game.batch, hint, 45, 50);
             game.font.getData().setScale(1.0f);
         }
 
+        // Draw side menu if open
+        if (showMenu) {
+            drawMenu();
+        }
+
         game.batch.end();
+    }
+
+    private void drawMenu() {
+        float menuW = 180;
+        float menuH = 260;
+        float menuX = 800 - menuW - 20;
+        float menuY = 480 - menuH - 20;
+        float borderSize = 4;
+
+        // Draw Menu Border (Reddish / Orange)
+        game.batch.setColor(new Color(0.8f, 0.2f, 0.1f, 1f));
+        if (uiWhitePixel != null) {
+            game.batch.draw(uiWhitePixel, menuX, menuY, menuW, menuH);
+        }
+
+        // Draw Menu Background (White)
+        game.batch.setColor(Color.WHITE);
+        if (uiWhitePixel != null) {
+            game.batch.draw(uiWhitePixel, menuX + borderSize, menuY + borderSize, menuW - borderSize * 2,
+                    menuH - borderSize * 2);
+        }
+
+        // Draw Options
+        game.font.setColor(Color.DARK_GRAY);
+        game.font.getData().setScale(0.85f);
+        float startY = menuY + menuH - 40;
+        float spacing = 35;
+
+        for (int i = 0; i < menuOptions.length; i++) {
+            float optY = startY - (i * spacing);
+            game.font.draw(game.batch, menuOptions[i], menuX + 45, optY);
+
+            // Draw Selection Arrow
+            if (i == menuSelectedIndex) {
+                // Simplified triangle using character or just a small circle/rect for now
+                // Let's use a small arrow symbol if possible or geometric shape
+                game.font.draw(game.batch, ">", menuX + 20, optY);
+            }
+        }
+
+        game.font.getData().setScale(1.0f);
+        game.font.setColor(Color.WHITE);
+        game.batch.setColor(Color.WHITE); // Reset Batch color
     }
 
     private void drawPlayer() {
