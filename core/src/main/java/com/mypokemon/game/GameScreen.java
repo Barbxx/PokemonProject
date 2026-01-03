@@ -846,74 +846,6 @@ public class GameScreen extends BaseScreen {
             game.font.getData().setScale(0.6f);
             String hint = (currentDialogPage < feidDialogPages.length - 1) ? "SIGUIENTE (ENTER)"
                     : "CERRAR (ENTER / E)";
-<<<<<<< HEAD
-            game.font.draw(game.batch, hint, 100, 50);
-            game.font.getData().setScale(1.0f);
-        }
-
-        // --- NOTIFICATION RENDERING ---
-        if (notificationTimer > 0 && !notificationMessage.isEmpty()) {
-            float notifW = 400;
-            float notifH = 60;
-            float notifX = (800 - notifW) / 2;
-            float notifY = 400;
-
-            // Semi-transparent background
-            game.batch.setColor(0, 0, 0, 0.7f);
-            if (uiWhitePixel != null) {
-                game.batch.draw(uiWhitePixel, notifX, notifY, notifW, notifH);
-            }
-            game.batch.setColor(Color.WHITE);
-
-            // Notification text
-            game.font.setColor(Color.YELLOW);
-            game.font.getData().setScale(1.2f);
-            game.font.draw(game.batch, notificationMessage, notifX, notifY + notifH / 2 + 10, notifW,
-                    com.badlogic.gdx.utils.Align.center, false);
-            game.font.getData().setScale(1.0f);
-            game.font.setColor(Color.WHITE);
-        }
-
-        // --- CRAFTING DIALOG RENDERING ---
-        if (craftingState == CraftingState.SHOWING_RECIPES) {
-            float craftW = 500;
-            float craftH = 150;
-            float craftX = (800 - craftW) / 2;
-            float craftY = 200;
-
-            // Background
-            game.batch.setColor(0.2f, 0.2f, 0.2f, 0.9f);
-            if (uiWhitePixel != null) {
-                game.batch.draw(uiWhitePixel, craftX, craftY, craftW, craftH);
-            }
-            game.batch.setColor(Color.WHITE);
-
-            // Title
-            game.font.setColor(Color.CYAN);
-            game.font.getData().setScale(1.1f);
-            game.font.draw(game.batch, "RECETAS DISPONIBLES", craftX, craftY + craftH - 20, craftW,
-                    com.badlogic.gdx.utils.Align.center, false);
-
-            // Recipe
-            game.font.setColor(Color.WHITE);
-            game.font.getData().setScale(0.9f);
-            game.font.draw(game.batch, craftingRecipe, craftX, craftY + craftH - 60, craftW,
-                    com.badlogic.gdx.utils.Align.center, false);
-
-            // Question
-            game.font.setColor(Color.YELLOW);
-            game.font.draw(game.batch, "¿Deseas craftear esto?", craftX, craftY + craftH - 90, craftW,
-                    com.badlogic.gdx.utils.Align.center, false);
-
-            // Options
-            game.font.setColor(Color.GREEN);
-            game.font.draw(game.batch, "[S] Sí", craftX + 100, craftY + 30);
-            game.font.setColor(Color.RED);
-            game.font.draw(game.batch, "[N] No", craftX + craftW - 150, craftY + 30);
-
-            game.font.getData().setScale(1.0f);
-            game.font.setColor(Color.WHITE);
-=======
             game.font.draw(game.batch, hint, 45, 50);
             game.font.getData().setScale(1.0f);
         }
@@ -921,7 +853,6 @@ public class GameScreen extends BaseScreen {
         // Draw side menu if open
         if (showMenu) {
             drawMenu();
->>>>>>> 8e5b61f1ae29cf373ced081ccab2224124d45116
         }
 
         game.batch.end();
