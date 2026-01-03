@@ -74,7 +74,7 @@ public class GameScreen extends BaseScreen {
     // Menu State
     private boolean showMenu = false;
     private int menuSelectedIndex = 0;
-    private String[] menuOptions = { "POKÉMON", "MOCHILA", "ZHECARE", "GUARDAR", "OPCIONES", "SALIR" };
+    private String[] menuOptions = { "POKÉMON", "MOCHILA", "GUARDAR", "OPCIONES", "SALIR" };
 
     // Intro Animation State
     private enum IntroState {
@@ -549,7 +549,7 @@ public class GameScreen extends BaseScreen {
                     com.badlogic.gdx.utils.Align.right, false);
 
             // Guía de controles (Ayuda) - Bottom Right
-            game.font.draw(game.batch, "[P] Planta  [G] Guijarro  [C] Craftear  [K] Pokedex", hudX, 40, 0,
+            game.font.draw(game.batch, "[I] Menú  [P] Planta  [G] Guijarro  [C] Craftear  [K] Pokedex", hudX, 40, 0,
                     com.badlogic.gdx.utils.Align.right, false);
         }
 
@@ -567,7 +567,6 @@ public class GameScreen extends BaseScreen {
         if (showDialog) {
             // Constants for UI
             float screenW = 800;
-            float screenH = 480;
             float dialogHeight = 110;
             float portraitSize = 250;
 
