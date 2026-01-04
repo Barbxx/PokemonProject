@@ -125,7 +125,7 @@ public class GameScreen extends BaseScreen {
         // Check for saved progress or create new
         this.explorador = Explorador.cargarProgreso(playerName);
         if (this.explorador == null) {
-            this.explorador = new Explorador(playerName, 30); // Capacidad inicial
+            this.explorador = new Explorador(playerName, 40); // Capacidad inicial aumentada
         }
 
         // Initialize Camera and Viewport
@@ -397,28 +397,35 @@ public class GameScreen extends BaseScreen {
         }
 
         // --- RESOURCE COLLECTION LOGIC ---
-        if (Gdx.input.isKeyJustPressed(Input.Keys.P) || Gdx.input.isKeyJustPressed(Input.Keys.G)
-                || Gdx.input.isKeyJustPressed(Input.Keys.B)) {
-            String targetTipo = "";
-            if (Gdx.input.isKeyJustPressed(Input.Keys.P))
-                targetTipo = "Planta";
-            else if (Gdx.input.isKeyJustPressed(Input.Keys.G))
-                targetTipo = "Guijarro";
-            else if (Gdx.input.isKeyJustPressed(Input.Keys.B))
-                targetTipo = "Baya";
+        if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
+            // Unproject mouse coordinates to world coordinates
+            com.badlogic.gdx.math.Vector3 mousePos = new com.badlogic.gdx.math.Vector3(Gdx.input.getX(),
+                    Gdx.input.getY(), 0);
+            viewport.unproject(mousePos);
+            float mouseX = mousePos.x;
+            float mouseY = mousePos.y;
+
             RecursoMapa closest = null;
-            float minDist = 60f; // Interaction range
+            float minDist = 60f; // Interaction range for player proximity
 
             for (RecursoMapa r : recursosMapa) {
-                if (!r.recolectado && r.tipo.equalsIgnoreCase(targetTipo)) {
+                if (!r.recolectado) {
                     float tileW = (collisionLayer != null) ? collisionLayer.getTileWidth() : 32;
                     float tileH = (collisionLayer != null) ? collisionLayer.getTileHeight() : 32;
                     float rx = r.cellX * tileW + tileW / 2;
                     float ry = r.cellY * tileH + tileH / 2;
-                    float d = com.badlogic.gdx.math.Vector2.dst(posX, posY, rx, ry);
-                    if (d < minDist) {
+
+                    // 1. Check if player is close enough to the resource
+                    float distToPlayer = com.badlogic.gdx.math.Vector2.dst(posX, posY, rx, ry);
+
+                    // 2. Check if mouse click is ON the resource
+                    boolean clickOnResource = mouseX >= (rx - tileW / 2) && mouseX <= (rx + tileW / 2) &&
+                            mouseY >= (ry - tileH / 2) && mouseY <= (ry + tileH / 2);
+
+                    if (distToPlayer < minDist && clickOnResource) {
+                        // If multiple are clicked (overlapping?), pick one, or just the first valid one
                         closest = r;
-                        minDist = d;
+                        break;
                     }
                 }
             }
@@ -1136,7 +1143,7 @@ public class GameScreen extends BaseScreen {
         int cantidad;
         boolean recolectado = false;
         float timerRespawn = 0;
-        final float TIEMPO_RESPAWN = 10.0f;
+        final float TIEMPO_RESPAWN = 120.0f;
         Map<TiledMapTileLayer, TiledMapTileLayer.Cell> cellsPorCapa = new HashMap<>();
 
         public RecursoMapa(int x, int y, String tipo, int cantidad) {
