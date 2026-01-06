@@ -90,12 +90,13 @@ public class GameScreen extends BaseScreen {
     private IntroState introState;
     private float introY;
     private float introSpeed = 200f; // Pixels per second
+    private Texture avisoTexture;
 
     // Game Constants
     private static final float ENCOUNTER_CHANCE = 0.1f;
     private static final float ENCOUNTER_CHECK_INTERVAL = 1.0f;
     private static final float NOTIFICATION_DURATION = 3.0f;
-    private static final float MISSION_COMPLETE_DURATION = 5.0f;
+    private static final float MISSION_COMPLETE_DURATION = 6.0f;
 
     // Encounter State
     private float encounterTimer = 0;
@@ -142,6 +143,13 @@ public class GameScreen extends BaseScreen {
         } catch (Exception e) {
             Gdx.app.log("GameScreen", "Could not load praderaObsidiana.png", e);
             introState = IntroState.FINISHED;
+        }
+
+        // Load Aviso Texture
+        try {
+            avisoTexture = new Texture(Gdx.files.internal("Aviso.png"));
+        } catch (Exception e) {
+            Gdx.app.log("GameScreen", "Could not load Aviso.png", e);
         }
 
         // Load Sounds
@@ -888,12 +896,26 @@ public class GameScreen extends BaseScreen {
             }
 
             if (showMissionComplete) {
-                game.font.getData().setScale(1.2f);
-                game.font.setColor(Color.GREEN);
-                game.font.draw(game.batch, "¡MISIÓN COMPLETADA!", 400, 350, 0, com.badlogic.gdx.utils.Align.center,
-                        false);
-                game.font.getData().setScale(1.0f);
-                game.font.setColor(Color.WHITE);
+                if (avisoTexture != null) {
+                    // Set a fixed width for the notification (e.g., 300 pixels)
+                    float targetWidth = 300f;
+                    // Calculate height to maintain aspect ratio
+                    float scale = targetWidth / avisoTexture.getWidth();
+                    float targetHeight = avisoTexture.getHeight() * scale;
+
+                    // Center the image with the new dimensions
+                    float avisoX = (800 - targetWidth) / 2;
+                    float avisoY = (480 - targetHeight) / 2;
+
+                    game.batch.draw(avisoTexture, avisoX, avisoY, targetWidth, targetHeight);
+                } else {
+                    game.font.getData().setScale(1.2f);
+                    game.font.setColor(Color.GREEN);
+                    game.font.draw(game.batch, "¡MISIÓN COMPLETADA!", 400, 350, 0, com.badlogic.gdx.utils.Align.center,
+                            false);
+                    game.font.getData().setScale(1.0f);
+                    game.font.setColor(Color.WHITE);
+                }
             }
         }
 
@@ -1122,6 +1144,8 @@ public class GameScreen extends BaseScreen {
             playerSheet.dispose();
         if (introTexture != null)
             introTexture.dispose();
+        if (avisoTexture != null)
+            avisoTexture.dispose();
         if (feidSprite != null)
             feidSprite.dispose();
         if (dialogIconTexture != null)
