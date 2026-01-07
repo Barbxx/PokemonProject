@@ -17,46 +17,48 @@ public class Movimiento implements Serializable {
     }
 
     public int ejecutar(Pokemon atacante, Pokemon defensor) {
+        // Verificar si el ataque acierta según la precisión
         if (new Random().nextInt(100) < this.precision) {
-            // Fórmula simplificada de daño para la simulación
-            int dañoBase = (int) (((atacante.getNivel() * 0.5) + this.poder) - 5);
+            // Verificar inmunidades primero
+            if (esInmune(this.tipo, defensor)) {
+                return -1; // Código especial para inmunidad
+            }
 
-            // Lógica de efectividad (Ejemplo: Agua vence a Fuego)
-            float multiplicador = calcularEfectividad(this.tipo, defensor);
+            // El daño es directamente el poder del ataque
+            // No hay cálculos complejos, solo resta directa de HP
+            int daño = this.poder;
 
-            int dañoFinal = (int) (dañoBase * multiplicador);
-            // Ensure damage is at least 1 if hit, unless calculation intends 0
-            if (dañoFinal < 1)
-                dañoFinal = 1;
+            // Asegurar que el daño sea al menos 1 si el ataque conecta
+            if (daño < 1) {
+                daño = 1;
+            }
 
-            defensor.recibirDaño(dañoFinal);
-            return dañoFinal;
+            // Restar el daño directamente del HP del defensor
+            defensor.recibirDaño(daño);
+            return daño;
         }
-        return 0; // El ataque falló
+        return 0; // El ataque falló por precisión
     }
 
-    private float calcularEfectividad(String tipoAtaque, Pokemon defensor) {
-        // Verificar inmunidades
+    /**
+     * Verifica si el defensor es inmune al tipo de ataque
+     */
+    private boolean esInmune(String tipoAtaque, Pokemon defensor) {
         if (defensor.getInmunidades() != null) {
             for (String inmune : defensor.getInmunidades()) {
                 if (tipoAtaque.equalsIgnoreCase(inmune)) {
-                    System.out.println("¡El ataque no afecta a " + defensor.getNombre() + "!");
-                    return 0.0f;
+                    return true; // Inmune
                 }
             }
         }
-
-        // Tabla de tipos simplificada
-        String tipoDefensor = defensor.getTipo();
-        if (tipoAtaque.equalsIgnoreCase("Agua") && tipoDefensor.equalsIgnoreCase("Fuego"))
-            return 2.0f;
-        if (tipoAtaque.equalsIgnoreCase("Planta") && tipoDefensor.equalsIgnoreCase("Agua"))
-            return 2.0f;
-        if (tipoAtaque.equalsIgnoreCase("Fuego") && tipoDefensor.equalsIgnoreCase("Planta"))
-            return 2.0f;
-
-        return 1.0f;
+        return false;
     }
+
+    /**
+     * NOTA: La efectividad de tipos ha sido removida.
+     * El daño ahora es directo: Poder del Ataque = Daño al HP
+     * No hay multiplicadores ni cálculos adicionales.
+     */
 
     // Getters
     public String getNombre() {

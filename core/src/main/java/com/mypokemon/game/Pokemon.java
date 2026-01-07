@@ -22,9 +22,9 @@ public class Pokemon implements Serializable {
     // Para LibGDX (marcar como transient para que no intente serializar la imagen)
     private transient TextureRegion sprite;
 
-    public Pokemon(String nombre, int nivel, float hpMaximo, boolean esLegendario, String tipo) {
+    public Pokemon(String nombre, int nivelInvestigacion, float hpMaximo, boolean esLegendario, String tipo) {
         this.nombre = nombre;
-        this.nivel = nivel;
+        this.nivel = nivelInvestigacion;
         this.hpMaximo = hpMaximo;
         this.hpActual = hpMaximo;
         this.esLegendario = esLegendario;
@@ -39,16 +39,28 @@ public class Pokemon implements Serializable {
             this.inmunidades = data.inmunidades;
             this.tipo = data.tipo;
 
-            // Calcular estadísticas basadas en el nivel (0-10)
-            float factor = (float) nivel / 10f;
-            this.hpMaximo = data.psMin + (data.psMax - data.psMin) * factor;
+            // Calcular estadísticas basadas en el nivel de investigación (0-10)
+            this.hpMaximo = data.calcularPS(nivelInvestigacion);
             this.hpActual = this.hpMaximo;
-            this.ataque = data.atqMin + (data.atqMax - data.atqMin) * factor;
-            this.velocidad = data.velMin + (data.velMax - data.velMin) * factor;
+            this.ataque = data.calcularAtaque(nivelInvestigacion);
+            this.velocidad = data.calcularVelocidad(nivelInvestigacion);
 
             // Agregar movimientos iniciales
             for (String movNombre : data.movimientosIniciales) {
-                this.agregarMovimiento(new Movimiento(movNombre, 40, data.tipo, 100));
+                AtaqueData ataqueData = AtaqueData.get(movNombre);
+                if (ataqueData != null) {
+                    this.agregarMovimiento(
+                            new Movimiento(movNombre, ataqueData.poder, ataqueData.tipo, ataqueData.precision));
+                }
+            }
+
+            // Si el nivel de investigación es 5 o mayor, desbloquear el movimiento especial
+            if (nivelInvestigacion >= 5 && data.movimientoNivel5 != null && !data.movimientoNivel5.isEmpty()) {
+                AtaqueData ataqueData = AtaqueData.get(data.movimientoNivel5);
+                if (ataqueData != null) {
+                    this.agregarMovimiento(new Movimiento(data.movimientoNivel5, ataqueData.poder, ataqueData.tipo,
+                            ataqueData.precision));
+                }
             }
         }
     }

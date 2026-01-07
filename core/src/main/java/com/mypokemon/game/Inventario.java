@@ -196,4 +196,91 @@ public class Inventario implements Serializable {
     public int getAmuletos() {
         return amuletos;
     }
+
+    /**
+     * Obtiene la cantidad de un item específico por nombre
+     */
+    public int getCantidad(String nombre) {
+        switch (nombre.toLowerCase()) {
+            case "guijarro":
+                return guijarros;
+            case "planta":
+                return plantas;
+            case "baya":
+                return bayas;
+            case "pokeball":
+                return pokeBalls;
+            case "pocion":
+                return pociones;
+            case "heavyball":
+            case "pokeballpeso":
+                return heavyBalls;
+            case "lure":
+                return lures;
+            case "unguento":
+                return unguentos;
+            case "elixir":
+                return elixires;
+            case "revivir":
+                return revivires;
+            case "repelente":
+                return repelentes;
+            case "amuleto":
+                return amuletos;
+            default:
+                return 0;
+        }
+    }
+
+    /**
+     * Consume una cantidad específica de un item
+     */
+    public boolean consumirItem(String nombre, int cantidad) {
+        if (getCantidad(nombre) < cantidad) {
+            return false; // No hay suficiente cantidad
+        }
+
+        switch (nombre.toLowerCase()) {
+            case "guijarro":
+                guijarros -= cantidad;
+                break;
+            case "planta":
+                plantas -= cantidad;
+                break;
+            case "baya":
+                bayas -= cantidad;
+                break;
+            case "pokeball":
+                pokeBalls -= cantidad;
+                break;
+            case "pocion":
+                pociones -= cantidad;
+                break;
+            case "heavyball":
+            case "pokeballpeso":
+                heavyBalls -= cantidad;
+                break;
+            case "lure":
+                lures -= cantidad;
+                break;
+            case "unguento":
+                unguentos -= cantidad;
+                break;
+            case "elixir":
+                elixires -= cantidad;
+                break;
+            case "revivir":
+                revivires -= cantidad;
+                break;
+            case "repelente":
+                repelentes -= cantidad;
+                break;
+            case "amuleto":
+                amuletos -= cantidad;
+                break;
+            default:
+                return false;
+        }
+        return true;
+    }
 }

@@ -68,6 +68,10 @@ public class Explorador implements Serializable {
         return mochila;
     }
 
+    public Inventario getInventario() {
+        return mochila; // Alias para getMochila()
+    }
+
     public Pokedex getRegistro() {
         return registro;
     }
@@ -86,5 +90,9 @@ public class Explorador implements Serializable {
 
     public void agregarPokemonEquipo(Pokemon pokemon) {
         this.equipo.add(pokemon);
+    }
+
+    public void agregarAlEquipo(Pokemon pokemon) {
+        this.equipo.add(pokemon); // Alias para agregarPokemonEquipo()
     }
 }

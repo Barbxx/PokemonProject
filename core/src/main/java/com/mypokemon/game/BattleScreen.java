@@ -33,10 +33,19 @@ public class BattleScreen extends ScreenAdapter {
     private Rectangle btnMochilaRect;
     private Rectangle btnPokemonRect;
 
+    // Rectángulos para el menú de movimientos (cuadrícula 2x2)
+    private Rectangle btnMove0Rect;
+    private Rectangle btnMove1Rect;
+    private Rectangle btnMove2Rect;
+    private Rectangle btnMove3Rect;
+
     // UI State
     private String infoText = "...";
+    private String damageText = ""; // Mostrar daño recibido
+    private float damageTextTimer = 0;
     private int selectedOption = 0; // 0: Atacar, 1: Mochila, 2: Pokemon, 3: Huir
     private boolean showMoveMenu = false;
+    private boolean showPokedex = false;
     private int selectedMove = 0;
     private Texture selectedBorder;
 
@@ -131,16 +140,32 @@ public class BattleScreen extends ScreenAdapter {
 
     @Override
     public void show() {
+        // Disposición de botones en cuadrícula 2x2 centrada en el cuadro de acciones
         float btnWidth = 140;
         float btnHeight = 40;
-        float spacing = 10;
-        float startX = 480;
-        float startY = 20;
+        float spacing = 15;
+        // El cuadro de acciones está en el lado derecho (400 a 800)
+        // Ancho total de la cuadrícula = 140 * 2 + 15 = 295
+        // StartX para centrar en 400-800: 400 + (400 - 295) / 2 = 452.5
+        float startX = 452.5f;
+        // StartY para centrar verticalmente en relación al cuadro de mensajes
+        float startY = 40;
 
+        // Fila superior: Atacar | Mochila
         btnAtacarRect = new Rectangle(startX, startY + btnHeight + spacing, btnWidth, btnHeight);
         btnMochilaRect = new Rectangle(startX + btnWidth + spacing, startY + btnHeight + spacing, btnWidth, btnHeight);
+
+        // Fila inferior: Pokemon | Huir
         btnPokemonRect = new Rectangle(startX, startY, btnWidth, btnHeight);
         btnHuirRect = new Rectangle(startX + btnWidth + spacing, startY, btnWidth, btnHeight);
+
+        // Crear rectángulos para el menú de movimientos (cuadrícula 2x2 perfecta)
+        // Fila superior: Movimiento 0 | Movimiento 1
+        btnMove0Rect = new Rectangle(startX, startY + btnHeight + spacing, btnWidth, btnHeight);
+        btnMove1Rect = new Rectangle(startX + btnWidth + spacing, startY + btnHeight + spacing, btnWidth, btnHeight);
+        // Fila inferior: Movimiento 2 | Movimiento 3
+        btnMove2Rect = new Rectangle(startX, startY, btnWidth, btnHeight);
+        btnMove3Rect = new Rectangle(startX + btnWidth + spacing, startY, btnWidth, btnHeight);
 
         Gdx.input.setInputProcessor(new InputAdapter() {
             @Override
@@ -157,20 +182,21 @@ public class BattleScreen extends ScreenAdapter {
 
                 if (currentState == BattleState.PLAYER_TURN) {
                     if (showMoveMenu) {
+                        // Menú de movimientos - usar rectángulos específicos
                         List<Movimiento> movs = pokemonJugador.getMovimientos();
-                        if (btnAtacarRect.contains(x, y) && movs.size() > 0) {
+                        if (btnMove0Rect.contains(x, y) && movs.size() > 0) {
                             performMove(0);
                             return true;
                         }
-                        if (btnMochilaRect.contains(x, y) && movs.size() > 1) {
+                        if (btnMove1Rect.contains(x, y) && movs.size() > 1) {
                             performMove(1);
                             return true;
                         }
-                        if (btnPokemonRect.contains(x, y) && movs.size() > 2) {
+                        if (btnMove2Rect.contains(x, y) && movs.size() > 2) {
                             performMove(2);
                             return true;
                         }
-                        if (btnHuirRect.contains(x, y) && movs.size() > 3) {
+                        if (btnMove3Rect.contains(x, y) && movs.size() > 3) {
                             performMove(3);
                             return true;
                         }
@@ -188,11 +214,11 @@ public class BattleScreen extends ScreenAdapter {
                         return true;
                     } else if (btnMochilaRect.contains(x, y)) {
                         selectedOption = 1;
-                        updateInfo("Abriendo Mochila...");
+                        abrirMochila();
                         return true;
                     } else if (btnPokemonRect.contains(x, y)) {
                         selectedOption = 2;
-                        updateInfo("Viendo Pokémon...");
+                        abrirPokemon();
                         return true;
                     }
                 }
@@ -208,10 +234,20 @@ public class BattleScreen extends ScreenAdapter {
 
                 if (currentState == BattleState.PLAYER_TURN) {
                     if (keycode == com.badlogic.gdx.Input.Keys.B || keycode == com.badlogic.gdx.Input.Keys.X) {
-                        if (showMoveMenu) {
+                        if (showMoveMenu || showPokedex) {
                             showMoveMenu = false;
+                            showPokedex = false;
                             return true;
                         }
+                    }
+
+                    if (keycode == com.badlogic.gdx.Input.Keys.K) {
+                        showPokedex = !showPokedex;
+                        if (showPokedex) {
+                            showMoveMenu = false;
+                            updateInfo("Abriendo Pokedex...");
+                        }
+                        return true;
                     }
 
                     int currentSelection = showMoveMenu ? selectedMove : selectedOption;
@@ -241,10 +277,11 @@ public class BattleScreen extends ScreenAdapter {
                     }
 
                     if (showMoveMenu) {
-                        if (currentSelection < maxMoves)
+                        if (currentSelection < 4)
                             selectedMove = currentSelection;
                     } else {
-                        selectedOption = currentSelection;
+                        if (currentSelection <= 3)
+                            selectedOption = currentSelection;
                     }
                     return true;
                 }
@@ -257,20 +294,51 @@ public class BattleScreen extends ScreenAdapter {
 
     private void handleSelectedAction() {
         switch (selectedOption) {
-            case 0:
+            case 0: // Atacar
                 showMoveMenu = true;
                 selectedMove = 0;
                 break;
-            case 1:
-                updateInfo("Abriendo Mochila...");
+            case 1: // Mochila
+                abrirMochila();
                 break;
-            case 2:
-                updateInfo("Viendo Pokémon...");
+            case 2: // Pokémon
+                abrirPokemon();
                 break;
-            case 3:
+            case 3: // Huir
                 handleHuir();
                 break;
         }
+    }
+
+    private void abrirMochila() {
+        // Mostrar información del inventario
+        Inventario inv = explorador.getInventario();
+        StringBuilder info = new StringBuilder("Mochila:\n");
+        info.append("Poké Balls: ").append(inv.getPokeBalls()).append("\n");
+        info.append("PesoBalls: ").append(inv.getHeavyBalls()).append("\n");
+        info.append("Bayas: ").append(inv.getBayas()).append("\n");
+        info.append("Pociones: ").append(inv.getPociones()).append("\n");
+        info.append("Guijarros: ").append(inv.getGuijarros()).append("\n");
+        info.append("Plantas: ").append(inv.getPlantas()).append("\n");
+        updateInfo(info.toString());
+        // TODO: Crear pantalla dedicada de Mochila para gestión completa
+    }
+
+    private void abrirPokemon() {
+        // Mostrar información del equipo
+        updateInfo("Consultando equipo...");
+        // Por ahora mostrar info básica, luego se puede crear una pantalla dedicada
+        StringBuilder info = new StringBuilder("Equipo:\n");
+        for (int i = 0; i < explorador.getEquipo().size(); i++) {
+            Pokemon p = explorador.getEquipo().get(i);
+            info.append((i + 1)).append(". ").append(p.getNombre())
+                    .append(" - PS: ").append((int) p.getHpActual()).append("/").append((int) p.getHpMaximo());
+            if (p.isDebilitado()) {
+                info.append(" [DEBILITADO]");
+            }
+            info.append("\n");
+        }
+        updateInfo(info.toString());
     }
 
     private void handleHuir() {
@@ -285,28 +353,86 @@ public class BattleScreen extends ScreenAdapter {
             return;
 
         Movimiento mov = movs.get(moveIndex);
-        mov.ejecutar(pokemonJugador, pokemonEnemigo);
-        updateInfo(pokemonJugador.getNombre() + " usó " + mov.getNombre() + ".");
 
-        checkBattleStatus();
-        if (currentState != BattleState.END_BATTLE) {
+        // Determinar orden de ataque basado en velocidad
+        boolean jugadorPrimero = pokemonJugador.getVelocidad() >= pokemonEnemigo.getVelocidad();
+
+        if (jugadorPrimero) {
+            // Jugador ataca primero
+            int dano = mov.ejecutar(pokemonJugador, pokemonEnemigo);
+            if (dano == -1) {
+                updateInfo("¡" + pokemonEnemigo.getNombre() + " es inmune a " + mov.getTipo() + "!");
+            } else if (dano > 0) {
+                updateInfo(pokemonJugador.getNombre() + " usó " + mov.getNombre() + ". Daño: " + dano);
+                damageText = "-" + dano;
+                damageTextTimer = 2.0f;
+            } else {
+                updateInfo(pokemonJugador.getNombre() + " usó " + mov.getNombre() + ", pero falló.");
+            }
+
+            checkBattleStatus();
+            if (currentState != BattleState.END_BATTLE) {
+                currentState = BattleState.ENEMY_TURN;
+                Gdx.app.postRunnable(() -> {
+                    try {
+                        Thread.sleep(1500);
+                    } catch (InterruptedException e) {
+                    }
+                    performEnemyTurn();
+                });
+            }
+        } else {
+            // Enemigo ataca primero
             currentState = BattleState.ENEMY_TURN;
-            Gdx.app.postRunnable(() -> {
-                try {
-                    Thread.sleep(1500);
-                } catch (InterruptedException e) {
-                }
-                performEnemyTurn();
-            });
+            performEnemyTurn();
+
+            // Luego el jugador si sigue vivo
+            if (currentState != BattleState.END_BATTLE) {
+                Gdx.app.postRunnable(() -> {
+                    try {
+                        Thread.sleep(1500);
+                    } catch (InterruptedException e) {
+                    }
+                    int dano = mov.ejecutar(pokemonJugador, pokemonEnemigo);
+                    if (dano == -1) {
+                        updateInfo("¡" + pokemonEnemigo.getNombre() + " es inmune a " + mov.getTipo() + "!");
+                    } else if (dano > 0) {
+                        updateInfo(pokemonJugador.getNombre() + " usó " + mov.getNombre() + ". Daño: " + dano);
+                        damageText = "-" + dano;
+                        damageTextTimer = 2.0f;
+                    } else {
+                        updateInfo(pokemonJugador.getNombre() + " usó " + mov.getNombre() + ", pero falló.");
+                    }
+                    checkBattleStatus();
+                    currentState = BattleState.PLAYER_TURN;
+                });
+            }
         }
     }
 
     private void performEnemyTurn() {
         if (currentState != BattleState.ENEMY_TURN)
             return;
-        int dano = 5;
-        pokemonJugador.recibirDaño(dano);
-        updateInfo("El enemigo atacó.");
+
+        // El enemigo usa un ataque aleatorio
+        List<Movimiento> movimientos = pokemonEnemigo.getMovimientos();
+        if (movimientos.isEmpty()) {
+            // Ataque básico si no tiene movimientos
+            int dano = (int) (pokemonEnemigo.getAtaque() * 0.3);
+            pokemonJugador.recibirDaño(dano);
+            updateInfo(pokemonEnemigo.getNombre() + " usó Placaje. Daño: " + dano);
+        } else {
+            Movimiento mov = movimientos.get((int) (Math.random() * movimientos.size()));
+            int dano = mov.ejecutar(pokemonEnemigo, pokemonJugador);
+            if (dano == -1) {
+                updateInfo(pokemonEnemigo.getNombre() + " usó " + mov.getNombre() + ". ¡"
+                        + pokemonJugador.getNombre() + " es inmune a " + mov.getTipo() + "!");
+            } else if (dano > 0) {
+                updateInfo(pokemonEnemigo.getNombre() + " usó " + mov.getNombre() + ". Daño: " + dano);
+            } else {
+                updateInfo(pokemonEnemigo.getNombre() + " usó " + mov.getNombre() + ", pero falló.");
+            }
+        }
 
         checkBattleStatus();
         if (currentState != BattleState.END_BATTLE) {
@@ -372,6 +498,14 @@ public class BattleScreen extends ScreenAdapter {
 
     @Override
     public void render(float delta) {
+        // Actualizar timer de texto de daño
+        if (damageTextTimer > 0) {
+            damageTextTimer -= delta;
+            if (damageTextTimer < 0) {
+                damageText = "";
+            }
+        }
+
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
@@ -398,21 +532,62 @@ public class BattleScreen extends ScreenAdapter {
 
         drawMessageBox();
 
-        if (showMoveMenu) {
+        if (showPokedex) {
+            drawPokedex();
+        } else if (showMoveMenu) {
+            // Mostrar movimientos del Pokémon en cuadrícula 2x2 perfecta
             List<Movimiento> movs = pokemonJugador.getMovimientos();
-            drawButton(btnAtacarRect, movs.size() > 0 ? movs.get(0).getNombre() : "-", selectedMove == 0);
-            drawButton(btnMochilaRect, movs.size() > 1 ? movs.get(1).getNombre() : "-", selectedMove == 1);
-            drawButton(btnPokemonRect, movs.size() > 2 ? movs.get(2).getNombre() : "-", selectedMove == 2);
-            drawButton(btnHuirRect, movs.size() > 3 ? movs.get(3).getNombre() : "-", selectedMove == 3);
+            drawButton(btnMove0Rect, movs.size() > 0 ? movs.get(0).getNombre() : "-", selectedMove == 0);
+            drawButton(btnMove1Rect, movs.size() > 1 ? movs.get(1).getNombre() : "-", selectedMove == 1);
+            drawButton(btnMove2Rect, movs.size() > 2 ? movs.get(2).getNombre() : "-", selectedMove == 2);
+            drawButton(btnMove3Rect, movs.size() > 3 ? movs.get(3).getNombre() : "-", selectedMove == 3);
         } else {
+            // Menú principal de batalla (2x2 centrado)
             drawButton(btnAtacarRect, "Atacar", selectedOption == 0);
             drawButton(btnMochilaRect, "Mochila", selectedOption == 1);
             drawButton(btnPokemonRect, "Pokemon", selectedOption == 2);
             drawButton(btnHuirRect, "Huir", selectedOption == 3);
         }
 
+        // Mostrar texto de daño si está activo
+        if (!damageText.isEmpty() && damageTextTimer > 0) {
+            font.setColor(Color.RED);
+            font.getData().setScale(2.0f);
+            font.draw(game.batch, damageText, 500, 400);
+            font.getData().setScale(1.0f);
+        }
+
         drawEnemyInfo();
         game.batch.end();
+    }
+
+    private void drawPokedex() {
+        // Dibujar un fondo oscuro para la pokedex
+        game.batch.draw(borderBg, 50, 50, 700, 500);
+        game.batch.draw(buttonBg, 60, 60, 680, 480);
+
+        font.setColor(Color.BLACK);
+        font.getData().setScale(1.2f);
+        font.draw(game.batch, "POKEDEX - Pokemon Capturados", 250, 520);
+        font.getData().setScale(1.0f);
+
+        List<Pokemon> equipo = explorador.getEquipo();
+        float yOffset = 470;
+
+        if (equipo.isEmpty()) {
+            font.draw(game.batch, "No has capturado ningun Pokemon todavía.", 100, yOffset);
+        } else {
+            for (Pokemon p : equipo) {
+                String desc = p.getNombre() + ": " + p.getDescripcion();
+                // Ajuste de texto básico
+                font.draw(game.batch, desc, 100, yOffset);
+                yOffset -= 30;
+                if (yOffset < 100)
+                    break; // Límite de pantalla
+            }
+        }
+
+        font.draw(game.batch, "Presiona B para cerrar", 300, 90);
     }
 
     private void drawMessageBox() {
