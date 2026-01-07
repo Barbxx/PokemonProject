@@ -319,10 +319,6 @@ public class BattleScreen extends ScreenAdapter {
                                                                                                            // 70%
             float enemyRelativeY = backgroundTexture != null ? backgroundTexture.getHeight() * 0.42f : 300; // Ajustado
                                                                                                             // a 42%
-                                                                                                            // 0.31f)
-                                                                                                            // fino
-                                                                                                            // (0.30 ->
-                                                                                                            // 0.31)
 
             // Mejor fijo o poco escalado, pero probemos fijo por ahora o semi-escalado:
             // Si el fondo se hace muy pequeño, el pokemon debe achicarse.
