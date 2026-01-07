@@ -24,16 +24,21 @@ public class BattleScreen extends ScreenAdapter {
 
     // UI Elements (Manual rectangles)
     private Rectangle btnAtacarRect;
-    private Rectangle btnCapturarRect;
     private Rectangle btnHuirRect;
+    private Rectangle btnMochilaRect;
+    private Rectangle btnPokemonRect;
 
     // UI State
     private String infoText = "...";
 
     // Textures
-    private Texture playerTexture;
+    private Texture backgroundTexture;
     private Texture enemyTexture;
     private Texture buttonBg;
+    private Texture boxBg;
+    private Texture borderBg;
+    private Texture hpBarBg;
+    private Texture hpBarFill;
 
     // Battle State
     private enum BattleState {
@@ -60,13 +65,36 @@ public class BattleScreen extends ScreenAdapter {
 
         // Load textures
         try {
-            playerTexture = new Texture(Gdx.files.internal("jugador1.png"));
-            enemyTexture = new Texture(Gdx.files.internal("jigglypuff.png"));
+            // Se debe abrir el archivo "fondoBatalla.png"
+            if (Gdx.files.internal("fondoBatalla.png").exists()) {
+                backgroundTexture = new Texture(Gdx.files.internal("fondoBatalla.png"));
+            } else if (Gdx.files.internal("fondoBatalla.jpg").exists()) {
+                backgroundTexture = new Texture(Gdx.files.internal("fondoBatalla.jpg"));
+            }
         } catch (Exception e) {
-            playerTexture = createColorTexture(Color.BLUE);
+            Gdx.app.log("BattleScreen", "Could not load background");
+        }
+
+        try {
+            // Map pokemon names to texture files (e.g. "Growlithe H." -> "growlithe.png")
+            String name = enemigo.getNombre().toLowerCase().replace(" h.", "").replace(" jr.", "-jr").replace(" ", "-");
+            String path = name + ".png";
+
+            if (Gdx.files.internal(path).exists()) {
+                enemyTexture = new Texture(Gdx.files.internal(path));
+            } else {
+                enemyTexture = new Texture(Gdx.files.internal("jigglypuff.png"));
+            }
+        } catch (Exception e) {
             enemyTexture = createColorTexture(Color.RED);
         }
-        buttonBg = createColorTexture(Color.DARK_GRAY);
+
+        // Colores para la interfaz según referencia
+        buttonBg = createColorTexture(new Color(0.1f, 0.2f, 0.4f, 1)); // Azul oscuro para botones
+        boxBg = createColorTexture(new Color(0.15f, 0.25f, 0.45f, 1)); // Azul para el recuadro
+        borderBg = createColorTexture(new Color(0.8f, 0.7f, 0.2f, 1)); // Dorado/Amarillo para el borde
+        hpBarBg = createColorTexture(Color.GRAY);
+        hpBarFill = createColorTexture(Color.GREEN);
     }
 
     private Texture createColorTexture(Color color) {
@@ -80,21 +108,22 @@ public class BattleScreen extends ScreenAdapter {
 
     @Override
     public void show() {
-        // Define buttons (bottom of screen)
-        float btnWidth = 150;
-        float btnHeight = 50;
-        float spacing = 20;
-        float startX = 50;
-        float startY = 30;
+        // Define buttons (Right side inside message box area)
+        float btnWidth = 160;
+        float btnHeight = 35;
+        float spacing = 5;
+        float startX = 460;
+        float startY = 10;
 
-        btnAtacarRect = new Rectangle(startX, startY, btnWidth, btnHeight);
-        btnCapturarRect = new Rectangle(startX + btnWidth + spacing, startY, btnWidth, btnHeight);
-        btnHuirRect = new Rectangle(startX + (btnWidth + spacing) * 2, startY, btnWidth, btnHeight);
+        // Botones requeridos: Atacar, Huir, Mochila, Pokémon
+        btnAtacarRect = new Rectangle(startX, startY + btnHeight + spacing, btnWidth, btnHeight);
+        btnMochilaRect = new Rectangle(startX + btnWidth + spacing, startY + btnHeight + spacing, btnWidth, btnHeight);
+        btnPokemonRect = new Rectangle(startX, startY, btnWidth, btnHeight);
+        btnHuirRect = new Rectangle(startX + btnWidth + spacing, startY, btnWidth, btnHeight);
 
         Gdx.input.setInputProcessor(new InputAdapter() {
             @Override
             public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-                // Convert screen Y to Gdx coordinate Y (bottom-up)
                 float y = Gdx.graphics.getHeight() - screenY;
                 float x = screenX;
 
@@ -102,14 +131,28 @@ public class BattleScreen extends ScreenAdapter {
                     if (btnAtacarRect.contains(x, y)) {
                         performPlayerAttack();
                         return true;
-                    } else if (btnCapturarRect.contains(x, y)) {
-                        performCapture();
-                        return true;
                     } else if (btnHuirRect.contains(x, y)) {
                         updateInfo("¡Escapaste sin problemas!");
                         endBattle(false);
                         return true;
+                    } else if (btnMochilaRect.contains(x, y)) {
+                        updateInfo("Abriendo Mochila...");
+                        // Implementación futura
+                        return true;
+                    } else if (btnPokemonRect.contains(x, y)) {
+                        updateInfo("Viendo Pokémon...");
+                        // Implementación futura
+                        return true;
                     }
+                }
+                return false;
+            }
+
+            @Override
+            public boolean keyDown(int keycode) {
+                if (keycode == com.badlogic.gdx.Input.Keys.ESCAPE) {
+                    Gdx.app.exit();
+                    return true;
                 }
                 return false;
             }
@@ -123,11 +166,11 @@ public class BattleScreen extends ScreenAdapter {
         if (!pokemonJugador.getMovimientos().isEmpty()) {
             Movimiento mov = pokemonJugador.getMovimientos().get(0);
             dano = mov.ejecutar(pokemonJugador, pokemonEnemigo);
-            updateInfo(pokemonJugador.getNombre() + " usó " + mov.getNombre() + ". Daño: " + dano);
+            updateInfo(pokemonJugador.getNombre() + " usó " + mov.getNombre() + ".");
         } else {
             dano = 5;
             pokemonEnemigo.recibirDaño((float) dano);
-            updateInfo(pokemonJugador.getNombre() + " atacó. Daño: " + dano);
+            updateInfo(pokemonJugador.getNombre() + " atacó.");
         }
 
         checkBattleStatus();
@@ -137,7 +180,7 @@ public class BattleScreen extends ScreenAdapter {
                 @Override
                 public void run() {
                     try {
-                        Thread.sleep(1000);
+                        Thread.sleep(1500);
                     } catch (InterruptedException e) {
                     }
                     performEnemyTurn();
@@ -152,7 +195,7 @@ public class BattleScreen extends ScreenAdapter {
 
         int dano = 5;
         pokemonJugador.recibirDaño(dano);
-        updateInfo("Enemigo atacó. " + pokemonJugador.getNombre() + " recibio " + dano + " daño.");
+        updateInfo("El enemigo atacó.");
 
         checkBattleStatus();
         if (currentState != BattleState.END_BATTLE) {
@@ -161,22 +204,8 @@ public class BattleScreen extends ScreenAdapter {
     }
 
     private void performCapture() {
-        Inventario inv = explorador.getMochila();
-        if (inv.getPokeBalls() > 0) {
-            boolean capturado = pokemonEnemigo.intentarCaptura(1.0f);
-            if (capturado) {
-                updateInfo("¡" + pokemonEnemigo.getNombre() + " fue capturado!");
-                explorador.getRegistro().registrarAccion(pokemonEnemigo.getNombre(), true);
-                explorador.agregarPokemonEquipo(pokemonEnemigo);
-                endBattle(true);
-            } else {
-                updateInfo("¡La captura falló!");
-                currentState = BattleState.ENEMY_TURN;
-                performEnemyTurn();
-            }
-        } else {
-            updateInfo("¡No tienes Poké Balls!");
-        }
+        // Obsoleto según requerimientos actuales pero mantenemos lógica interna si es
+        // necesario
     }
 
     private void checkBattleStatus() {
@@ -185,7 +214,7 @@ public class BattleScreen extends ScreenAdapter {
             explorador.getRegistro().registrarAccion(pokemonEnemigo.getNombre(), false);
             endBattle(true);
         } else if (pokemonJugador.getHpActual() <= 0) {
-            updateInfo("¡" + pokemonJugador.getNombre() + " se debilitó! Fin del juego...");
+            updateInfo("¡Tu Pokémon se debilitó!");
             endBattle(false);
         }
     }
@@ -211,38 +240,90 @@ public class BattleScreen extends ScreenAdapter {
 
     @Override
     public void render(float delta) {
-        Gdx.gl.glClearColor(0.2f, 0.2f, 0.2f, 1);
+        Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+
+        // Tecla ESC para cerrar el juego
+        if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.ESCAPE)) {
+            Gdx.app.exit();
+        }
 
         game.batch.begin();
 
-        // Draw Pokemon
-        game.batch.draw(playerTexture, 100, 150, 200, 200);
-        game.batch.draw(enemyTexture, Gdx.graphics.getWidth() - 300, Gdx.graphics.getHeight() - 300, 200, 200);
+        // 1. Fondo de batalla ajustado al tamaño de la pantalla
+        if (backgroundTexture != null) {
+            game.batch.draw(backgroundTexture, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        }
 
-        // Draw HUD Text
-        font.draw(game.batch, pokemonEnemigo.getNombre() + " Lvl:" + pokemonEnemigo.getNivel(),
-                Gdx.graphics.getWidth() - 300, Gdx.graphics.getHeight() - 80);
-        font.draw(game.batch, "HP: " + (int) pokemonEnemigo.getHpActual() + "/" + (int) pokemonEnemigo.getHpMaximo(),
-                Gdx.graphics.getWidth() - 300, Gdx.graphics.getHeight() - 100);
+        // 2. Imagen del Pokémon sobre el segundo círculo verde del fondo
+        // Bajado a Y=150 para que esté sobre el círculo verde derecho
+        if (enemyTexture != null) {
+            game.batch.draw(enemyTexture, 550, 150, 180, 180);
+        }
 
-        font.draw(game.batch, pokemonJugador.getNombre() + " Lvl:" + pokemonJugador.getNivel(),
-                100, 130);
-        font.draw(game.batch, "HP: " + (int) pokemonJugador.getHpActual() + "/" + (int) pokemonJugador.getHpMaximo(),
-                100, 110);
+        // 3. Recuadro de mensaje siguiendo la imagen de referencia
+        drawMessageBox();
 
-        // Draw UI
-        font.draw(game.batch, infoText, 50, 100);
-
+        // 4. Botones: Atacar, Huir, Mochila, Pokémon
         drawButton(btnAtacarRect, "Atacar");
-        drawButton(btnCapturarRect, "Capturar");
+        drawButton(btnMochilaRect, "Mochila");
+        drawButton(btnPokemonRect, "Pokemon");
         drawButton(btnHuirRect, "Huir");
+
+        // Info del Pokémon Enemigo (Recuadro superior izquierdo según referencia)
+        drawEnemyInfo();
 
         game.batch.end();
     }
 
+    private void drawMessageBox() {
+        float boxWidth = Gdx.graphics.getWidth();
+        float boxHeight = 110;
+        float boxX = 0;
+        float boxY = 0;
+
+        // Fondo azul de borde a borde para "cortar" el círculo inferior
+        game.batch.draw(boxBg, boxX, boxY, boxWidth, boxHeight);
+
+        // Borde dorado superior
+        game.batch.draw(borderBg, 0, boxHeight, boxWidth, 4);
+
+        // Texto del mensaje desplazado a la izquierda
+        font.setColor(Color.WHITE);
+        font.getData().setScale(1.2f);
+        font.draw(game.batch, infoText, 40, boxHeight / 2 + 10);
+    }
+
+    private void drawEnemyInfo() {
+        float infoX = 50;
+        float infoY = Gdx.graphics.getHeight() - 100;
+        float infoW = 280;
+        float infoH = 60;
+
+        // Recuadro de info (Estilo similar al de referencia)
+        game.batch.draw(borderBg, infoX - 2, infoY - 2, infoW + 4, infoH + 4);
+        game.batch.draw(buttonBg, infoX, infoY, infoW, infoH);
+
+        font.getData().setScale(1.0f);
+        font.draw(game.batch, pokemonEnemigo.getNombre().toUpperCase(), infoX + 15, infoY + infoH - 15);
+
+        // Nivel 0 indicado como solicitado
+        font.draw(game.batch, "Nv" + pokemonEnemigo.getNivel(), infoX + infoW - 70, infoY + infoH - 15);
+
+        // Barra de PS (HP)
+        font.draw(game.batch, "PS", infoX + 15, infoY + 25);
+        // Barra de fondo
+        game.batch.draw(hpBarBg, infoX + 50, infoY + 15, 200, 12);
+        // Barra de vida (Verde)
+        float hpPercent = pokemonEnemigo.getHpActual() / pokemonEnemigo.getHpMaximo();
+        game.batch.draw(hpBarFill, infoX + 50, infoY + 15, 200 * hpPercent, 12);
+    }
+
     private void drawButton(Rectangle rect, String text) {
+        // Borde para botones
+        game.batch.draw(borderBg, rect.x - 2, rect.y - 2, rect.width + 4, rect.height + 4);
         game.batch.draw(buttonBg, rect.x, rect.y, rect.width, rect.height);
+
         GlyphLayout layout = new GlyphLayout(font, text);
         float textX = rect.x + (rect.width - layout.width) / 2;
         float textY = rect.y + (rect.height + layout.height) / 2;
@@ -254,9 +335,17 @@ public class BattleScreen extends ScreenAdapter {
         font.dispose();
         if (buttonBg != null)
             buttonBg.dispose();
-        if (playerTexture.getWidth() == 1)
-            playerTexture.dispose();
-        if (enemyTexture.getWidth() == 1)
+        if (boxBg != null)
+            boxBg.dispose();
+        if (borderBg != null)
+            borderBg.dispose();
+        if (hpBarBg != null)
+            hpBarBg.dispose();
+        if (hpBarFill != null)
+            hpBarFill.dispose();
+        if (backgroundTexture != null)
+            backgroundTexture.dispose();
+        if (enemyTexture != null)
             enemyTexture.dispose();
     }
 }

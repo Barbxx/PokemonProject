@@ -93,7 +93,6 @@ public class GameScreen extends BaseScreen {
     private Texture avisoTexture;
 
     // Game Constants
-    private static final float ENCOUNTER_CHANCE = 0.1f;
     private static final float ENCOUNTER_CHECK_INTERVAL = 1.0f;
     private static final float NOTIFICATION_DURATION = 3.0f;
     private static final float MISSION_COMPLETE_DURATION = 6.0f;
@@ -703,12 +702,7 @@ public class GameScreen extends BaseScreen {
                                     Object nivelDificultadObj = props.get("NivelDificultad");
                                     Object zonaEncuentroObj = props.get("ZonaEncuentro");
 
-                                    // Debug logging for ANY tile with these properties
-                                    if (nivelDificultadObj != null || zonaEncuentroObj != null) {
-                                        Gdx.app.log("GameScreen", "Layer: " + layer.getName() +
-                                                " Tile at (" + playerTileX + "," + playerTileY + "): " +
-                                                "NivelDificultad=" + nivelDificultadObj +
-                                                ", ZonaEncuentro=" + zonaEncuentroObj);
+                                    if (zonaEncuentroObj != null) {
                                         foundGrass = true;
 
                                         // Parse NivelDificultad
@@ -718,41 +712,40 @@ public class GameScreen extends BaseScreen {
                                             try {
                                                 nivelDificultad = Integer.parseInt(nivelDificultadObj.toString());
                                             } catch (NumberFormatException e) {
-                                                nivelDificultad = 0;
+                                                nivelDificultad = 1; // Default to 1 if it has ZonaEncuentro but invalid
+                                                                     // lvl
                                             }
                                         }
 
                                         // Play grass sound if this is a new tile
-                                        if (zonaEncuentroObj != null
-                                                && (playerTileX != lastGrassTileX || playerTileY != lastGrassTileY)) {
+                                        if (playerTileX != lastGrassTileX || playerTileY != lastGrassTileY) {
                                             if (grassSound != null) {
                                                 grassSound.play(0.5f);
                                             }
                                             lastGrassTileX = playerTileX;
                                             lastGrassTileY = playerTileY;
-                                            Gdx.app.log("GameScreen", "Stepped on grass tile!");
                                         }
-
-                                        break; // Found grass, no need to check more layers
+                                        break;
                                     }
                                 }
                             }
                         }
 
-                        // Check for encounter if we found grass with NivelDificultad = 1
-                        if (foundGrass && nivelDificultad == 1) {
-                            Gdx.app.log("GameScreen", "Checking encounter: NivelDificultad=" + nivelDificultad);
-
-                            if (Math.random() < ENCOUNTER_CHANCE) {
+                        // Check for encounter across all levels 1-5
+                        if (foundGrass && nivelDificultad >= 1 && nivelDificultad <= 5) {
+                            if (GestorEncuentros.verificarEncuentro(nivelDificultad)) {
                                 inEncounter = true;
-                                Gdx.app.log("GameScreen", "Pokemon encounter! Jigglypuff appeared!");
+                                String pokemonName = GestorEncuentros.obtenerPokemonAleatorio(nivelDificultad);
+                                Gdx.app.log("GameScreen", "Pokemon encounter! " + pokemonName + " appeared!");
 
-                                // Create Jigglypuff and transition to BattleScreen
-                                Pokemon jiggly = new Pokemon("Jigglypuff", 5, 20, false, "Normal");
-                                // Add a default movement
-                                jiggly.agregarMovimiento(new Movimiento("Canto", 0, "Normal", 80));
+                                // Todos los Pokémon aparecerán inicialmente con nivel 0
+                                int wildLvl = 0;
 
-                                game.setScreen(new BattleScreen(game, this, explorador, jiggly));
+                                Pokemon salvaje = new Pokemon(pokemonName, wildLvl, wildLvl * 4, false, "Normal");
+                                // Add a default move
+                                salvaje.agregarMovimiento(new Movimiento("Tackle", 0, "Normal", 40));
+
+                                game.setScreen(new BattleScreen(game, this, explorador, salvaje));
                             }
                         }
 
