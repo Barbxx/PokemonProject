@@ -21,9 +21,13 @@ public class Pokedex implements Serializable {
 
         EspeciePokemon especie = registro.get(nombre);
 
-        // Si esCaptura es true, suma +2 puntos.
-        // Si es victoria en combate (esCaptura false), suma +1 punto.
-        int puntos = esCaptura ? 2 : 1;
+        // Obtener puntos específicos de la especie
+        BasePokemonData data = BasePokemonData.get(nombre);
+        int puntosBase = (data != null) ? data.puntosInvestigacion : 2;
+
+        // Si esCaptura es true, suma el total de puntos.
+        // Si es victoria en combate, suma la mitad de puntos (mínimo 1).
+        int puntos = esCaptura ? puntosBase : Math.max(1, puntosBase / 2);
 
         // Verificar si ya estaba completo antes de añadir puntos para no contar doble
         boolean estabaCompleta = especie.isCompleta();

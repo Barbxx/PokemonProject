@@ -10,6 +10,10 @@ public class Pokemon implements Serializable {
     private int nivel;
     private float hpMaximo;
     private float hpActual;
+    private float ataque;
+    private float velocidad;
+    private String descripcion;
+    private String[] inmunidades;
     private boolean esLegendario;
     private boolean debilitado;
     private String tipo;
@@ -27,6 +31,26 @@ public class Pokemon implements Serializable {
         this.tipo = tipo;
         this.movimientos = new ArrayList<>();
         this.debilitado = false;
+
+        // Cargar datos base si existen
+        BasePokemonData data = BasePokemonData.get(nombre);
+        if (data != null) {
+            this.descripcion = data.descripcion;
+            this.inmunidades = data.inmunidades;
+            this.tipo = data.tipo;
+
+            // Calcular estadísticas basadas en el nivel (0-10)
+            float factor = (float) nivel / 10f;
+            this.hpMaximo = data.psMin + (data.psMax - data.psMin) * factor;
+            this.hpActual = this.hpMaximo;
+            this.ataque = data.atqMin + (data.atqMax - data.atqMin) * factor;
+            this.velocidad = data.velMin + (data.velMax - data.velMin) * factor;
+
+            // Agregar movimientos iniciales
+            for (String movNombre : data.movimientosIniciales) {
+                this.agregarMovimiento(new Movimiento(movNombre, 40, data.tipo, 100));
+            }
+        }
     }
 
     public void setSprite(TextureRegion sprite) {
@@ -64,6 +88,22 @@ public class Pokemon implements Serializable {
 
     public String getTipo() {
         return tipo;
+    }
+
+    public float getAtaque() {
+        return ataque;
+    }
+
+    public float getVelocidad() {
+        return velocidad;
+    }
+
+    public String getDescripcion() {
+        return descripcion;
+    }
+
+    public String[] getInmunidades() {
+        return inmunidades;
     }
 
     public void recibirDaño(float cantidad) {

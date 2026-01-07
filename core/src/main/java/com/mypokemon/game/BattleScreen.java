@@ -5,12 +5,12 @@ import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
+import java.util.List;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.math.Rectangle;
-import com.badlogic.gdx.utils.ScreenUtils;
 
 public class BattleScreen extends ScreenAdapter {
 
@@ -30,6 +30,10 @@ public class BattleScreen extends ScreenAdapter {
 
     // UI State
     private String infoText = "...";
+    private int selectedOption = 0; // 0: Atacar, 1: Mochila, 2: Pokemon, 3: Huir
+    private boolean showMoveMenu = false;
+    private int selectedMove = 0;
+    private Texture selectedBorder;
 
     // Textures
     private Texture backgroundTexture;
@@ -59,7 +63,8 @@ public class BattleScreen extends ScreenAdapter {
         if (!explorador.getEquipo().isEmpty()) {
             this.pokemonJugador = explorador.getEquipo().get(0);
         } else {
-            this.pokemonJugador = new Pokemon("Partner", 5, 20, false, "Normal");
+            // Por ahora, usamos a Piplup para simular la batalla como se solicitó
+            this.pokemonJugador = new Pokemon("Piplup", 5, 20, false, "Agua");
         }
 
         this.font = new BitmapFont();
@@ -105,6 +110,7 @@ public class BattleScreen extends ScreenAdapter {
         borderBg = createColorTexture(new Color(0.8f, 0.7f, 0.2f, 1));
         hpBarBg = createColorTexture(Color.GRAY);
         hpBarFill = createColorTexture(Color.GREEN);
+        selectedBorder = createColorTexture(Color.LIME);
 
         // Crear plataforma verde (elipse)
         baseCircleTexture = createCircleTexture(new Color(0.3f, 0.6f, 0.2f, 0.8f));
@@ -162,20 +168,46 @@ public class BattleScreen extends ScreenAdapter {
                 float x = screenX;
 
                 if (currentState == BattleState.PLAYER_TURN) {
+                    if (showMoveMenu) {
+                        // Selección de movimientos con clic (opcional, foco en teclado)
+                        List<Movimiento> movs = pokemonJugador.getMovimientos();
+                        if (btnAtacarRect.contains(x, y) && movs.size() > 0) {
+                            performMove(0);
+                            return true;
+                        }
+                        if (btnMochilaRect.contains(x, y) && movs.size() > 1) {
+                            performMove(1);
+                            return true;
+                        }
+                        if (btnPokemonRect.contains(x, y) && movs.size() > 2) {
+                            performMove(2);
+                            return true;
+                        }
+                        if (btnHuirRect.contains(x, y) && movs.size() > 3) {
+                            performMove(3);
+                            return true;
+                        }
+
+                        // Clic fuera para volver
+                        showMoveMenu = false;
+                        return true;
+                    }
+
                     if (btnAtacarRect.contains(x, y)) {
-                        performPlayerAttack();
+                        selectedOption = 0;
+                        handleSelectedAction();
                         return true;
                     } else if (btnHuirRect.contains(x, y)) {
-                        updateInfo("¡Escapaste sin problemas!");
-                        endBattle(false);
+                        selectedOption = 3;
+                        handleHuir();
                         return true;
                     } else if (btnMochilaRect.contains(x, y)) {
+                        selectedOption = 1;
                         updateInfo("Abriendo Mochila...");
-                        // Implementación futura
                         return true;
                     } else if (btnPokemonRect.contains(x, y)) {
+                        selectedOption = 2;
                         updateInfo("Viendo Pokémon...");
-                        // Implementación futura
                         return true;
                     }
                 }
@@ -188,11 +220,103 @@ public class BattleScreen extends ScreenAdapter {
                     Gdx.app.exit();
                     return true;
                 }
+
+                if (currentState == BattleState.PLAYER_TURN) {
+                    // Tecla para volver atrás (B o X)
+                    if (keycode == com.badlogic.gdx.Input.Keys.B || keycode == com.badlogic.gdx.Input.Keys.X) {
+                        if (showMoveMenu) {
+                            showMoveMenu = false;
+                            return true;
+                        }
+                    }
+
+                    // Navegación con flechas
+                    int currentSelection = showMoveMenu ? selectedMove : selectedOption;
+                    int maxMoves = pokemonJugador.getMovimientos().size();
+
+                    if (keycode == com.badlogic.gdx.Input.Keys.UP) {
+                        if (currentSelection >= 2)
+                            currentSelection -= 2;
+                    } else if (keycode == com.badlogic.gdx.Input.Keys.DOWN) {
+                        if (currentSelection <= 1)
+                            currentSelection += 2;
+                    } else if (keycode == com.badlogic.gdx.Input.Keys.LEFT) {
+                        if (currentSelection % 2 != 0)
+                            currentSelection -= 1;
+                    } else if (keycode == com.badlogic.gdx.Input.Keys.RIGHT) {
+                        if (currentSelection % 2 == 0)
+                            currentSelection += 1;
+                    } else if (keycode == com.badlogic.gdx.Input.Keys.ENTER
+                            || keycode == com.badlogic.gdx.Input.Keys.Z) {
+                        if (showMoveMenu) {
+                            if (selectedMove < maxMoves)
+                                performMove(selectedMove);
+                        } else {
+                            handleSelectedAction();
+                        }
+                        return true;
+                    }
+
+                    if (showMoveMenu) {
+                        // Limitar selección al número de movimientos existentes
+                        if (currentSelection < maxMoves)
+                            selectedMove = currentSelection;
+                    } else {
+                        selectedOption = currentSelection;
+                    }
+                    return true;
+                }
                 return false;
             }
         });
 
         updateInfo("¡Un " + pokemonEnemigo.getNombre() + " salvaje apareció!");
+    }
+
+    private void handleSelectedAction() {
+        switch (selectedOption) {
+            case 0:
+                showMoveMenu = true;
+                selectedMove = 0;
+                break;
+            case 1:
+                updateInfo("Abriendo Mochila...");
+                break;
+            case 2:
+                updateInfo("Viendo Pokémon...");
+                break;
+            case 3:
+                handleHuir();
+                break;
+        }
+    }
+
+    private void handleHuir() {
+        updateInfo("¡Escapaste sin problemas!");
+        endBattle(false);
+    }
+
+    private void performMove(int moveIndex) {
+        showMoveMenu = false;
+        List<Movimiento> movs = pokemonJugador.getMovimientos();
+        if (moveIndex >= movs.size())
+            return;
+
+        Movimiento mov = movs.get(moveIndex);
+        int dano = mov.ejecutar(pokemonJugador, pokemonEnemigo);
+        updateInfo(pokemonJugador.getNombre() + " usó " + mov.getNombre() + ".");
+
+        checkBattleStatus();
+        if (currentState != BattleState.END_BATTLE) {
+            currentState = BattleState.ENEMY_TURN;
+            Gdx.app.postRunnable(() -> {
+                try {
+                    Thread.sleep(1500);
+                } catch (InterruptedException e) {
+                }
+                performEnemyTurn();
+            });
+        }
     }
 
     private void performPlayerAttack() {
@@ -304,11 +428,19 @@ public class BattleScreen extends ScreenAdapter {
         // 3. Recuadro de mensaje siguiendo la imagen de referencia
         drawMessageBox();
 
-        // 4. Botones: Atacar, Huir, Mochila, Pokémon
-        drawButton(btnAtacarRect, "Atacar");
-        drawButton(btnMochilaRect, "Mochila");
-        drawButton(btnPokemonRect, "Pokemon");
-        drawButton(btnHuirRect, "Huir");
+        // 4. Botones: Menú principal o Movimientos
+        if (showMoveMenu) {
+            List<Movimiento> movs = pokemonJugador.getMovimientos();
+            drawButton(btnAtacarRect, movs.size() > 0 ? movs.get(0).getNombre() : "-", selectedMove == 0);
+            drawButton(btnMochilaRect, movs.size() > 1 ? movs.get(1).getNombre() : "-", selectedMove == 1);
+            drawButton(btnPokemonRect, movs.size() > 2 ? movs.get(2).getNombre() : "-", selectedMove == 2);
+            drawButton(btnHuirRect, movs.size() > 3 ? movs.get(3).getNombre() : "-", selectedMove == 3);
+        } else {
+            drawButton(btnAtacarRect, "Atacar", selectedOption == 0);
+            drawButton(btnMochilaRect, "Mochila", selectedOption == 1);
+            drawButton(btnPokemonRect, "Pokemon", selectedOption == 2);
+            drawButton(btnHuirRect, "Huir", selectedOption == 3);
+        }
 
         // Info del Pokémon Enemigo (Recuadro superior izquierdo según referencia)
         drawEnemyInfo();
@@ -358,9 +490,10 @@ public class BattleScreen extends ScreenAdapter {
         game.batch.draw(hpBarFill, infoX + 50, infoY + 15, 200 * hpPercent, 12);
     }
 
-    private void drawButton(Rectangle rect, String text) {
-        // Borde para botones
-        game.batch.draw(borderBg, rect.x - 2, rect.y - 2, rect.width + 4, rect.height + 4);
+    private void drawButton(Rectangle rect, String text, boolean selected) {
+        // Borde para botones (Resaltado si está seleccionado)
+        Texture border = selected ? selectedBorder : borderBg;
+        game.batch.draw(border, rect.x - 4, rect.y - 4, rect.width + 8, rect.height + 8);
         game.batch.draw(buttonBg, rect.x, rect.y, rect.width, rect.height);
 
         GlyphLayout layout = new GlyphLayout(font, text);
@@ -382,6 +515,8 @@ public class BattleScreen extends ScreenAdapter {
             hpBarBg.dispose();
         if (hpBarFill != null)
             hpBarFill.dispose();
+        if (selectedBorder != null)
+            selectedBorder.dispose();
         if (baseCircleTexture != null)
             baseCircleTexture.dispose();
         if (backgroundTexture != null)

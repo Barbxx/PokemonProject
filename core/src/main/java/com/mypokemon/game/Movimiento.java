@@ -22,7 +22,7 @@ public class Movimiento implements Serializable {
             int dañoBase = (int) (((atacante.getNivel() * 0.5) + this.poder) - 5);
 
             // Lógica de efectividad (Ejemplo: Agua vence a Fuego)
-            float multiplicador = calcularEfectividad(this.tipo, defensor.getTipo());
+            float multiplicador = calcularEfectividad(this.tipo, defensor);
 
             int dañoFinal = (int) (dañoBase * multiplicador);
             // Ensure damage is at least 1 if hit, unless calculation intends 0
@@ -35,12 +35,26 @@ public class Movimiento implements Serializable {
         return 0; // El ataque falló
     }
 
-    private float calcularEfectividad(String tipoAtaque, String tipoDefensor) {
-        // Aquí puedes implementar una tabla de tipos sencilla
-        if (tipoAtaque.equals("Agua") && tipoDefensor.equals("Fuego"))
+    private float calcularEfectividad(String tipoAtaque, Pokemon defensor) {
+        // Verificar inmunidades
+        if (defensor.getInmunidades() != null) {
+            for (String inmune : defensor.getInmunidades()) {
+                if (tipoAtaque.equalsIgnoreCase(inmune)) {
+                    System.out.println("¡El ataque no afecta a " + defensor.getNombre() + "!");
+                    return 0.0f;
+                }
+            }
+        }
+
+        // Tabla de tipos simplificada
+        String tipoDefensor = defensor.getTipo();
+        if (tipoAtaque.equalsIgnoreCase("Agua") && tipoDefensor.equalsIgnoreCase("Fuego"))
             return 2.0f;
-        if (tipoAtaque.equals("Planta") && tipoDefensor.equals("Agua"))
+        if (tipoAtaque.equalsIgnoreCase("Planta") && tipoDefensor.equalsIgnoreCase("Agua"))
             return 2.0f;
+        if (tipoAtaque.equalsIgnoreCase("Fuego") && tipoDefensor.equalsIgnoreCase("Planta"))
+            return 2.0f;
+
         return 1.0f;
     }
 
