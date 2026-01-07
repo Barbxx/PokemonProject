@@ -39,6 +39,8 @@ public class BattleScreen extends ScreenAdapter {
     private Texture borderBg;
     private Texture hpBarBg;
     private Texture hpBarFill;
+    private Texture baseCircleTexture;
+    private Texture playerTexture;
 
     // Battle State
     private enum BattleState {
@@ -76,6 +78,13 @@ public class BattleScreen extends ScreenAdapter {
         }
 
         try {
+            // Cargar textura del jugador
+            if (Gdx.files.internal("jugador1.png").exists()) {
+                playerTexture = new Texture(Gdx.files.internal("jugador1.png"));
+            } else {
+                playerTexture = createColorTexture(Color.BLUE);
+            }
+
             // Map pokemon names to texture files (e.g. "Growlithe H." -> "growlithe.png")
             String name = enemigo.getNombre().toLowerCase().replace(" h.", "").replace(" jr.", "-jr").replace(" ", "-");
             String path = name + ".png";
@@ -87,14 +96,39 @@ public class BattleScreen extends ScreenAdapter {
             }
         } catch (Exception e) {
             enemyTexture = createColorTexture(Color.RED);
+            playerTexture = createColorTexture(Color.BLUE);
         }
 
-        // Colores para la interfaz según referencia
-        buttonBg = createColorTexture(new Color(0.1f, 0.2f, 0.4f, 1)); // Azul oscuro para botones
-        boxBg = createColorTexture(new Color(0.15f, 0.25f, 0.45f, 1)); // Azul para el recuadro
-        borderBg = createColorTexture(new Color(0.8f, 0.7f, 0.2f, 1)); // Dorado/Amarillo para el borde
+        // Colores y texturas para la interfaz
+        buttonBg = createColorTexture(new Color(0.1f, 0.2f, 0.4f, 1));
+        boxBg = createColorTexture(new Color(0.15f, 0.25f, 0.45f, 1));
+        borderBg = createColorTexture(new Color(0.8f, 0.7f, 0.2f, 1));
         hpBarBg = createColorTexture(Color.GRAY);
         hpBarFill = createColorTexture(Color.GREEN);
+
+        // Crear plataforma verde (elipse)
+        baseCircleTexture = createCircleTexture(new Color(0.3f, 0.6f, 0.2f, 0.8f));
+    }
+
+    private Texture createCircleTexture(Color color) {
+        int width = 256;
+        int height = 128;
+        Pixmap pixmap = new Pixmap(width, height, Pixmap.Format.RGBA8888);
+        pixmap.setColor(color);
+        pixmap.fillCircle(width / 2, height / 2, height / 2); // fillCircle usa radio, para elipse manual es más
+                                                              // complejo pero esto sirve de base
+        // Para una elipse real en Pixmap tendríamos que dibujar punto a punto o usar
+        // una textura externa,
+        // pero fillCircle en un pixmap no cuadrado se estira si lo dibujamos así.
+        // Mejor creamos un círculo y lo dibujamos estirado en el batch.
+        pixmap.dispose();
+
+        Pixmap circle = new Pixmap(128, 128, Pixmap.Format.RGBA8888);
+        circle.setColor(color);
+        circle.fillCircle(64, 64, 60);
+        Texture t = new Texture(circle);
+        circle.dispose();
+        return t;
     }
 
     private Texture createColorTexture(Color color) {
@@ -108,12 +142,12 @@ public class BattleScreen extends ScreenAdapter {
 
     @Override
     public void show() {
-        // Define buttons (Right side inside message box area)
-        float btnWidth = 160;
-        float btnHeight = 35;
-        float spacing = 5;
-        float startX = 460;
-        float startY = 10;
+        // Define buttons (Right side above/inside message box area)
+        float btnWidth = 140;
+        float btnHeight = 40;
+        float spacing = 10;
+        float startX = 480;
+        float startY = 20;
 
         // Botones requeridos: Atacar, Huir, Mochila, Pokémon
         btnAtacarRect = new Rectangle(startX, startY + btnHeight + spacing, btnWidth, btnHeight);
@@ -255,10 +289,16 @@ public class BattleScreen extends ScreenAdapter {
             game.batch.draw(backgroundTexture, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         }
 
-        // 2. Imagen del Pokémon sobre el segundo círculo verde del fondo
-        // Bajado a Y=150 para que esté sobre el círculo verde derecho
+        // 2. Imagen del Pokémon sobre el círculo verde (ampliada y pisando la base)
         if (enemyTexture != null) {
-            game.batch.draw(enemyTexture, 550, 150, 180, 180);
+            float enemyX = 500;
+            float enemyY = 220;
+            float enemySize = 280; // Ampliada de 230 a 280
+
+            // Dibujar base debajo
+            game.batch.draw(baseCircleTexture, enemyX - 20, enemyY - 40, enemySize + 40, 100);
+            // Dibujar Pokémon tocando/pisando la plataforma
+            game.batch.draw(enemyTexture, enemyX, enemyY, enemySize, enemySize);
         }
 
         // 3. Recuadro de mensaje siguiendo la imagen de referencia
@@ -277,21 +317,20 @@ public class BattleScreen extends ScreenAdapter {
     }
 
     private void drawMessageBox() {
-        float boxWidth = Gdx.graphics.getWidth();
+        float boxWidth = Gdx.graphics.getWidth() - 40;
         float boxHeight = 110;
-        float boxX = 0;
-        float boxY = 0;
+        float boxX = 20;
+        float boxY = 15;
 
-        // Fondo azul de borde a borde para "cortar" el círculo inferior
+        // Borde dorado
+        game.batch.draw(borderBg, boxX - 4, boxY - 4, boxWidth + 8, boxHeight + 8);
+        // Fondo azul
         game.batch.draw(boxBg, boxX, boxY, boxWidth, boxHeight);
 
-        // Borde dorado superior
-        game.batch.draw(borderBg, 0, boxHeight, boxWidth, 4);
-
-        // Texto del mensaje desplazado a la izquierda
+        // Texto del mensaje
         font.setColor(Color.WHITE);
         font.getData().setScale(1.2f);
-        font.draw(game.batch, infoText, 40, boxHeight / 2 + 10);
+        font.draw(game.batch, infoText, boxX + 30, boxY + boxHeight - 40);
     }
 
     private void drawEnemyInfo() {
@@ -343,9 +382,13 @@ public class BattleScreen extends ScreenAdapter {
             hpBarBg.dispose();
         if (hpBarFill != null)
             hpBarFill.dispose();
+        if (baseCircleTexture != null)
+            baseCircleTexture.dispose();
         if (backgroundTexture != null)
             backgroundTexture.dispose();
         if (enemyTexture != null)
             enemyTexture.dispose();
+        if (playerTexture != null)
+            playerTexture.dispose();
     }
 }
