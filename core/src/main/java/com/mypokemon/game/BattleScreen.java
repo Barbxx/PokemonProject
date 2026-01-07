@@ -5,13 +5,12 @@ import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
-import java.util.List;
-import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.math.Rectangle;
+import java.util.List;
 
 public class BattleScreen extends ScreenAdapter {
 
@@ -22,7 +21,6 @@ public class BattleScreen extends ScreenAdapter {
     private final Pokemon pokemonEnemigo;
 
     private BitmapFont font;
-    private OrthographicCamera camera;
 
     // UI Elements (Manual rectangles)
     private Rectangle btnAtacarRect;
@@ -40,7 +38,6 @@ public class BattleScreen extends ScreenAdapter {
     // Textures
     private Texture backgroundTexture;
     private Texture enemyTexture;
-    private Texture playerTexture; // Nueva textura para el jugador
     private Texture buttonBg;
     private Texture boxBg;
     private Texture borderBg;
@@ -65,17 +62,15 @@ public class BattleScreen extends ScreenAdapter {
         if (!explorador.getEquipo().isEmpty()) {
             this.pokemonJugador = explorador.getEquipo().get(0);
         } else {
-            // Por ahora, usamos a Piplup para simular la batalla como se solicitó
+            // Revertido a Piplup como se solicitó para simulación
             this.pokemonJugador = new Pokemon("Piplup", 5, 20, false, "Agua");
         }
 
         this.font = new BitmapFont();
-        this.camera = new OrthographicCamera();
         this.currentState = BattleState.PLAYER_TURN;
 
         // Load textures
         try {
-            // Se debe abrir el archivo "fondoBatalla.png"
             if (Gdx.files.internal("fondoBatalla.png").exists()) {
                 backgroundTexture = new Texture(Gdx.files.internal("fondoBatalla.png"));
             } else if (Gdx.files.internal("fondoBatalla.jpg").exists()) {
@@ -86,52 +81,25 @@ public class BattleScreen extends ScreenAdapter {
         }
 
         try {
-            // Map pokemon names to texture files (e.g. "Growlithe H." -> "growlithe.png")
             String name = enemigo.getNombre().toLowerCase().replace(" h.", "").replace(" jr.", "-jr").replace(" ", "-");
             String path = name + ".png";
 
             if (Gdx.files.internal(path).exists()) {
                 enemyTexture = new Texture(Gdx.files.internal(path));
             } else {
-                // Si no existe, dejar null o usar un placeholder invisible
-                enemyTexture = null;
+                enemyTexture = new Texture(Gdx.files.internal("jigglypuff.png"));
             }
         } catch (Exception e) {
             enemyTexture = createColorTexture(Color.RED);
         }
 
-        try {
-            // Cargar textura del jugador (vista trasera)
-            String rawName = pokemonJugador.getNombre().toLowerCase().replace(" h.", "").replace(" jr.", "-jr")
-                    .replace(" ", "-");
-            // Intentar cargar "nombre atras.png"
-            String backPath = rawName + " atras.png";
-
-            if (Gdx.files.internal(backPath).exists()) {
-                playerTexture = new Texture(Gdx.files.internal(backPath));
-            } else {
-                // Fallback a vista frontal si no existe trasera
-                String frontPath = rawName + ".png";
-                if (Gdx.files.internal(frontPath).exists()) {
-                    playerTexture = new Texture(Gdx.files.internal(frontPath));
-                } else {
-                    // Fallback final: dejar null si no hay imagen
-                    playerTexture = null;
-                }
-            }
-        } catch (Exception e) {
-            playerTexture = createColorTexture(Color.BLUE);
-        }
-
-        // Colores para la interfaz según referencia
-        buttonBg = createColorTexture(new Color(0.1f, 0.2f, 0.4f, 1)); // Azul oscuro para botones
-        boxBg = createColorTexture(new Color(0.15f, 0.25f, 0.45f, 1)); // Azul para el recuadro
-        borderBg = createColorTexture(new Color(0.8f, 0.7f, 0.2f, 1)); // Dorado/Amarillo para el borde
+        buttonBg = createColorTexture(new Color(0.1f, 0.2f, 0.4f, 1));
+        boxBg = createColorTexture(new Color(0.15f, 0.25f, 0.45f, 1));
+        borderBg = createColorTexture(new Color(0.8f, 0.7f, 0.2f, 1));
         hpBarBg = createColorTexture(Color.GRAY);
         hpBarFill = createColorTexture(Color.GREEN);
         selectedBorder = createColorTexture(Color.LIME);
 
-        // Crear plataforma verde (elipse)
         baseCircleTexture = createCircleTexture(new Color(0.3f, 0.6f, 0.2f, 0.8f));
     }
 
@@ -155,17 +123,12 @@ public class BattleScreen extends ScreenAdapter {
 
     @Override
     public void show() {
-        // Define buttons (Right side inside message box area)
-        float btnWidth = 220; // Más grandes
-        float btnHeight = 50; // Más altos
-        float spacing = 15; // Más espaciado
+        float btnWidth = 140;
+        float btnHeight = 40;
+        float spacing = 10;
+        float startX = 480;
+        float startY = 20;
 
-        // Calcular startX para que queden a la derecha con un margen
-        float rightMargin = 50;
-        float startX = Gdx.graphics.getWidth() - (btnWidth * 2 + spacing) - rightMargin;
-        float startY = 25; // Un poco más arriba dentro de la caja de 160px
-
-        // Botones requeridos: Atacar, Huir, Mochila, Pokémon
         btnAtacarRect = new Rectangle(startX, startY + btnHeight + spacing, btnWidth, btnHeight);
         btnMochilaRect = new Rectangle(startX + btnWidth + spacing, startY + btnHeight + spacing, btnWidth, btnHeight);
         btnPokemonRect = new Rectangle(startX, startY, btnWidth, btnHeight);
@@ -326,11 +289,9 @@ public class BattleScreen extends ScreenAdapter {
     private void performEnemyTurn() {
         if (currentState != BattleState.ENEMY_TURN)
             return;
-
         int dano = 5;
         pokemonJugador.recibirDaño(dano);
         updateInfo("El enemigo atacó.");
-
         checkBattleStatus();
         if (currentState != BattleState.END_BATTLE) {
             currentState = BattleState.PLAYER_TURN;
@@ -350,26 +311,18 @@ public class BattleScreen extends ScreenAdapter {
 
     private void endBattle(final boolean victory) {
         currentState = BattleState.END_BATTLE;
-        Gdx.app.postRunnable(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Thread.sleep(2000);
-                } catch (InterruptedException e) {
-                }
-                Gdx.app.postRunnable(() -> game.setScreen(parentScreen));
+        Gdx.app.postRunnable(() -> {
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
             }
+            Gdx.app.postRunnable(() -> game.setScreen(parentScreen));
         });
     }
 
     private void updateInfo(String text) {
         infoText = text;
         System.out.println("[BATTLE] " + text);
-    }
-
-    @Override
-    public void resize(int width, int height) {
-        camera.setToOrtho(false, width, height);
     }
 
     @Override
@@ -381,45 +334,18 @@ public class BattleScreen extends ScreenAdapter {
             Gdx.app.exit();
         }
 
-        camera.update();
-        game.batch.setProjectionMatrix(camera.combined);
         game.batch.begin();
 
-        float bgScale = 1f;
-        float bgX = 0;
-        float bgY = 0;
-
         if (backgroundTexture != null) {
-            float screenW = Gdx.graphics.getWidth();
-            float screenH = Gdx.graphics.getHeight();
-            float texW = backgroundTexture.getWidth();
-            float texH = backgroundTexture.getHeight();
-            bgScale = Math.min(screenW / texW, screenH / texH);
-            float drawnW = texW * bgScale;
-            float drawnH = texH * bgScale;
-            bgX = (screenW - drawnW) / 2f;
-            bgY = (screenH - drawnH) / 2f;
-            game.batch.draw(backgroundTexture, bgX, bgY, drawnW, drawnH);
+            game.batch.draw(backgroundTexture, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         }
 
         if (enemyTexture != null) {
-            float enemyRelativeX = backgroundTexture != null ? backgroundTexture.getWidth() * 0.70f : 550;
-            float enemyRelativeY = backgroundTexture != null ? backgroundTexture.getHeight() * 0.42f : 300;
-            float enemyW = 280;
-            float enemyH = 280;
-            float drawX = bgX + (enemyRelativeX * bgScale) - (enemyW / 2);
-            float drawY = bgY + (enemyRelativeY * bgScale);
-            game.batch.draw(enemyTexture, drawX, drawY, enemyW, enemyH);
-        }
-
-        if (playerTexture != null) {
-            float playerRelativeX = backgroundTexture != null ? backgroundTexture.getWidth() * 0.28f : 200;
-            float playerRelativeY = backgroundTexture != null ? backgroundTexture.getHeight() * 0.28f : 150;
-            float playerW = 280;
-            float playerH = 280;
-            float drawX = bgX + (playerRelativeX * bgScale) - (playerW / 2);
-            float drawY = bgY + (playerRelativeY * bgScale);
-            game.batch.draw(playerTexture, drawX, drawY, playerW, playerH);
+            float enemyX = 500;
+            float enemyY = 220;
+            float enemySize = 280;
+            game.batch.draw(baseCircleTexture, enemyX - 20, enemyY - 40, enemySize + 40, 100);
+            game.batch.draw(enemyTexture, enemyX, enemyY, enemySize, enemySize);
         }
 
         drawMessageBox();
@@ -444,9 +370,7 @@ public class BattleScreen extends ScreenAdapter {
     private void drawMessageBox() {
         float boxWidth = Gdx.graphics.getWidth();
         float boxHeight = 160;
-        float boxX = 0;
-        float boxY = 0;
-        game.batch.draw(boxBg, boxX, boxY, boxWidth, boxHeight);
+        game.batch.draw(boxBg, 0, 0, boxWidth, boxHeight);
         game.batch.draw(borderBg, 0, boxHeight, boxWidth, 4);
         font.setColor(Color.WHITE);
         font.getData().setScale(1.2f);
@@ -500,7 +424,5 @@ public class BattleScreen extends ScreenAdapter {
             backgroundTexture.dispose();
         if (enemyTexture != null)
             enemyTexture.dispose();
-        if (playerTexture != null)
-            playerTexture.dispose();
     }
 }
