@@ -5,12 +5,12 @@ import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.math.Rectangle;
-import com.badlogic.gdx.utils.ScreenUtils;
 
 public class BattleScreen extends ScreenAdapter {
 
@@ -21,6 +21,7 @@ public class BattleScreen extends ScreenAdapter {
     private final Pokemon pokemonEnemigo;
 
     private BitmapFont font;
+    private OrthographicCamera camera;
 
     // UI Elements (Manual rectangles)
     private Rectangle btnAtacarRect;
@@ -34,6 +35,7 @@ public class BattleScreen extends ScreenAdapter {
     // Textures
     private Texture backgroundTexture;
     private Texture enemyTexture;
+    private Texture playerTexture; // Nueva textura para el jugador
     private Texture buttonBg;
     private Texture boxBg;
     private Texture borderBg;
@@ -61,6 +63,7 @@ public class BattleScreen extends ScreenAdapter {
         }
 
         this.font = new BitmapFont();
+        this.camera = new OrthographicCamera();
         this.currentState = BattleState.PLAYER_TURN;
 
         // Load textures
@@ -83,10 +86,36 @@ public class BattleScreen extends ScreenAdapter {
             if (Gdx.files.internal(path).exists()) {
                 enemyTexture = new Texture(Gdx.files.internal(path));
             } else {
-                enemyTexture = new Texture(Gdx.files.internal("jigglypuff.png"));
+                // Si no existe, dejar null o usar un placeholder invisible
+                enemyTexture = null;
             }
         } catch (Exception e) {
             enemyTexture = createColorTexture(Color.RED);
+        }
+
+        try {
+            // Cargar textura del jugador (vista trasera)
+            // Aplicar la misma logica de reemplazo que para el enemigo para asegurar
+            // compatibilidad con todos
+            String rawName = pokemonJugador.getNombre().toLowerCase().replace(" h.", "").replace(" jr.", "-jr")
+                    .replace(" ", "-");
+            // Intentar cargar "nombre atras.png"
+            String backPath = rawName + " atras.png";
+
+            if (Gdx.files.internal(backPath).exists()) {
+                playerTexture = new Texture(Gdx.files.internal(backPath));
+            } else {
+                // Fallback a vista frontal si no existe trasera
+                String frontPath = rawName + ".png";
+                if (Gdx.files.internal(frontPath).exists()) {
+                    playerTexture = new Texture(Gdx.files.internal(frontPath));
+                } else {
+                    // Fallback final: dejar null si no hay imagen
+                    playerTexture = null;
+                }
+            }
+        } catch (Exception e) {
+            playerTexture = createColorTexture(Color.BLUE);
         }
 
         // Colores para la interfaz según referencia
@@ -109,11 +138,14 @@ public class BattleScreen extends ScreenAdapter {
     @Override
     public void show() {
         // Define buttons (Right side inside message box area)
-        float btnWidth = 160;
-        float btnHeight = 35;
-        float spacing = 5;
-        float startX = 460;
-        float startY = 10;
+        float btnWidth = 220; // Más grandes
+        float btnHeight = 50; // Más altos
+        float spacing = 15; // Más espaciado
+
+        // Calcular startX para que queden a la derecha con un margen
+        float rightMargin = 50;
+        float startX = Gdx.graphics.getWidth() - (btnWidth * 2 + spacing) - rightMargin;
+        float startY = 25; // Un poco más arriba dentro de la caja de 160px
 
         // Botones requeridos: Atacar, Huir, Mochila, Pokémon
         btnAtacarRect = new Rectangle(startX, startY + btnHeight + spacing, btnWidth, btnHeight);
@@ -203,11 +235,6 @@ public class BattleScreen extends ScreenAdapter {
         }
     }
 
-    private void performCapture() {
-        // Obsoleto según requerimientos actuales pero mantenemos lógica interna si es
-        // necesario
-    }
-
     private void checkBattleStatus() {
         if (pokemonEnemigo.getHpActual() <= 0) {
             updateInfo("¡" + pokemonEnemigo.getNombre() + " se debilitó!");
@@ -239,6 +266,11 @@ public class BattleScreen extends ScreenAdapter {
     }
 
     @Override
+    public void resize(int width, int height) {
+        camera.setToOrtho(false, width, height);
+    }
+
+    @Override
     public void render(float delta) {
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
@@ -248,17 +280,78 @@ public class BattleScreen extends ScreenAdapter {
             Gdx.app.exit();
         }
 
+        camera.update();
+        game.batch.setProjectionMatrix(camera.combined);
         game.batch.begin();
 
-        // 1. Fondo de batalla ajustado al tamaño de la pantalla
+        // Variables para la posición del fondo (calculadas previamente)
+        float bgScale = 1f;
+        float bgX = 0;
+        float bgY = 0;
+
+        // 1. Fondo de batalla dinámico (Aspect Fit)
         if (backgroundTexture != null) {
-            game.batch.draw(backgroundTexture, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+            float screenW = Gdx.graphics.getWidth();
+            float screenH = Gdx.graphics.getHeight();
+            float texW = backgroundTexture.getWidth();
+            float texH = backgroundTexture.getHeight();
+
+            // Escala para ajustar la imagen completa en pantalla (sin recortes, manteniendo
+            // proporción)
+            bgScale = Math.min(screenW / texW, screenH / texH);
+
+            float drawnW = texW * bgScale;
+            float drawnH = texH * bgScale;
+            bgX = (screenW - drawnW) / 2f;
+            bgY = (screenH - drawnH) / 2f;
+
+            game.batch.draw(backgroundTexture, bgX, bgY, drawnW, drawnH);
         }
 
-        // 2. Imagen del Pokémon sobre el segundo círculo verde del fondo
-        // Bajado a Y=150 para que esté sobre el círculo verde derecho
+        // 2. Imagen del Pokémon Enemigo sobre el círculo verde derecho (Arriba a la
+        // derecha)
+        // Posición relativa al tamaño original de la imagen de fondo (ej. 75% ancho,
+        // 40% alto)
         if (enemyTexture != null) {
-            game.batch.draw(enemyTexture, 550, 150, 180, 180);
+            // Ajustar estos factores (0.75f, 0.4f) según la ubicación exacta del círculo en
+            // la imagen
+            float enemyRelativeX = backgroundTexture != null ? backgroundTexture.getWidth() * 0.70f : 550; // Ajustado a
+                                                                                                           // 70%
+            float enemyRelativeY = backgroundTexture != null ? backgroundTexture.getHeight() * 0.42f : 300; // Ajustado
+                                                                                                            // a 42%
+                                                                                                            // 0.31f)
+                                                                                                            // fino
+                                                                                                            // (0.30 ->
+                                                                                                            // 0.31)
+
+            // Mejor fijo o poco escalado, pero probemos fijo por ahora o semi-escalado:
+            // Si el fondo se hace muy pequeño, el pokemon debe achicarse.
+            float enemyW = 280; // Aumentado (antes 180)
+            float enemyH = 280;
+
+            // Coordenadas en pantalla
+            float drawX = bgX + (enemyRelativeX * bgScale) - (enemyW / 2);
+            float drawY = bgY + (enemyRelativeY * bgScale);
+
+            game.batch.draw(enemyTexture, drawX, drawY, enemyW, enemyH);
+        }
+
+        // 2.5. Imagen del Pokémon Jugador (Abajo a la izquierda)
+        if (playerTexture != null) {
+            // Posición relativa para el círculo izquierdo
+            float playerRelativeX = backgroundTexture != null ? backgroundTexture.getWidth() * 0.28f : 200; // Ajustado
+                                                                                                            // a 28%
+            float playerRelativeY = backgroundTexture != null ? backgroundTexture.getHeight() * 0.28f : 150; // Ajustado
+                                                                                                             // a 28%
+
+            float playerW = 280;
+            float playerH = 280;
+
+            // Coordenadas en pantalla
+            float drawX = bgX + (playerRelativeX * bgScale) - (playerW / 2);
+            float drawY = bgY + (playerRelativeY * bgScale);
+
+            game.batch.draw(playerTexture, drawX, drawY, playerW, playerH);
         }
 
         // 3. Recuadro de mensaje siguiendo la imagen de referencia
@@ -278,7 +371,7 @@ public class BattleScreen extends ScreenAdapter {
 
     private void drawMessageBox() {
         float boxWidth = Gdx.graphics.getWidth();
-        float boxHeight = 110;
+        float boxHeight = 160; // Aumentado para tapar el fondo
         float boxX = 0;
         float boxY = 0;
 
@@ -347,5 +440,7 @@ public class BattleScreen extends ScreenAdapter {
             backgroundTexture.dispose();
         if (enemyTexture != null)
             enemyTexture.dispose();
+        if (playerTexture != null)
+            playerTexture.dispose();
     }
 }
