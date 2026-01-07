@@ -567,13 +567,16 @@ public class MochilaScreen extends BaseScreen {
         }
 
         // Draw Exit Instruction
-        if (game.font != null) {
-            game.font.setColor(Color.LIGHT_GRAY);
-            game.font.getData().setScale(1.2f);
-            game.font.draw(batch, "Presione ESC para salir", VIRTUAL_WIDTH - 350, 50);
-            game.font.setColor(Color.WHITE); // Reset
-            game.font.getData().setScale(1.0f);
-        }
+        // Draw Exit Instruction - REMOVED per user request
+        /*
+         * if (game.font != null) {
+         * game.font.setColor(Color.LIGHT_GRAY);
+         * game.font.getData().setScale(1.2f);
+         * game.font.draw(batch, "Presione ESC para salir", VIRTUAL_WIDTH - 350, 50);
+         * game.font.setColor(Color.WHITE); // Reset
+         * game.font.getData().setScale(1.0f);
+         * }
+         */
     }
 
     @Override

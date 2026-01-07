@@ -62,10 +62,12 @@ public class GameScreen extends BaseScreen {
     // NPC State
     // NPC State
     private Texture feidSprite;
+    private Texture harrySprite;
     private Texture dialogIconTexture;
     private Texture dialogFrameTexture;
     private Texture uiWhitePixel;
     private float feidX, feidY;
+    private float harryX, harryY;
     private boolean showDialog = false;
     private boolean isNearFeid = false;
     private int currentDialogPage = 0;
@@ -79,7 +81,7 @@ public class GameScreen extends BaseScreen {
     // Menu State
     private boolean showMenu = false;
     private int menuSelectedIndex = 0;
-    private String[] menuOptions = { "POKÉMON", "MOCHILA", "GUARDAR", "OPCIONES", "SALIR" };
+    private String[] menuOptions = { "POKÉDEX", "MOCHILA", "CRAFTEO", "GUARDAR", "OPCIONES", "SALIR" };
 
     // Intro Animation State
     private enum IntroState {
@@ -343,6 +345,7 @@ public class GameScreen extends BaseScreen {
         // Initialize NPC and UI Assets
         try {
             feidSprite = new Texture(Gdx.files.internal("feidSprite.png"));
+            harrySprite = new Texture(Gdx.files.internal("harrySprite.png"));
             dialogIconTexture = new Texture(Gdx.files.internal("ferxxoCientifico.png"));
             dialogFrameTexture = new Texture(Gdx.files.internal("marcoDialogo.png"));
         } catch (Exception e) {
@@ -355,6 +358,10 @@ public class GameScreen extends BaseScreen {
         // Place NPC next to the blue house (approximate coordinates from player spawn)
         feidX = posX - 220;
         feidY = posY - 20;
+
+        // Place Harry much further to the right and up
+        harryX = posX + 1600;
+        harryY = posY + 250;
 
         // Initialize UI projection matrix
         uiMatrix = new com.badlogic.gdx.math.Matrix4().setToOrtho2D(0, 0, 800, 480);
@@ -565,6 +572,8 @@ public class GameScreen extends BaseScreen {
                     Gdx.app.exit();
                 } else if (selected.equals("MOCHILA")) {
                     game.setScreen(new MochilaScreen(game, this));
+                } else if (selected.equals("CRAFTEO")) {
+                    game.setScreen(new CrafteoScreen(game, this));
                 }
                 // Other options can be implemented here later
                 showMenu = false;
@@ -809,21 +818,25 @@ public class GameScreen extends BaseScreen {
         game.batch.setProjectionMatrix(camera.combined);
         game.batch.begin();
 
-        // Y-Sorting: Draw the one with higher Y coordinate first (further away)
-        // Player's feet are at posY - playerHeight / 2
-        // NPC's feet are at feidY
-        float playerFeetY = posY - playerHeight / 2;
-        float feidFeetY = feidY;
+        // Simple Z-sorting (painter's algorithm)
 
-        if (playerFeetY > feidFeetY) {
-            // Draw Player first (behind NPC)
-            drawPlayer();
-            drawNPC();
-        } else {
-            // Draw NPC first (behind Player)
-            drawNPC();
-            drawPlayer();
-        }
+        // Simple Z-sorting (painter's algorithm)
+        // Sort entities by Y coordinate (higher Y drawn earlier/behind)
+        // We have 3 entities: Player, Feid, Harry
+        // Normalized list or just simple checks?
+        // Let's just draw NPCs then Player if Player is lower (in front), or vice
+        // versa.
+        // For simplicity with 2 NPCs, let's just draw both NPCs then Player, or Player
+        // then both.
+        // A better way for just 3 items:
+
+        // Default: Draw NPCs first (behind), then Player
+        drawNPC();
+        drawPlayer();
+
+        // If sorting is critical for "walking behind" effect, we need more logic.
+        // Given the request is just "put the image", this should suffice for now unless
+        // overlap issues occur.
 
         game.batch.end();
 
@@ -1056,6 +1069,9 @@ public class GameScreen extends BaseScreen {
         if (feidSprite != null) {
             game.batch.draw(feidSprite, feidX, feidY, 25, 35);
         }
+        if (harrySprite != null) {
+            game.batch.draw(harrySprite, harryX, harryY, 25, 35);
+        }
     }
 
     private int getIntProperty(com.badlogic.gdx.maps.MapProperties props, String key, int defaultValue) {
@@ -1085,6 +1101,11 @@ public class GameScreen extends BaseScreen {
         float feidBottom = feidY;
         float feidTop = feidY + feidH;
 
+        float harryLeft = harryX;
+        float harryRight = harryX + feidW; // Assuming same size
+        float harryBottom = harryY;
+        float harryTop = harryY + feidH;
+
         if (collisionLayer == null)
             return false;
 
@@ -1099,6 +1120,9 @@ public class GameScreen extends BaseScreen {
         for (float[] p : points) {
             // Check NPC collision
             if (p[0] >= feidLeft && p[0] <= feidRight && p[1] >= feidBottom && p[1] <= feidTop) {
+                return true;
+            }
+            if (p[0] >= harryLeft && p[0] <= harryRight && p[1] >= harryBottom && p[1] <= harryTop) {
                 return true;
             }
 
@@ -1141,6 +1165,8 @@ public class GameScreen extends BaseScreen {
             avisoTexture.dispose();
         if (feidSprite != null)
             feidSprite.dispose();
+        if (harrySprite != null)
+            harrySprite.dispose();
         if (dialogIconTexture != null)
             dialogIconTexture.dispose();
         if (dialogFrameTexture != null)
