@@ -60,22 +60,60 @@ public class GameScreen extends BaseScreen {
     private Explorador explorador;
 
     // NPC State
-    // NPC State
     private Texture feidSprite;
     private Texture harrySprite;
-    private Texture dialogIconTexture;
+    private Texture brennerSprite; // New Brenner Sprite
+    private Texture labSignTexture; // Lab Sign
+    private Texture dialogIconTexture; // Feid default
+    private Texture harryPortraitTexture; // Harry default
+    private Texture brennerPortraitTexture; // New Brenner Portrait
+    private Texture currentPortrait; // Active portrait
     private Texture dialogFrameTexture;
     private Texture uiWhitePixel;
     private float feidX, feidY;
     private float harryX, harryY;
+    private float brennerX, brennerY; // New Brenner coords
     private boolean showDialog = false;
     private boolean isNearFeid = false;
+    private boolean isNearHarry = false;
+    private boolean isNearBrenner = false; // New Brenner flag
+    private boolean isNearLab = false; // New Lab flag
+
+    private float labSignX, labSignY; // Fixed Lab Sign coordinates
+
+    // Laboratory Zone (Estimated relative to spawn)
+    // Feid is at (posX - 220, posY - 20)
+    // Lab appears to be to the right of Feid (near spawnX) and slightly below/level
+    // We'll define a rectangle around spawnX, spawnY - 100
+    private Rectangle labZone;
     private int currentDialogPage = 0;
+
+    // Dynamic Dialog State
+    private String activeNpcName = "";
+    private String[] activeDialogPages;
+
     private String[] feidDialogPages = {
-            "¡Epa! ¿Qué más pues, mor? Bienvenido a la región de Hisui, vea que esto por aquí está una chimba pero bien peligroso... Usted no puede andar por ahí \"Normal\" sin con qué defenderse.",
-            "Póngase la pilas pues y trabaje esa autosuficiencia.",
-            "El flujo está en el inventario, pero ojo que el espacio es limitado, no se me embolete con la capacidad.",
-            "Vaya y me recolecta unos Guijarros y Plantas para que se haga unas Poké Balls bien chimbas. ¡Hágale pues, que ese Pokedex no se va a llenar solo, Nea!"
+            "¡Epa! ¿Qué más pues, mor? Bienvenido a la región de Hisui.",
+            "Vea, Hisui está una chimba pero la vuelta está peligrosa. Usted no puede andar por ahí normal sin con qué defenderse...",
+            "¡En la hierba viven Pokémon que están es locos, mor! Usted necesita su propio Pokémon pa' que lo cuide.",
+            "¡Hágale pues, arranque para mi laboratorio que allá lo espero!"
+    };
+
+    private String[] harryDialogPages = {
+            "¡Expecto Patronum!... Rayos, aquí tampoco sale el ciervo.",
+            "Definitivamente creo que ya no estoy en Hogwarts. Este lugar es más extraño que el Departamento de Misterios.",
+            "Escucha, no sirve de nada detenerse en los sueños y olvidarse de vivir, así que ponte a trabajar.",
+            "Para registrar a estos Pokémon necesito que subas su Nivel de Investigación a 10.",
+            "Recuerda: +2 puntos si logras una captura exitosa usando una Poké Ball y +1 punto si los vences en lucha.",
+            "¡Ánimo!, que no tengo un Giratiempo para repetir el día."
+    };
+
+    private String[] brennerDialogPages = {
+            "Has llegado lejos, 'Once', o como sea que te llamen aquí.",
+            "Has recolectado datos de 5 especies diferentes, un progreso fascinante. Pero ahora debes completar una última misión.",
+            "El sujeto Arceus te espera en esta cavidad que me recuerda a la Cueva de Vecna; siento la misma oscuridad y el tic-tac de un reloj.",
+            "Si logras vencerlo, tu investigación será completada instantáneamente.",
+            "Recuerda: los errores tienen consecuencias, y si pierdes, el 'Upside Down' reclamará tus pertenencias."
     };
 
     // Menu State
@@ -346,7 +384,13 @@ public class GameScreen extends BaseScreen {
         try {
             feidSprite = new Texture(Gdx.files.internal("feidSprite.png"));
             harrySprite = new Texture(Gdx.files.internal("harrySprite.png"));
+            brennerSprite = new Texture(Gdx.files.internal("drBrennerSprite.png")); // Load Brenner sprite for map
+            labSignTexture = new Texture(Gdx.files.internal("letreroLaboratorio.png")); // Load Lab Sign
             dialogIconTexture = new Texture(Gdx.files.internal("ferxxoCientifico.png"));
+            harryPortraitTexture = new Texture(Gdx.files.internal("harry.png"));
+            brennerPortraitTexture = new Texture(Gdx.files.internal("drBrenner.png")); // Load Brenner portrait for
+                                                                                       // dialog
+                                                                                       // dialog
             dialogFrameTexture = new Texture(Gdx.files.internal("marcoDialogo.png"));
         } catch (Exception e) {
             Gdx.app.log("GameScreen", "NPC/UI textures not found", e);
@@ -362,6 +406,22 @@ public class GameScreen extends BaseScreen {
         // Place Harry much further to the right and up
         harryX = posX + 1600;
         harryY = posY + 250;
+
+        // Place Brenner (distinct location)
+        brennerX = posX + 480; // Somewhere in between
+        brennerY = posY + 600; // Further down
+
+        // Initialize Lab Zone
+        // Assuming Lab door is roughly at spawnX, spawnY - 140
+        float labDoorX = posX - 120;
+        float labDoorY = posY - 185;
+        labZone = new Rectangle(labDoorX, labDoorY, 80, 50);
+
+        // Initialize Lab Sign Position (Fixed)
+        labSignX = posX - 45;
+        labSignY = posY - 125;
+
+        // Initialize UI projection matrix
 
         // Initialize UI projection matrix
         uiMatrix = new com.badlogic.gdx.math.Matrix4().setToOrtho2D(0, 0, 800, 480);
@@ -397,16 +457,47 @@ public class GameScreen extends BaseScreen {
     @Override
     public void render(float delta) {
         // --- NPC INTERACTION LOGIC ---
-        float dist = com.badlogic.gdx.math.Vector2.dst(posX, posY, feidX, feidY);
-        isNearFeid = dist < 80;
+        float distFeid = com.badlogic.gdx.math.Vector2.dst(posX, posY, feidX, feidY);
+        isNearFeid = distFeid < 80;
+
+        float distHarry = com.badlogic.gdx.math.Vector2.dst(posX, posY, harryX, harryY);
+        isNearHarry = distHarry < 80;
+
+        float distBrenner = com.badlogic.gdx.math.Vector2.dst(posX, posY, brennerX, brennerY);
+        isNearBrenner = distBrenner < 80;
 
         // Toggle dialog on interaction key (E)
-        if (isNearFeid && Gdx.input.isKeyJustPressed(Input.Keys.E)) {
-            if (!showDialog) {
-                showDialog = true;
-                currentDialogPage = 0;
-            } else {
-                showDialog = false;
+        if (Gdx.input.isKeyJustPressed(Input.Keys.E)) {
+            if (isNearFeid) {
+                if (!showDialog) {
+                    showDialog = true;
+                    currentDialogPage = 0;
+                    activeNpcName = "Profesor Ferxxo";
+                    activeDialogPages = feidDialogPages;
+                    currentPortrait = dialogIconTexture;
+                } else {
+                    showDialog = false;
+                }
+            } else if (isNearHarry) {
+                if (!showDialog) {
+                    showDialog = true;
+                    currentDialogPage = 0;
+                    activeNpcName = "General Harry Potter";
+                    activeDialogPages = harryDialogPages;
+                    currentPortrait = harryPortraitTexture;
+                } else {
+                    showDialog = false;
+                }
+            } else if (isNearBrenner) {
+                if (!showDialog) {
+                    showDialog = true;
+                    currentDialogPage = 0;
+                    activeNpcName = "Dr. Martin Brenner";
+                    activeDialogPages = brennerDialogPages;
+                    currentPortrait = brennerPortraitTexture;
+                } else {
+                    showDialog = false;
+                }
             }
         }
 
@@ -536,14 +627,14 @@ public class GameScreen extends BaseScreen {
         // Advance dialog with Enter only
         if (showDialog && Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
             currentDialogPage++;
-            if (currentDialogPage >= feidDialogPages.length) {
+            if (activeDialogPages != null && currentDialogPage >= activeDialogPages.length) {
                 showDialog = false;
                 currentDialogPage = 0;
             }
         }
 
         // Hide dialog if we walk away
-        if (!isNearFeid) {
+        if (!isNearFeid && !isNearHarry && !isNearBrenner) {
             showDialog = false;
             currentDialogPage = 0;
         }
@@ -680,6 +771,15 @@ public class GameScreen extends BaseScreen {
                 stateTime += delta;
             } else {
                 stateTime = 0;
+            }
+
+            // --- LAB ENTRANCE CHECK ---
+            isNearLab = false;
+            if (labZone != null && labZone.contains(posX, posY)) {
+                isNearLab = true;
+                if (Gdx.input.isKeyJustPressed(Input.Keys.E)) {
+                    game.setScreen(new LaboratorioScreen(game, this));
+                }
             }
 
             // --- POKEMON ENCOUNTER LOGIC ---
@@ -831,8 +931,10 @@ public class GameScreen extends BaseScreen {
         // A better way for just 3 items:
 
         // Default: Draw NPCs first (behind), then Player
+        // Default: Draw NPCs first (behind), then Player
         drawNPC();
         drawPlayer();
+        drawBrenner(); // Draw Brenner ON TOP of player
 
         // If sorting is critical for "walking behind" effect, we need more logic.
         // Given the request is just "put the image", this should suffice for now unless
@@ -845,6 +947,11 @@ public class GameScreen extends BaseScreen {
             mapRenderer.render(foregroundLayers);
         }
 
+        // Draw Lab Sign explicitly AFTER foreground layers to ensure visibility
+        game.batch.begin();
+        drawLabSign();
+        game.batch.end();
+
         // Draw HUD/UI in screen coordinates (800x480 virtual resolution)
         game.batch.setProjectionMatrix(uiMatrix);
         game.batch.begin();
@@ -856,6 +963,13 @@ public class GameScreen extends BaseScreen {
             float introH = introTexture.getHeight() * introScale;
             game.batch.draw(introTexture, 0, introY, introW, introH);
         }
+
+        // DEBUG: Show Coordinates (Top Left)
+        game.font.setColor(Color.RED);
+        game.font.getData().setScale(0.8f);
+        game.font.draw(game.batch, "X: " + (int) posX + " Y: " + (int) posY, 10, 470);
+        game.font.setColor(Color.WHITE);
+        game.font.getData().setScale(1.0f);
 
         // --- HUD / INTERFAZ DE USUARIO ---
         if (explorador != null && game.font != null) {
@@ -926,6 +1040,7 @@ public class GameScreen extends BaseScreen {
         }
 
         // --- NPC INTERACTION / DIALOG ---
+        // --- NPC INTERACTION / DIALOG ---
         // Interaction Hint
         if (isNearFeid && !showDialog) {
             game.font.getData().setScale(0.8f);
@@ -933,18 +1048,39 @@ public class GameScreen extends BaseScreen {
             game.font.draw(game.batch, "Presiona [E] para hablar con Feid", 300, 100);
             game.font.getData().setScale(1.0f);
             game.font.setColor(Color.WHITE);
+        } else if (isNearHarry && !showDialog) {
+            game.font.getData().setScale(0.8f);
+            game.font.setColor(Color.YELLOW);
+            game.font.draw(game.batch, "Presiona [E] para hablar con Harry", 300, 100);
+            game.font.getData().setScale(1.0f);
+            game.font.setColor(Color.WHITE);
+        } else if (isNearBrenner && !showDialog) {
+            game.font.getData().setScale(0.8f);
+            game.font.setColor(Color.YELLOW);
+            game.font.draw(game.batch, "Presiona [E] para hablar con Dr. Brenner", 300, 100);
+            game.font.getData().setScale(1.0f);
+            game.font.setColor(Color.WHITE);
+        } else if (isNearLab && !showDialog) {
+            game.font.getData().setScale(0.8f);
+            game.font.setColor(Color.YELLOW);
+            game.font.draw(game.batch, "Presiona [E] para entrar", 300, 100);
+            game.font.getData().setScale(1.0f);
+            game.font.setColor(Color.WHITE);
         }
 
         // Show Dialog
-        if (showDialog) {
+        if (showDialog && activeDialogPages != null && currentDialogPage < activeDialogPages.length) {
             // Constants for UI
             float screenW = 800;
             float dialogHeight = 110;
             float portraitSize = 250;
+            if (currentPortrait == harryPortraitTexture) {
+                portraitSize = 320; // Enlarge specifically for Harry
+            }
 
             // Draw Portrait (Right side)
-            if (dialogIconTexture != null) {
-                game.batch.draw(dialogIconTexture, screenW - portraitSize - 20, dialogHeight - 20, portraitSize,
+            if (currentPortrait != null) {
+                game.batch.draw(currentPortrait, screenW - portraitSize - 20, dialogHeight - 20, portraitSize,
                         portraitSize);
             }
 
@@ -981,19 +1117,19 @@ public class GameScreen extends BaseScreen {
             // Name
             game.font.setColor(Color.BLACK);
             game.font.getData().setScale(0.9f);
-            game.font.draw(game.batch, "Profesor Ferxxo", 55, nameTagY + 25);
+            game.font.draw(game.batch, activeNpcName, 55, nameTagY + 25);
 
             // Dialog Body
             game.font.setColor(Color.BLACK);
             game.font.getData().setScale(0.85f);
-            game.font.draw(game.batch, feidDialogPages[currentDialogPage], 45, dialogHeight - 10, screenW - 90,
+            game.font.draw(game.batch, activeDialogPages[currentDialogPage], 45, dialogHeight - 10, screenW - 90,
                     com.badlogic.gdx.utils.Align.left, true);
             game.font.getData().setScale(1.0f);
             game.font.setColor(Color.WHITE);
 
             // "Continue" hint
             game.font.getData().setScale(0.6f);
-            String hint = (currentDialogPage < feidDialogPages.length - 1) ? "SIGUIENTE (ENTER)"
+            String hint = (currentDialogPage < activeDialogPages.length - 1) ? "SIGUIENTE (ENTER)"
                     : "CERRAR (ENTER / E)";
             game.font.draw(game.batch, hint, 45, 50);
             game.font.getData().setScale(1.0f);
@@ -1074,6 +1210,19 @@ public class GameScreen extends BaseScreen {
         }
     }
 
+    private void drawBrenner() {
+        if (brennerSprite != null) {
+            game.batch.draw(brennerSprite, brennerX, brennerY, 25, 35);
+        }
+    }
+
+    private void drawLabSign() {
+        // Draw Lab Sign
+        if (labSignTexture != null) {
+            game.batch.draw(labSignTexture, labSignX, labSignY, 80, 53);
+        }
+    }
+
     private int getIntProperty(com.badlogic.gdx.maps.MapProperties props, String key, int defaultValue) {
         Object val = props.get(key);
         if (val instanceof Integer)
@@ -1106,6 +1255,11 @@ public class GameScreen extends BaseScreen {
         float harryBottom = harryY;
         float harryTop = harryY + feidH;
 
+        float brennerLeft = brennerX;
+        float brennerRight = brennerX + feidW;
+        float brennerBottom = brennerY;
+        float brennerTop = brennerY + feidH;
+
         if (collisionLayer == null)
             return false;
 
@@ -1123,6 +1277,9 @@ public class GameScreen extends BaseScreen {
                 return true;
             }
             if (p[0] >= harryLeft && p[0] <= harryRight && p[1] >= harryBottom && p[1] <= harryTop) {
+                return true;
+            }
+            if (p[0] >= brennerLeft && p[0] <= brennerRight && p[1] >= brennerBottom && p[1] <= brennerTop) {
                 return true;
             }
 
@@ -1167,8 +1324,16 @@ public class GameScreen extends BaseScreen {
             feidSprite.dispose();
         if (harrySprite != null)
             harrySprite.dispose();
+        if (brennerSprite != null)
+            brennerSprite.dispose();
+        if (labSignTexture != null)
+            labSignTexture.dispose();
         if (dialogIconTexture != null)
             dialogIconTexture.dispose();
+        if (harryPortraitTexture != null)
+            harryPortraitTexture.dispose();
+        if (brennerPortraitTexture != null)
+            brennerPortraitTexture.dispose();
         if (dialogFrameTexture != null)
             dialogFrameTexture.dispose();
         if (uiWhitePixel != null)
