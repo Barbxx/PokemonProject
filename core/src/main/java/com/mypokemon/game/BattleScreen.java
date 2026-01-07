@@ -10,6 +10,9 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.utils.viewport.StretchViewport;
+import com.badlogic.gdx.utils.viewport.Viewport;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import java.util.List;
 
 public class BattleScreen extends ScreenAdapter {
@@ -21,6 +24,8 @@ public class BattleScreen extends ScreenAdapter {
     private final Pokemon pokemonEnemigo;
 
     private BitmapFont font;
+    private OrthographicCamera camera;
+    private Viewport viewport;
 
     // UI Elements (Manual rectangles)
     private Rectangle btnAtacarRect;
@@ -67,6 +72,9 @@ public class BattleScreen extends ScreenAdapter {
         }
 
         this.font = new BitmapFont();
+        this.camera = new OrthographicCamera();
+        this.viewport = new StretchViewport(800, 600, camera);
+        this.viewport.apply(); // Aplicar el viewport inicial
         this.currentState = BattleState.PLAYER_TURN;
 
         // Load textures
@@ -93,7 +101,7 @@ public class BattleScreen extends ScreenAdapter {
             enemyTexture = createColorTexture(Color.RED);
         }
 
-        buttonBg = createColorTexture(new Color(0.1f, 0.2f, 0.4f, 1));
+        buttonBg = createColorTexture(Color.WHITE); // Botones blancos
         boxBg = createColorTexture(new Color(0.15f, 0.25f, 0.45f, 1));
         borderBg = createColorTexture(new Color(0.8f, 0.7f, 0.2f, 1));
         hpBarBg = createColorTexture(Color.GRAY);
@@ -137,8 +145,15 @@ public class BattleScreen extends ScreenAdapter {
         Gdx.input.setInputProcessor(new InputAdapter() {
             @Override
             public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-                float y = Gdx.graphics.getHeight() - screenY;
-                float x = screenX;
+                // Convertir coordenadas de pantalla a coordenadas del mundo (viewport)
+                // unproject espera un Vector3, pero podemos hacerlo a mano o usar
+                // camera.unproject
+                // La forma correcta con viewport:
+                com.badlogic.gdx.math.Vector3 touchPos = new com.badlogic.gdx.math.Vector3(screenX, screenY, 0);
+                viewport.unproject(touchPos);
+
+                float x = touchPos.x;
+                float y = touchPos.y;
 
                 if (currentState == BattleState.PLAYER_TURN) {
                     if (showMoveMenu) {
@@ -270,7 +285,7 @@ public class BattleScreen extends ScreenAdapter {
             return;
 
         Movimiento mov = movs.get(moveIndex);
-        int dano = mov.ejecutar(pokemonJugador, pokemonEnemigo);
+        mov.ejecutar(pokemonJugador, pokemonEnemigo);
         updateInfo(pokemonJugador.getNombre() + " usó " + mov.getNombre() + ".");
 
         checkBattleStatus();
@@ -292,6 +307,7 @@ public class BattleScreen extends ScreenAdapter {
         int dano = 5;
         pokemonJugador.recibirDaño(dano);
         updateInfo("El enemigo atacó.");
+
         checkBattleStatus();
         if (currentState != BattleState.END_BATTLE) {
             currentState = BattleState.PLAYER_TURN;
@@ -307,6 +323,28 @@ public class BattleScreen extends ScreenAdapter {
             updateInfo("¡Tu Pokémon se debilitó!");
             endBattle(false);
         }
+    }
+
+    private void updateLayout() {
+        // Actualizar posiciones de botones basándose en el nuevo tamaño del mundo
+        float btnWidth = 140; // Menos largos (era 180)
+        float btnHeight = 50;
+        float spacing = 15;
+
+        // El bloque se centra en la derecha
+        // Ancho bloque: 140*2 + 15 = 295
+        // Alto bloque: 50*2 + 15 = 115
+
+        // Centro X = 600
+        // Centro Y = 110 (Más arriba)
+
+        float startX = 600 - (295 / 2);
+        float startY = 110 - (115 / 2);
+
+        btnAtacarRect = new Rectangle(startX, startY + btnHeight + spacing, btnWidth, btnHeight);
+        btnMochilaRect = new Rectangle(startX + btnWidth + spacing, startY + btnHeight + spacing, btnWidth, btnHeight);
+        btnPokemonRect = new Rectangle(startX, startY, btnWidth, btnHeight);
+        btnHuirRect = new Rectangle(startX + btnWidth + spacing, startY, btnWidth, btnHeight);
     }
 
     private void endBattle(final boolean victory) {
@@ -326,6 +364,13 @@ public class BattleScreen extends ScreenAdapter {
     }
 
     @Override
+    public void resize(int width, int height) {
+        // Actualizar el viewport cuando cambia el tamaño de la ventana
+        viewport.update(width, height, true); // true centra la cámara
+        updateLayout(); // Update button positions on resize
+    }
+
+    @Override
     public void render(float delta) {
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
@@ -334,15 +379,18 @@ public class BattleScreen extends ScreenAdapter {
             Gdx.app.exit();
         }
 
+        camera.update();
+        game.batch.setProjectionMatrix(camera.combined);
         game.batch.begin();
 
         if (backgroundTexture != null) {
-            game.batch.draw(backgroundTexture, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+            // Dibujar usando las dimensiones del mundo virtual (800x600)
+            game.batch.draw(backgroundTexture, 0, 0, viewport.getWorldWidth(), viewport.getWorldHeight());
         }
 
         if (enemyTexture != null) {
-            float enemyX = 500;
-            float enemyY = 220;
+            float enemyX = 400;
+            float enemyY = 300;
             float enemySize = 280;
             game.batch.draw(baseCircleTexture, enemyX - 20, enemyY - 40, enemySize + 40, 100);
             game.batch.draw(enemyTexture, enemyX, enemyY, enemySize, enemySize);
@@ -368,18 +416,26 @@ public class BattleScreen extends ScreenAdapter {
     }
 
     private void drawMessageBox() {
-        float boxWidth = Gdx.graphics.getWidth();
-        float boxHeight = 160;
-        game.batch.draw(boxBg, 0, 0, boxWidth, boxHeight);
-        game.batch.draw(borderBg, 0, boxHeight, boxWidth, 4);
+        // float boxWidth = viewport.getWorldWidth();
+        // float boxHeight = 160;
+        // game.batch.draw(boxBg, 0, 0, boxWidth, boxHeight);
+        // game.batch.draw(borderBg, 0, boxHeight, boxWidth, 4);
         font.setColor(Color.WHITE);
         font.getData().setScale(1.2f);
-        font.draw(game.batch, infoText, 40, boxHeight / 2 + 10);
+
+        // Centrar texto en la mitad izquierda (0 a 400)
+        GlyphLayout layout = new GlyphLayout(font, infoText);
+        float textX = (400 - layout.width) / 2;
+        // Más arriba, centrado en Y=110 aprox
+        float textY = 110 + (layout.height / 2);
+
+        font.draw(game.batch, infoText, textX, textY);
     }
 
     private void drawEnemyInfo() {
         float infoX = 50;
-        float infoY = Gdx.graphics.getHeight() - 100;
+        // Posicionar relativo al borde superior del mundo virtual
+        float infoY = viewport.getWorldHeight() - 100;
         float infoW = 280;
         float infoH = 60;
         game.batch.draw(borderBg, infoX - 2, infoY - 2, infoW + 4, infoH + 4);
@@ -397,6 +453,8 @@ public class BattleScreen extends ScreenAdapter {
         Texture border = selected ? selectedBorder : borderBg;
         game.batch.draw(border, rect.x - 4, rect.y - 4, rect.width + 8, rect.height + 8);
         game.batch.draw(buttonBg, rect.x, rect.y, rect.width, rect.height);
+
+        font.setColor(Color.BLACK); // Texto negro para fondo blanco
         GlyphLayout layout = new GlyphLayout(font, text);
         float textX = rect.x + (rect.width - layout.width) / 2;
         float textY = rect.y + (rect.height + layout.height) / 2;

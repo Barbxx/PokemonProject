@@ -876,7 +876,7 @@ public class GameScreen extends BaseScreen {
             // --- NOTIFICACIONES Y CRAFTING UI ---
             if (notificationTimer > 0) {
                 game.font.setColor(Color.YELLOW);
-                game.font.draw(game.batch, notificationMessage, 400, 300, 0, com.badlogic.gdx.utils.Align.center,
+                game.font.draw(game.batch, notificationMessage, 400, 400, 0, com.badlogic.gdx.utils.Align.center,
                         false);
                 game.font.setColor(Color.WHITE);
             }

@@ -13,6 +13,9 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Align;
 import com.mypokemon.game.utils.BaseScreen;
 import com.mypokemon.game.utils.RenderUtils;
+import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.utils.viewport.StretchViewport;
+import com.badlogic.gdx.utils.viewport.Viewport;
 
 public class IntroScreen extends BaseScreen {
 
@@ -24,6 +27,9 @@ public class IntroScreen extends BaseScreen {
     private State currentState;
     private ShapeRenderer shapeRenderer;
     private float fadeAlpha = 0f;
+
+    private OrthographicCamera camera;
+    private Viewport viewport;
 
     // Data
     private String playerName = "";
@@ -45,7 +51,7 @@ public class IntroScreen extends BaseScreen {
     private static final float VP_W_PCT = 0.76f;
     private static final float VP_H_PCT = 0.76f; // Bottom padding slightly larger
 
-    private static final float TEXT_BOX_HEIGHT = 140f;
+    private static final float TEXT_BOX_HEIGHT = 100f;
 
     // Textos de Diálogo
     private static final String TEXT_1 = "¡Epaaa, qué más pues, mor! Bienvenido a la región 'One Ferxxo', el lugar más chimba de todos.";
@@ -72,6 +78,10 @@ public class IntroScreen extends BaseScreen {
         super(game);
         this.shapeRenderer = new ShapeRenderer();
         this.currentState = State.INTRO_1;
+
+        this.camera = new OrthographicCamera();
+        this.viewport = new StretchViewport(800, 600, camera);
+        this.viewport.apply();
 
         try {
             feidImage = new Texture("feid.png");
@@ -130,8 +140,8 @@ public class IntroScreen extends BaseScreen {
         }
 
         // Initialize button positions
-        float sysW = Gdx.graphics.getWidth();
-        float sysH = Gdx.graphics.getHeight();
+        float sysW = 800; // Virtual width
+        float sysH = 600; // Virtual height
 
         // Calculate Viewport
         float vpX = sysW * VP_X_PCT;
@@ -330,8 +340,11 @@ public class IntroScreen extends BaseScreen {
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
 
-        float sysW = Gdx.graphics.getWidth();
-        float sysH = Gdx.graphics.getHeight();
+        camera.update();
+        game.batch.setProjectionMatrix(camera.combined);
+
+        float sysW = viewport.getWorldWidth();
+        float sysH = viewport.getWorldHeight();
 
         // Calculate Viewport
         float vpX = sysW * VP_X_PCT;
@@ -466,7 +479,7 @@ public class IntroScreen extends BaseScreen {
 
         game.batch.end();
 
-        shapeRenderer.setProjectionMatrix(game.batch.getProjectionMatrix());
+        shapeRenderer.setProjectionMatrix(camera.combined);
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 
         // REMOVED ORANGE BORDERS (Background is handled by Frame Texture now)
@@ -525,11 +538,11 @@ public class IntroScreen extends BaseScreen {
 
         // Main Text
         game.font.setColor(Color.BLACK);
-        game.font.getData().setScale(1.3f); // Slightly smaller to fit frame
+        game.font.getData().setScale(1.0f); // Scale 1.0 for clearer text
 
-        float textX = boxX + 60;
-        float textY = boxY + boxH - 35; // Adjusted down slightly
-        float textWidth = boxW - 120;
+        float textX = boxX + 50;
+        float textY = boxY + boxH - 25; // Adjusted Y for smaller box
+        float textWidth = boxW - 100;
 
         String currentText = "";
         switch (currentState) {
@@ -645,7 +658,7 @@ public class IntroScreen extends BaseScreen {
             Gdx.gl.glEnable(GL20.GL_BLEND);
             Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
 
-            shapeRenderer.setProjectionMatrix(game.batch.getProjectionMatrix());
+            shapeRenderer.setProjectionMatrix(camera.combined);
             shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
             shapeRenderer.setColor(0, 0, 0, fadeAlpha);
             shapeRenderer.rect(0, 0, sysW, sysH);
@@ -656,6 +669,11 @@ public class IntroScreen extends BaseScreen {
         // Reset Font
         game.font.setColor(Color.WHITE);
         game.font.getData().setScale(1.0f);
+    }
+
+    @Override
+    public void resize(int width, int height) {
+        viewport.update(width, height, true);
     }
 
     @Override
