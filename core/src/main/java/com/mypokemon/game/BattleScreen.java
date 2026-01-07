@@ -6,6 +6,7 @@ import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import java.util.List;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -21,6 +22,7 @@ public class BattleScreen extends ScreenAdapter {
     private final Pokemon pokemonEnemigo;
 
     private BitmapFont font;
+    private OrthographicCamera camera;
 
     // UI Elements (Manual rectangles)
     private Rectangle btnAtacarRect;
@@ -38,13 +40,13 @@ public class BattleScreen extends ScreenAdapter {
     // Textures
     private Texture backgroundTexture;
     private Texture enemyTexture;
+    private Texture playerTexture; // Nueva textura para el jugador
     private Texture buttonBg;
     private Texture boxBg;
     private Texture borderBg;
     private Texture hpBarBg;
     private Texture hpBarFill;
     private Texture baseCircleTexture;
-    private Texture playerTexture;
 
     // Battle State
     private enum BattleState {
@@ -68,6 +70,7 @@ public class BattleScreen extends ScreenAdapter {
         }
 
         this.font = new BitmapFont();
+        this.camera = new OrthographicCamera();
         this.currentState = BattleState.PLAYER_TURN;
 
         // Load textures
@@ -83,13 +86,6 @@ public class BattleScreen extends ScreenAdapter {
         }
 
         try {
-            // Cargar textura del jugador
-            if (Gdx.files.internal("jugador1.png").exists()) {
-                playerTexture = new Texture(Gdx.files.internal("jugador1.png"));
-            } else {
-                playerTexture = createColorTexture(Color.BLUE);
-            }
-
             // Map pokemon names to texture files (e.g. "Growlithe H." -> "growlithe.png")
             String name = enemigo.getNombre().toLowerCase().replace(" h.", "").replace(" jr.", "-jr").replace(" ", "-");
             String path = name + ".png";
@@ -97,17 +93,40 @@ public class BattleScreen extends ScreenAdapter {
             if (Gdx.files.internal(path).exists()) {
                 enemyTexture = new Texture(Gdx.files.internal(path));
             } else {
-                enemyTexture = new Texture(Gdx.files.internal("jigglypuff.png"));
+                // Si no existe, dejar null o usar un placeholder invisible
+                enemyTexture = null;
             }
         } catch (Exception e) {
             enemyTexture = createColorTexture(Color.RED);
+        }
+
+        try {
+            // Cargar textura del jugador (vista trasera)
+            String rawName = pokemonJugador.getNombre().toLowerCase().replace(" h.", "").replace(" jr.", "-jr")
+                    .replace(" ", "-");
+            // Intentar cargar "nombre atras.png"
+            String backPath = rawName + " atras.png";
+
+            if (Gdx.files.internal(backPath).exists()) {
+                playerTexture = new Texture(Gdx.files.internal(backPath));
+            } else {
+                // Fallback a vista frontal si no existe trasera
+                String frontPath = rawName + ".png";
+                if (Gdx.files.internal(frontPath).exists()) {
+                    playerTexture = new Texture(Gdx.files.internal(frontPath));
+                } else {
+                    // Fallback final: dejar null si no hay imagen
+                    playerTexture = null;
+                }
+            }
+        } catch (Exception e) {
             playerTexture = createColorTexture(Color.BLUE);
         }
 
-        // Colores y texturas para la interfaz
-        buttonBg = createColorTexture(new Color(0.1f, 0.2f, 0.4f, 1));
-        boxBg = createColorTexture(new Color(0.15f, 0.25f, 0.45f, 1));
-        borderBg = createColorTexture(new Color(0.8f, 0.7f, 0.2f, 1));
+        // Colores para la interfaz según referencia
+        buttonBg = createColorTexture(new Color(0.1f, 0.2f, 0.4f, 1)); // Azul oscuro para botones
+        boxBg = createColorTexture(new Color(0.15f, 0.25f, 0.45f, 1)); // Azul para el recuadro
+        borderBg = createColorTexture(new Color(0.8f, 0.7f, 0.2f, 1)); // Dorado/Amarillo para el borde
         hpBarBg = createColorTexture(Color.GRAY);
         hpBarFill = createColorTexture(Color.GREEN);
         selectedBorder = createColorTexture(Color.LIME);
@@ -117,18 +136,6 @@ public class BattleScreen extends ScreenAdapter {
     }
 
     private Texture createCircleTexture(Color color) {
-        int width = 256;
-        int height = 128;
-        Pixmap pixmap = new Pixmap(width, height, Pixmap.Format.RGBA8888);
-        pixmap.setColor(color);
-        pixmap.fillCircle(width / 2, height / 2, height / 2); // fillCircle usa radio, para elipse manual es más
-                                                              // complejo pero esto sirve de base
-        // Para una elipse real en Pixmap tendríamos que dibujar punto a punto o usar
-        // una textura externa,
-        // pero fillCircle en un pixmap no cuadrado se estira si lo dibujamos así.
-        // Mejor creamos un círculo y lo dibujamos estirado en el batch.
-        pixmap.dispose();
-
         Pixmap circle = new Pixmap(128, 128, Pixmap.Format.RGBA8888);
         circle.setColor(color);
         circle.fillCircle(64, 64, 60);
@@ -148,12 +155,15 @@ public class BattleScreen extends ScreenAdapter {
 
     @Override
     public void show() {
-        // Define buttons (Right side above/inside message box area)
-        float btnWidth = 140;
-        float btnHeight = 40;
-        float spacing = 10;
-        float startX = 480;
-        float startY = 20;
+        // Define buttons (Right side inside message box area)
+        float btnWidth = 220; // Más grandes
+        float btnHeight = 50; // Más altos
+        float spacing = 15; // Más espaciado
+
+        // Calcular startX para que queden a la derecha con un margen
+        float rightMargin = 50;
+        float startX = Gdx.graphics.getWidth() - (btnWidth * 2 + spacing) - rightMargin;
+        float startY = 25; // Un poco más arriba dentro de la caja de 160px
 
         // Botones requeridos: Atacar, Huir, Mochila, Pokémon
         btnAtacarRect = new Rectangle(startX, startY + btnHeight + spacing, btnWidth, btnHeight);
@@ -169,7 +179,6 @@ public class BattleScreen extends ScreenAdapter {
 
                 if (currentState == BattleState.PLAYER_TURN) {
                     if (showMoveMenu) {
-                        // Selección de movimientos con clic (opcional, foco en teclado)
                         List<Movimiento> movs = pokemonJugador.getMovimientos();
                         if (btnAtacarRect.contains(x, y) && movs.size() > 0) {
                             performMove(0);
@@ -187,8 +196,6 @@ public class BattleScreen extends ScreenAdapter {
                             performMove(3);
                             return true;
                         }
-
-                        // Clic fuera para volver
                         showMoveMenu = false;
                         return true;
                     }
@@ -222,7 +229,6 @@ public class BattleScreen extends ScreenAdapter {
                 }
 
                 if (currentState == BattleState.PLAYER_TURN) {
-                    // Tecla para volver atrás (B o X)
                     if (keycode == com.badlogic.gdx.Input.Keys.B || keycode == com.badlogic.gdx.Input.Keys.X) {
                         if (showMoveMenu) {
                             showMoveMenu = false;
@@ -230,7 +236,6 @@ public class BattleScreen extends ScreenAdapter {
                         }
                     }
 
-                    // Navegación con flechas
                     int currentSelection = showMoveMenu ? selectedMove : selectedOption;
                     int maxMoves = pokemonJugador.getMovimientos().size();
 
@@ -258,7 +263,6 @@ public class BattleScreen extends ScreenAdapter {
                     }
 
                     if (showMoveMenu) {
-                        // Limitar selección al número de movimientos existentes
                         if (currentSelection < maxMoves)
                             selectedMove = currentSelection;
                     } else {
@@ -319,34 +323,6 @@ public class BattleScreen extends ScreenAdapter {
         }
     }
 
-    private void performPlayerAttack() {
-        int dano = 0;
-        if (!pokemonJugador.getMovimientos().isEmpty()) {
-            Movimiento mov = pokemonJugador.getMovimientos().get(0);
-            dano = mov.ejecutar(pokemonJugador, pokemonEnemigo);
-            updateInfo(pokemonJugador.getNombre() + " usó " + mov.getNombre() + ".");
-        } else {
-            dano = 5;
-            pokemonEnemigo.recibirDaño((float) dano);
-            updateInfo(pokemonJugador.getNombre() + " atacó.");
-        }
-
-        checkBattleStatus();
-        if (currentState != BattleState.END_BATTLE) {
-            currentState = BattleState.ENEMY_TURN;
-            Gdx.app.postRunnable(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        Thread.sleep(1500);
-                    } catch (InterruptedException e) {
-                    }
-                    performEnemyTurn();
-                }
-            });
-        }
-    }
-
     private void performEnemyTurn() {
         if (currentState != BattleState.ENEMY_TURN)
             return;
@@ -359,11 +335,6 @@ public class BattleScreen extends ScreenAdapter {
         if (currentState != BattleState.END_BATTLE) {
             currentState = BattleState.PLAYER_TURN;
         }
-    }
-
-    private void performCapture() {
-        // Obsoleto según requerimientos actuales pero mantenemos lógica interna si es
-        // necesario
     }
 
     private void checkBattleStatus() {
@@ -397,38 +368,62 @@ public class BattleScreen extends ScreenAdapter {
     }
 
     @Override
+    public void resize(int width, int height) {
+        camera.setToOrtho(false, width, height);
+    }
+
+    @Override
     public void render(float delta) {
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        // Tecla ESC para cerrar el juego
         if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.ESCAPE)) {
             Gdx.app.exit();
         }
 
+        camera.update();
+        game.batch.setProjectionMatrix(camera.combined);
         game.batch.begin();
 
-        // 1. Fondo de batalla ajustado al tamaño de la pantalla
+        float bgScale = 1f;
+        float bgX = 0;
+        float bgY = 0;
+
         if (backgroundTexture != null) {
-            game.batch.draw(backgroundTexture, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+            float screenW = Gdx.graphics.getWidth();
+            float screenH = Gdx.graphics.getHeight();
+            float texW = backgroundTexture.getWidth();
+            float texH = backgroundTexture.getHeight();
+            bgScale = Math.min(screenW / texW, screenH / texH);
+            float drawnW = texW * bgScale;
+            float drawnH = texH * bgScale;
+            bgX = (screenW - drawnW) / 2f;
+            bgY = (screenH - drawnH) / 2f;
+            game.batch.draw(backgroundTexture, bgX, bgY, drawnW, drawnH);
         }
 
-        // 2. Imagen del Pokémon sobre el círculo verde (ampliada y pisando la base)
         if (enemyTexture != null) {
-            float enemyX = 500;
-            float enemyY = 220;
-            float enemySize = 280; // Ampliada de 230 a 280
-
-            // Dibujar base debajo
-            game.batch.draw(baseCircleTexture, enemyX - 20, enemyY - 40, enemySize + 40, 100);
-            // Dibujar Pokémon tocando/pisando la plataforma
-            game.batch.draw(enemyTexture, enemyX, enemyY, enemySize, enemySize);
+            float enemyRelativeX = backgroundTexture != null ? backgroundTexture.getWidth() * 0.70f : 550;
+            float enemyRelativeY = backgroundTexture != null ? backgroundTexture.getHeight() * 0.42f : 300;
+            float enemyW = 280;
+            float enemyH = 280;
+            float drawX = bgX + (enemyRelativeX * bgScale) - (enemyW / 2);
+            float drawY = bgY + (enemyRelativeY * bgScale);
+            game.batch.draw(enemyTexture, drawX, drawY, enemyW, enemyH);
         }
 
-        // 3. Recuadro de mensaje siguiendo la imagen de referencia
+        if (playerTexture != null) {
+            float playerRelativeX = backgroundTexture != null ? backgroundTexture.getWidth() * 0.28f : 200;
+            float playerRelativeY = backgroundTexture != null ? backgroundTexture.getHeight() * 0.28f : 150;
+            float playerW = 280;
+            float playerH = 280;
+            float drawX = bgX + (playerRelativeX * bgScale) - (playerW / 2);
+            float drawY = bgY + (playerRelativeY * bgScale);
+            game.batch.draw(playerTexture, drawX, drawY, playerW, playerH);
+        }
+
         drawMessageBox();
 
-        // 4. Botones: Menú principal o Movimientos
         if (showMoveMenu) {
             List<Movimiento> movs = pokemonJugador.getMovimientos();
             drawButton(btnAtacarRect, movs.size() > 0 ? movs.get(0).getNombre() : "-", selectedMove == 0);
@@ -442,27 +437,20 @@ public class BattleScreen extends ScreenAdapter {
             drawButton(btnHuirRect, "Huir", selectedOption == 3);
         }
 
-        // Info del Pokémon Enemigo (Recuadro superior izquierdo según referencia)
         drawEnemyInfo();
-
         game.batch.end();
     }
 
     private void drawMessageBox() {
-        float boxWidth = Gdx.graphics.getWidth() - 40;
-        float boxHeight = 110;
-        float boxX = 20;
-        float boxY = 15;
-
-        // Borde dorado
-        game.batch.draw(borderBg, boxX - 4, boxY - 4, boxWidth + 8, boxHeight + 8);
-        // Fondo azul
+        float boxWidth = Gdx.graphics.getWidth();
+        float boxHeight = 160;
+        float boxX = 0;
+        float boxY = 0;
         game.batch.draw(boxBg, boxX, boxY, boxWidth, boxHeight);
-
-        // Texto del mensaje
+        game.batch.draw(borderBg, 0, boxHeight, boxWidth, 4);
         font.setColor(Color.WHITE);
         font.getData().setScale(1.2f);
-        font.draw(game.batch, infoText, boxX + 30, boxY + boxHeight - 40);
+        font.draw(game.batch, infoText, 40, boxHeight / 2 + 10);
     }
 
     private void drawEnemyInfo() {
@@ -470,32 +458,21 @@ public class BattleScreen extends ScreenAdapter {
         float infoY = Gdx.graphics.getHeight() - 100;
         float infoW = 280;
         float infoH = 60;
-
-        // Recuadro de info (Estilo similar al de referencia)
         game.batch.draw(borderBg, infoX - 2, infoY - 2, infoW + 4, infoH + 4);
         game.batch.draw(buttonBg, infoX, infoY, infoW, infoH);
-
         font.getData().setScale(1.0f);
         font.draw(game.batch, pokemonEnemigo.getNombre().toUpperCase(), infoX + 15, infoY + infoH - 15);
-
-        // Nivel 0 indicado como solicitado
         font.draw(game.batch, "Nv" + pokemonEnemigo.getNivel(), infoX + infoW - 70, infoY + infoH - 15);
-
-        // Barra de PS (HP)
         font.draw(game.batch, "PS", infoX + 15, infoY + 25);
-        // Barra de fondo
         game.batch.draw(hpBarBg, infoX + 50, infoY + 15, 200, 12);
-        // Barra de vida (Verde)
         float hpPercent = pokemonEnemigo.getHpActual() / pokemonEnemigo.getHpMaximo();
         game.batch.draw(hpBarFill, infoX + 50, infoY + 15, 200 * hpPercent, 12);
     }
 
     private void drawButton(Rectangle rect, String text, boolean selected) {
-        // Borde para botones (Resaltado si está seleccionado)
         Texture border = selected ? selectedBorder : borderBg;
         game.batch.draw(border, rect.x - 4, rect.y - 4, rect.width + 8, rect.height + 8);
         game.batch.draw(buttonBg, rect.x, rect.y, rect.width, rect.height);
-
         GlyphLayout layout = new GlyphLayout(font, text);
         float textX = rect.x + (rect.width - layout.width) / 2;
         float textY = rect.y + (rect.height + layout.height) / 2;
