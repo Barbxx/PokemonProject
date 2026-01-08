@@ -13,11 +13,14 @@ import com.mypokemon.game.utils.BaseScreen;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.badlogic.gdx.Screen;
+
 /**
  * Screen for the inventory (Mochila).
  * Pure SpriteBatch logic with robust texture loading and coordinate handling.
  */
 public class MochilaScreen extends BaseScreen {
+    private final Explorador explorador;
     private Texture background;
     private Texture[] buttonsNormal;
     private Texture[] buttonsSelected;
@@ -70,7 +73,7 @@ public class MochilaScreen extends BaseScreen {
 
     private OrthographicCamera camera;
     private Viewport viewport;
-    private final GameScreen returnScreen;
+    private final Screen returnScreen;
     private final float VIRTUAL_WIDTH = 1280;
     private final float VIRTUAL_HEIGHT = 720;
 
@@ -78,9 +81,12 @@ public class MochilaScreen extends BaseScreen {
 
     private com.mypokemon.game.logic.Crafteo crafteo;
 
-    public MochilaScreen(PokemonMain game, GameScreen returnScreen) {
+    private boolean confirmingPokeball = false;
+
+    public MochilaScreen(PokemonMain game, Screen returnScreen, Explorador explorador) {
         super(game);
         this.returnScreen = returnScreen;
+        this.explorador = explorador;
         Gdx.app.log("MochilaScreen", "Constructor call started");
 
         crafteo = new com.mypokemon.game.logic.Crafteo();
@@ -298,21 +304,43 @@ public class MochilaScreen extends BaseScreen {
                 indexSeleccionado -= 6;
         }
 
-        // Handle Crafting Input
+        // Handle Selection/Usage Input
         if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
-            if (selectedIndex == 4) {
-                // Nothing special on ENTER for now, maybe open details?
+            if (confirmingPokeball) {
+                // Ignore ENTER while confirming, use S/N
+            } else if (selectedIndex == 4) { // Pokemon list
+                // For now, no specific action on ENTER in Pokemon list
             } else {
-                String objetoSeleccionado = obtenerNombrePorIndice(indexSeleccionado);
-                if (objetoSeleccionado != null && !objetoSeleccionado.isEmpty()) {
-                    boolean exito = crafteo.intentarCraftear(objetoSeleccionado,
-                            returnScreen.getExplorador().getMochila());
-                    if (exito) {
-                        Gdx.app.log("Crafting", "Success: " + objetoSeleccionado);
+                // If we are in battle, handle item usage
+                if (returnScreen instanceof BattleScreen) {
+                    String itemName = obtenerNombrePorIndice(indexSeleccionado);
+                    if (itemName != null && itemName.equalsIgnoreCase("pokeball")) {
+                        confirmingPokeball = true;
                     } else {
-                        Gdx.app.log("Crafting", "Failed: " + objetoSeleccionado);
+                        usarItemEnBatalla(itemName);
+                    }
+                } else {
+                    // Normal crafting out of battle
+                    String objetoSeleccionado = obtenerNombrePorIndice(indexSeleccionado);
+                    if (objetoSeleccionado != null && !objetoSeleccionado.isEmpty()) {
+                        boolean exito = crafteo.intentarCraftear(objetoSeleccionado, explorador.getMochila());
+                        if (exito) {
+                            Gdx.app.log("Crafting", "Success: " + objetoSeleccionado);
+                        } else {
+                            Gdx.app.log("Crafting", "Failed: " + objetoSeleccionado);
+                        }
                     }
                 }
+            }
+        }
+
+        // Battle Confirmation Input
+        if (confirmingPokeball) {
+            if (Gdx.input.isKeyJustPressed(Input.Keys.S)) {
+                confirmingPokeball = false;
+                usarItemEnBatalla("pokeball");
+            } else if (Gdx.input.isKeyJustPressed(Input.Keys.N)) {
+                confirmingPokeball = false;
             }
         }
 
@@ -320,7 +348,27 @@ public class MochilaScreen extends BaseScreen {
         dibujarMochila(game.batch);
         dibujarExplicacion(game.batch);
 
+        if (confirmingPokeball) {
+            drawConfirmationDialog(game.batch);
+        }
+
         game.batch.end();
+    }
+
+    private void drawConfirmationDialog(com.badlogic.gdx.graphics.g2d.SpriteBatch batch) {
+        float dialogW = 500;
+        float dialogH = 150;
+        float dx = (VIRTUAL_WIDTH - dialogW) / 2;
+        float dy = (VIRTUAL_HEIGHT - dialogH) / 2;
+
+        batch.setColor(Color.DARK_GRAY);
+        batch.draw(whitePixel, dx, dy, dialogW, dialogH);
+        batch.setColor(Color.WHITE);
+        batch.draw(whitePixel, dx + 5, dy + 5, dialogW - 10, dialogH - 10);
+
+        game.font.setColor(Color.BLACK);
+        game.font.draw(batch, "¿Quieres usar una PokeBall?", dx + 50, dy + 100);
+        game.font.draw(batch, "S para SI | N para NO", dx + 100, dy + 50);
     }
 
     private String obtenerNombrePorIndice(int index) {
@@ -358,8 +406,31 @@ public class MochilaScreen extends BaseScreen {
         viewport.update(width, height, true);
     }
 
+    private void usarItemEnBatalla(String itemName) {
+        if (itemName == null)
+            return;
+        BattleScreen battle = (BattleScreen) returnScreen;
+
+        if (itemName.equalsIgnoreCase("pokeball")) {
+            if (explorador.getMochila().consumirItem("pokeball", 1)) {
+                battle.usarItemEnBatalla("pokeball");
+                game.setScreen(battle);
+            }
+        } else if (itemName.equalsIgnoreCase("Poción Herbal") || itemName.equalsIgnoreCase("Ungüento Herbal")) {
+            if (explorador.getMochila().consumirItem("unguento", 1)) {
+                battle.usarItemEnBatalla("pocion");
+                game.setScreen(battle);
+            }
+        } else if (itemName.equalsIgnoreCase("baya")) {
+            if (explorador.getMochila().consumirItem("baya", 1)) {
+                battle.usarItemEnBatalla("pocion");
+                game.setScreen(battle);
+            }
+        }
+    }
+
     private void dibujarMochila(com.badlogic.gdx.graphics.g2d.SpriteBatch batch) {
-        if (returnScreen == null || returnScreen.getExplorador() == null)
+        if (explorador == null)
             return;
 
         int columnas = 3;
@@ -393,7 +464,7 @@ public class MochilaScreen extends BaseScreen {
 
     private void dibujarContenido(com.badlogic.gdx.graphics.g2d.SpriteBatch batch, int i, float x, float y,
             float size) {
-        Inventario inventario = returnScreen.getExplorador().getMochila();
+        Inventario inventario = explorador.getMochila();
 
         if (selectedIndex == 0) { // Red Button: Materiales (Planta, Baya, Guijarro)
             if (i == 0) { // Slot 1: Planta
@@ -471,7 +542,7 @@ public class MochilaScreen extends BaseScreen {
                 }
             }
         } else if (selectedIndex == 4) { // Purple Button: Pokemon
-            List<Pokemon> equipo = returnScreen.getExplorador().getEquipo();
+            List<Pokemon> equipo = explorador.getEquipo();
             if (i < equipo.size()) {
                 Pokemon p = equipo.get(i);
                 // Draw Pokemon Name (since we only have sprites in Pokemon class which are
@@ -591,7 +662,7 @@ public class MochilaScreen extends BaseScreen {
             game.font.draw(batch, desc, 100, 310); // Description moved UP (was 110)
         } else if (selectedIndex == 4) {
             // Pokemon Details
-            List<Pokemon> equipo = returnScreen.getExplorador().getEquipo();
+            List<Pokemon> equipo = explorador.getEquipo();
             if (indexSeleccionado < equipo.size()) {
                 Pokemon p = equipo.get(indexSeleccionado);
                 titulo = p.getNombre() + " Nv." + p.getNivel();

@@ -515,7 +515,7 @@ public class GameScreen extends BaseScreen {
                 if (selected.equals("SALIR")) {
                     Gdx.app.exit();
                 } else if (selected.equals("MOCHILA")) {
-                    game.setScreen(new MochilaScreen(game, this));
+                    game.setScreen(new MochilaScreen(game, this, explorador));
                 } else if (selected.equals("CRAFTEO")) {
                     game.setScreen(new CrafteoScreen(game, this));
                 } else if (selected.equals("POKÉDEX")) {
@@ -607,9 +607,14 @@ public class GameScreen extends BaseScreen {
             if (labZone != null && labZone.contains(posX, posY)) {
                 isNearLab = true;
                 if (!fadingOut && Gdx.input.isKeyJustPressed(Input.Keys.E)) {
-                    fadingOut = true;
-                    // Pre-create screen
-                    nextScreen = new LaboratorioScreen(game, this);
+                    if (explorador.getEquipo().isEmpty()) {
+                        fadingOut = true;
+                        // Pre-create screen
+                        nextScreen = new LaboratorioScreen(game, this);
+                    } else {
+                        notificationMessage = "La elección es permanente. No puedes volver a entrar.";
+                        notificationTimer = NOTIFICATION_DURATION;
+                    }
                 }
             }
 

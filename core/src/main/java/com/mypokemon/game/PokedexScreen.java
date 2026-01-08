@@ -10,8 +10,9 @@ import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.mypokemon.game.utils.BaseScreen;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class PokedexScreen extends BaseScreen {
     private final com.badlogic.gdx.Screen returnScreen;
@@ -23,6 +24,7 @@ public class PokedexScreen extends BaseScreen {
     private BitmapFont fontStats;
 
     private List<String> capturedNames;
+    private Map<String, Texture> textureCache = new HashMap<>();
     private int selectedIndex = 0;
 
     private OrthographicCamera camera;
@@ -30,22 +32,21 @@ public class PokedexScreen extends BaseScreen {
     private final float VIRTUAL_WIDTH = 1280;
     private final float VIRTUAL_HEIGHT = 720;
 
+    private final Explorador explorador;
+    private int selectedGridX = 0;
+    private int selectedGridY = 0;
+    private final int GRID_COLS = 7;
+    private final int GRID_ROWS = 4;
+
     public PokedexScreen(PokemonMain game, com.badlogic.gdx.Screen returnScreen, Explorador explorador) {
         super(game);
         this.returnScreen = returnScreen;
+        this.explorador = explorador;
 
         camera = new OrthographicCamera();
         viewport = new FitViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, camera);
 
-        capturedNames = new ArrayList<>();
-        Pokedex registro = explorador.getRegistro();
-        // Get all captured pokemon from the database filtered by the registration
-        for (String name : BasePokemonData.getNombres()) {
-            EspeciePokemon especie = registro.getRegistro().get(name);
-            if (especie != null && especie.isCapturado()) {
-                capturedNames.add(name);
-            }
-        }
+        capturedNames = explorador.getRegistro().getCapturedOrder();
 
         // Font Setup
         fontTitle = new BitmapFont();
@@ -57,7 +58,7 @@ public class PokedexScreen extends BaseScreen {
 
         // Textures
         try {
-            background = new Texture(Gdx.files.internal("fondoPokedex.png"));
+            background = new Texture(Gdx.files.internal("fondoPokedexNew.png"));
         } catch (Exception e) {
         }
 
@@ -80,15 +81,27 @@ public class PokedexScreen extends BaseScreen {
         }
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.UP)) {
-            selectedIndex--;
-            if (selectedIndex < 0)
-                selectedIndex = Math.max(0, capturedNames.size() - 1);
+            selectedGridY--;
+            if (selectedGridY < 0)
+                selectedGridY = GRID_ROWS - 1;
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.DOWN)) {
-            selectedIndex++;
-            if (selectedIndex >= capturedNames.size())
-                selectedIndex = 0;
+            selectedGridY++;
+            if (selectedGridY >= GRID_ROWS)
+                selectedGridY = 0;
         }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT)) {
+            selectedGridX--;
+            if (selectedGridX < 0)
+                selectedGridX = GRID_COLS - 1;
+        }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT)) {
+            selectedGridX++;
+            if (selectedGridX >= GRID_COLS)
+                selectedGridX = 0;
+        }
+
+        selectedIndex = selectedGridY * GRID_COLS + selectedGridX;
 
         ScreenUtils.clear(0, 0, 0, 1);
         viewport.apply();
@@ -99,86 +112,95 @@ public class PokedexScreen extends BaseScreen {
             game.batch.draw(background, 0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
         }
 
-        // Overlay darkening
-        game.batch.setColor(0, 0, 0, 0.5f);
+        // Overlay darkening (Softer to see background details)
+        game.batch.setColor(0, 0, 0, 0.3f);
         game.batch.draw(whitePixel, 0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
         game.batch.setColor(Color.WHITE);
 
-        // Sidebar with Names
-        float sidebarW = 400;
-        game.batch.draw(entryBg, 20, 20, sidebarW, VIRTUAL_HEIGHT - 40);
-
-        fontTitle.setColor(Color.YELLOW);
-        fontTitle.draw(game.batch, "POKÉDEX", 50, VIRTUAL_HEIGHT - 60);
-
+        // Sin registros text position
         if (capturedNames.isEmpty()) {
             fontText.setColor(Color.LIGHT_GRAY);
-            fontText.draw(game.batch, "Sin registros...", 50, VIRTUAL_HEIGHT - 150);
-        } else {
-            float listY = VIRTUAL_HEIGHT - 150;
-            for (int i = 0; i < capturedNames.size(); i++) {
-                if (i == selectedIndex) {
-                    game.batch.setColor(Color.CYAN);
-                    game.batch.draw(whitePixel, 30, listY - 35, sidebarW - 20, 50);
-                    game.batch.setColor(Color.WHITE);
-                    fontText.setColor(Color.BLACK);
-                } else {
-                    fontText.setColor(Color.WHITE);
-                }
-                fontText.draw(game.batch, capturedNames.get(i), 50, listY);
-                listY -= 60;
-                if (listY < 50)
-                    break; // Pagination would be better, but for 20 slots it's okay
+            fontText.draw(game.batch, "Sin registros...", 60, VIRTUAL_HEIGHT - 160);
+        }
+
+        // Info Panel (Left side - Lowered to match background "INFO PKMN" box)
+        float infoX = 55;
+        float infoY = 160;
+        float infoW = 310;
+        float infoH = 260;
+
+        // Draw light background for info area
+        game.batch.setColor(1, 1, 1, 0.15f);
+        game.batch.draw(entryBg, infoX, infoY, infoW, infoH);
+        game.batch.setColor(Color.WHITE);
+
+        fontTitle.setColor(Color.YELLOW);
+        fontTitle.getData().setScale(1.8f);
+        fontTitle.draw(game.batch, "POKÉDEX", 60, VIRTUAL_HEIGHT - 60);
+
+        String currentPokemonName = (selectedIndex < capturedNames.size()) ? capturedNames.get(selectedIndex) : null;
+
+        if (currentPokemonName != null) {
+            BasePokemonData data = BasePokemonData.get(currentPokemonName);
+            EspeciePokemon registro = explorador.getRegistro().getRegistro().get(currentPokemonName);
+
+            fontTitle.setColor(Color.WHITE);
+            fontTitle.getData().setScale(1.3f);
+            fontTitle.draw(game.batch, currentPokemonName.toUpperCase(), infoX + 20, infoY + infoH - 30);
+
+            fontText.setColor(Color.CYAN);
+            fontText.draw(game.batch, "TIPO: " + (data != null ? data.tipo : "???"), infoX + 20, infoY + infoH - 70);
+
+            fontText.setColor(Color.ORANGE);
+            fontText.draw(game.batch, "INV: " + (registro != null ? registro.getNivelInvestigacion() : 0) + "/10",
+                    infoX + 20, infoY + infoH - 100);
+
+            fontText.setColor(Color.WHITE);
+            fontText.getData().setScale(0.9f);
+            if (data != null && data.descripcion != null) {
+                fontText.draw(game.batch, data.descripcion, infoX + 20, infoY + infoH - 140, infoW - 40,
+                        com.badlogic.gdx.utils.Align.left, true);
             }
         }
 
-        // Details Panel
-        if (!capturedNames.isEmpty() && selectedIndex < capturedNames.size()) {
-            String name = capturedNames.get(selectedIndex);
-            BasePokemonData data = BasePokemonData.get(name);
+        // Grid (Right side - Aligned with image boxes)
+        float gridStartX = 415;
+        float gridStartY = VIRTUAL_HEIGHT - 215; // Adjusted to match boxes
+        float boxSize = 108; // Roughly the size of slots in image
+        float spacing = 14;
 
-            float detailX = sidebarW + 50;
-            float detailW = VIRTUAL_WIDTH - sidebarW - 70;
+        for (int row = 0; row < GRID_ROWS; row++) {
+            for (int col = 0; col < GRID_COLS; col++) {
+                int index = row * GRID_COLS + col;
+                float bx = gridStartX + col * (boxSize + spacing);
+                float by = gridStartY - row * (boxSize + spacing);
 
-            // Draw Card Background
-            game.batch.draw(entryBg, detailX, 20, detailW, VIRTUAL_HEIGHT - 40);
-
-            // Name and Type
-            fontTitle.setColor(Color.WHITE);
-            fontTitle.draw(game.batch, name.toUpperCase(), detailX + 30, VIRTUAL_HEIGHT - 80);
-
-            fontText.setColor(Color.CYAN);
-            fontText.draw(game.batch, "TIPO: " + (data != null ? data.tipo : "Desconocido"), detailX + 30,
-                    VIRTUAL_HEIGHT - 140);
-
-            // Description
-            fontText.setColor(Color.WHITE);
-            if (data != null && data.descripcion != null) {
-                // Manual wrap or use layout
-                fontText.draw(game.batch, data.descripcion, detailX + 30, VIRTUAL_HEIGHT - 200, detailW - 60,
-                        com.badlogic.gdx.utils.Align.left, true);
-            }
-
-            // Stats
-            if (data != null) {
-                float statsY = 220;
-                fontStats.setColor(Color.ORANGE);
-                fontStats.draw(game.batch, "HP: " + (int) data.getHpBase(), detailX + 30, statsY);
-                fontStats.draw(game.batch, "ATQ: " + (int) data.getAtqBase(), detailX + 180, statsY);
-                fontStats.draw(game.batch, "VEL: " + (int) data.getVelBase(), detailX + 330, statsY);
-            }
-
-            // Image Placeholder/Logic
-            // User requested images. We should load them based on name.
-            try {
-                String imgPath = name.toLowerCase().replace(" h.", "").replace(" jr.", "-jr").replace(" ", "-")
-                        + ".png";
-                if (Gdx.files.internal(imgPath).exists()) {
-                    Texture tex = new Texture(Gdx.files.internal(imgPath));
-                    game.batch.draw(tex, detailX + (detailW - 250) / 2, 250, 250, 250);
-                    // Note: In a real app we'd cache these textures
+                // Selection Highlight
+                if (row == selectedGridY && col == selectedGridX) {
+                    game.batch.setColor(Color.YELLOW);
+                    // Draw outer border
+                    game.batch.draw(whitePixel, bx - 3, by - 3, boxSize + 6, 3);
+                    game.batch.draw(whitePixel, bx - 3, by + boxSize, boxSize + 6, 3);
+                    game.batch.draw(whitePixel, bx - 3, by - 3, 3, boxSize + 6);
+                    game.batch.draw(whitePixel, bx + boxSize, by - 3, 3, boxSize + 6);
+                    game.batch.setColor(Color.WHITE);
                 }
-            } catch (Exception e) {
+
+                if (index < capturedNames.size()) {
+                    String pName = capturedNames.get(index);
+                    if (!textureCache.containsKey(pName)) {
+                        try {
+                            String nameClean = pName.toLowerCase().replace(" h.", "").replace(" jr.", "-jr")
+                                    .replace(" ", "-");
+                            textureCache.put(pName, new Texture(Gdx.files.internal(nameClean + ".png")));
+                        } catch (Exception e) {
+                        }
+                    }
+                    Texture tex = textureCache.get(pName);
+                    if (tex != null) {
+                        game.batch.draw(tex, bx + 10, by + 10, boxSize - 20, boxSize - 20);
+                    }
+                }
             }
         }
 
@@ -201,5 +223,9 @@ public class PokedexScreen extends BaseScreen {
         fontTitle.dispose();
         fontText.dispose();
         fontStats.dispose();
+        for (Texture t : textureCache.values()) {
+            if (t != null)
+                t.dispose();
+        }
     }
 }

@@ -7,10 +7,12 @@ import java.util.Map;
 public class Pokedex implements Serializable {
     private static final long serialVersionUID = 2L;
     private Map<String, EspeciePokemon> registro;
+    private java.util.List<String> capturedOrder;
     private int especiesCompletas;
 
     public Pokedex() {
         this.registro = new HashMap<>();
+        this.capturedOrder = new java.util.ArrayList<>();
         this.especiesCompletas = 0;
     }
 
@@ -20,8 +22,12 @@ public class Pokedex implements Serializable {
         registro.putIfAbsent(nombre, new EspeciePokemon(nombre));
 
         EspeciePokemon especie = registro.get(nombre);
-        if (esCaptura)
+        if (esCaptura) {
+            if (!especie.isCapturado()) {
+                capturedOrder.add(nombre);
+            }
             especie.setCapturado(true);
+        }
 
         // Obtener puntos específicos de la especie
         BasePokemonData data = BasePokemonData.get(nombre);
@@ -71,6 +77,9 @@ public class Pokedex implements Serializable {
         EspeciePokemon especie = registro.get(nombre);
 
         boolean estabaCompleta = especie.isCompleta();
+        if (!especie.isCapturado()) {
+            capturedOrder.add(nombre);
+        }
         especie.setInvestigacionMaxica();
 
         if (!estabaCompleta) {
@@ -85,5 +94,11 @@ public class Pokedex implements Serializable {
 
     public Map<String, EspeciePokemon> getRegistro() {
         return registro;
+    }
+
+    public java.util.List<String> getCapturedOrder() {
+        if (capturedOrder == null)
+            capturedOrder = new java.util.ArrayList<>();
+        return capturedOrder;
     }
 }

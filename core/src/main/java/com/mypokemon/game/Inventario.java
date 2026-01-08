@@ -19,7 +19,7 @@ public class Inventario implements Serializable {
         this.guijarros = 0;
         this.plantas = 0;
         this.bayas = 0;
-        this.pokeBalls = 0;
+        this.pokeBalls = 2; // Iniciar con 2 Poké Balls para pruebas
         this.pociones = 0;
 
         // Initialize new items

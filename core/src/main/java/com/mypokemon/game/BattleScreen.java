@@ -298,6 +298,7 @@ public class BattleScreen extends ScreenAdapter {
                 showMoveMenu = true;
                 selectedMove = 0;
                 break;
+
             case 1: // Mochila
                 abrirMochila();
                 break;
@@ -311,17 +312,14 @@ public class BattleScreen extends ScreenAdapter {
     }
 
     private void abrirMochila() {
-        if (explorador.getEquipo().size() >= 6) {
-            updateInfo("¡Tu equipo está completo! No puedes capturar más Pokémon.");
-            return;
-        }
+        game.setScreen(new MochilaScreen(game, this, explorador));
+    }
 
-        Inventario inv = explorador.getInventario();
-        if (inv.getPokeBalls() > 0) {
+    public void usarItemEnBatalla(String tipo) {
+        if (tipo.equals("pokeball")) {
             updateInfo("¡Usaste una Poké Ball!");
-            inv.consumirItem("pokeball", 1);
-
             float hpPercent = pokemonEnemigo.getHpActual() / pokemonEnemigo.getHpMaximo();
+
             if (hpPercent <= 0.20f) {
                 // Success!
                 updateInfo("¡" + pokemonEnemigo.getNombre() + " ha sido capturado!");
@@ -329,12 +327,15 @@ public class BattleScreen extends ScreenAdapter {
                 explorador.agregarAlEquipo(pokemonEnemigo);
                 endBattle(true);
             } else {
-                updateInfo("¡El Pokémon escapó de la Poké Ball! Su HP debe estar en 20% o menos.");
+                updateInfo("¡El Pokémon escapó! Su HP debe estar en 20% o menos.");
                 currentState = BattleState.ENEMY_TURN;
                 performEnemyTurnWithDelay();
             }
-        } else {
-            updateInfo("¡No tienes Poké Balls!");
+        } else if (tipo.equals("pocion")) {
+            updateInfo("¡Usaste una Poción! Tu Pokémon recuperó 20 PS.");
+            pokemonJugador.recuperarSalud(20);
+            currentState = BattleState.ENEMY_TURN;
+            performEnemyTurnWithDelay();
         }
     }
 

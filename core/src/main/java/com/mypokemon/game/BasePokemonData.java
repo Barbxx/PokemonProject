@@ -190,8 +190,8 @@ public class BasePokemonData {
                                 "Gruñido",
                                 new String[] {}));
 
-                DATABASE.put("Basculin", new BasePokemonData(
-                                "Basculin",
+                DATABASE.put("Basculin Red-Striped", new BasePokemonData(
+                                "Basculin Red-Striped",
                                 "Resistencia física increíble al nadar contra la corriente.",
                                 70, 92, 65, 80, 55, 116,
                                 9, 9, 0, 0, 0, 9,
