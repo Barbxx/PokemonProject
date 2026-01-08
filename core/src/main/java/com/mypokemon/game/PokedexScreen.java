@@ -57,7 +57,7 @@ public class PokedexScreen extends BaseScreen {
 
         // Textures
         try {
-            background = new Texture(Gdx.files.internal("fondoMochila.png"));
+            background = new Texture(Gdx.files.internal("fondoPokedex.png"));
         } catch (Exception e) {
         }
 

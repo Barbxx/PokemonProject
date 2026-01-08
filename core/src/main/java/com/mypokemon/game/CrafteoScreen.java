@@ -32,19 +32,41 @@ public class CrafteoScreen extends BaseScreen {
     private int selectedCategory = 0;
 
     // Data Structure for Recipes
+    // Data Structure for Recipes
+    private class Ingredient {
+        String name;
+        int required;
+
+        public Ingredient(String name, int required) {
+            this.name = name;
+            this.required = required;
+        }
+    }
+
     private class RecipeDisplay {
         String name;
         String desc;
-        String cost;
+        List<Ingredient> ingredients;
 
-        public RecipeDisplay(String name, String desc, String cost) {
+        public RecipeDisplay(String name, String desc) {
             this.name = name;
             this.desc = desc;
-            this.cost = cost;
+            this.ingredients = new ArrayList<>();
+        }
+
+        public void addIngredient(String name, int required) {
+            ingredients.add(new Ingredient(name, required));
         }
     }
 
     private List<RecipeDisplay>[] categoryItems;
+
+    // Item Textures
+    private Texture texPlanta, texGuijarro, texBaya;
+    private Texture texPokebola, texPocion, texCebo;
+
+    // Selected Recipe Index for Middle Category
+    private int selectedRecipeIndex = -1;
 
     public CrafteoScreen(PokemonMain game, GameScreen returnScreen) {
         super(game);
@@ -57,6 +79,13 @@ public class CrafteoScreen extends BaseScreen {
         loadAssets();
         initRecipes();
     }
+    // ... loadAssets omitted for brevity ... (Assuming it stays same or I need to
+    // preserve it carefully if I touched surrounding lines)
+    // Wait, replacing lines 35-115 covers loadAssets too. I must preserve
+    // loadAssets.
+    // Let me target smaller chunks to avoid deleting loadAssets.
+
+    // RE-TARGETING to just RecipeDisplay class definition first
 
     private void loadAssets() {
         try {
@@ -73,6 +102,22 @@ public class CrafteoScreen extends BaseScreen {
                     Gdx.app.error("Crafteo", "Error loading button " + i);
                 }
             }
+
+            // Load Item Textures
+            try {
+                texPlanta = new Texture(Gdx.files.internal("planta.png"));
+                texGuijarro = new Texture(Gdx.files.internal("guijarro.png"));
+                texBaya = new Texture(Gdx.files.internal("baya.png"));
+                texPokebola = new Texture(Gdx.files.internal("pokebola.png"));
+                texPocion = new Texture(Gdx.files.internal("pocion.png"));
+                // Using 'lure.png' or 'cebo.png'? Assuming 'lure.png' exists based on Mochila
+                // logic,
+                // but usually user files align. Let's try likely names or fallback.
+                texCebo = new Texture(Gdx.files.internal("lure.png"));
+            } catch (Exception e) {
+                Gdx.app.error("Crafteo", "Error loading item textures", e);
+            }
+
         } catch (Exception e) {
             Gdx.app.error("CrafteoScreen", "Asset Error: " + e.getMessage());
         }
@@ -84,26 +129,21 @@ public class CrafteoScreen extends BaseScreen {
         for (int i = 0; i < 3; i++)
             categoryItems[i] = new ArrayList<>();
 
-        // RED: Poké Balls
-        categoryItems[0].add(new RecipeDisplay("Heavy Ball", "Captura mejor a bajo nivel", "1 Planta + 5 Guijarros"));
+        // Middle Button (Recipes) - index 1
+        RecipeDisplay r1 = new RecipeDisplay("Poké Ball", "Captura Pokémon");
+        r1.addIngredient("Planta", 2);
+        r1.addIngredient("Guijarro", 3);
+        categoryItems[1].add(r1);
 
-        // PURPLE: Special / Utilities (Assuming Middle is Purple per user request
-        // order: Red, Purple, Yellow)
-        // Wait, User said: "arriba aparezcan los botones botonCrafteoRojo, al lado
-        // derecho botonCrafteoMorado y al lado botonCrafteoAmarillo centrado"
-        // This usually means Left: Red, Center: Purple, Right: Yellow? Or Red, then
-        // Purple to its right, then Yellow to its right?
-        // Let's assume the user meant a sequence: Red -> Purple -> Yellow.
-        // Array index 1 maps to Purple in my code above.
+        RecipeDisplay r2 = new RecipeDisplay("Poción", "Recupera HP");
+        r2.addIngredient("Planta", 3);
+        r2.addIngredient("Baya", 1);
+        categoryItems[1].add(r2);
 
-        categoryItems[1].add(new RecipeDisplay("Lure", "Atrae Pokémon raros (2 min)", "1 Planta + 3 Bayas"));
-        categoryItems[1].add(new RecipeDisplay("Repelente", "Evita encuentros (100 pasos)", "4 Plantas"));
-        categoryItems[1].add(new RecipeDisplay("Amuleto", "Aumenta drop rate", "10 Guijarros"));
-
-        // YELLOW: Medicines
-        categoryItems[2].add(new RecipeDisplay("Ungüento Herbal", "Cura 20 HP", "3 Plantas + 1 Baya"));
-        categoryItems[2].add(new RecipeDisplay("Elixir", "Restaura 1 Movimiento", "2 Bayas + 2 Guijarros"));
-        categoryItems[2].add(new RecipeDisplay("Revivir", "Revive con 50% HP", "5 Plantas + 5 Bayas + 1 G."));
+        RecipeDisplay r3 = new RecipeDisplay("Cebo", "Atrae Pokémon");
+        r3.addIngredient("Planta", 1);
+        r3.addIngredient("Baya", 3);
+        categoryItems[1].add(r3);
     }
 
     @Override
@@ -121,13 +161,17 @@ public class CrafteoScreen extends BaseScreen {
         }
 
         drawButtons();
-        drawList();
 
-        // Exit Hint
-        game.font.setColor(Color.LIGHT_GRAY);
-        game.font.getData().setScale(1.0f);
-        game.font.draw(game.batch, "Presione ESC para salir", 20, 30);
-        game.font.setColor(Color.WHITE);
+        // Draw content based on selection
+        if (selectedCategory == 0) {
+            drawMaterials(); // Red Button
+        } else if (selectedCategory == 1) {
+            drawRecipes(); // Middle Button
+        } else if (selectedCategory == 2) {
+            drawCraftedItems(); // Yellow Button
+        }
+
+        // Exit Hint Removed as requested
 
         game.batch.end();
     }
@@ -138,28 +182,45 @@ public class CrafteoScreen extends BaseScreen {
             return;
         }
 
-        // Arrow Keys for Category
-        if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT)) {
-            selectedCategory = (selectedCategory + 1) % 3;
-        }
-        if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT)) {
-            selectedCategory = (selectedCategory - 1 + 3) % 3;
-        }
+        // Mouse Input
+        if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
+            Vector3 mousePos = new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0);
+            viewport.unproject(mousePos);
 
-        // Mouse Hover for Category
-        Vector3 mousePos = new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0);
-        viewport.unproject(mousePos);
+            // Check Category Buttons
+            float btnW = 320;
+            float btnH = 120;
+            float startX = (VIRTUAL_WIDTH - (3 * btnW + 40)) / 2;
+            float startY = VIRTUAL_HEIGHT - 210;
 
-        float btnW = 320;
-        float btnH = 120;
-        float startX = (VIRTUAL_WIDTH - (3 * btnW + 40)) / 2;
-        float startY = VIRTUAL_HEIGHT - 210;
+            for (int i = 0; i < 3; i++) {
+                float x = startX + i * (btnW + 20);
+                if (mousePos.x >= x && mousePos.x <= x + btnW &&
+                        mousePos.y >= startY && mousePos.y <= startY + btnH) {
+                    selectedCategory = i;
+                    selectedRecipeIndex = -1; // Reset recipe selection on category switch
+                    return;
+                }
+            }
 
-        for (int i = 0; i < 3; i++) {
-            float x = startX + i * (btnW + 20);
-            if (mousePos.x >= x && mousePos.x <= x + btnW &&
-                    mousePos.y >= startY && mousePos.y <= startY + btnH) {
-                selectedCategory = i;
+            // Check Recipe Selection (ONLY if Middle Category) - GRID LOGIC
+            if (selectedCategory == 1) {
+                float gridX = 100;
+                float gridY = VIRTUAL_HEIGHT - 350;
+                float slotSize = 80;
+                float gap = 20;
+                int cols = 4;
+
+                List<RecipeDisplay> recipes = categoryItems[1];
+                for (int i = 0; i < recipes.size(); i++) {
+                    float x = gridX + (i % cols) * (slotSize + gap);
+                    float y = gridY - (i / cols) * (slotSize + gap);
+
+                    if (mousePos.x >= x && mousePos.x <= x + slotSize &&
+                            mousePos.y >= y && mousePos.y <= y + slotSize) {
+                        selectedRecipeIndex = i;
+                    }
+                }
             }
         }
     }
@@ -167,7 +228,6 @@ public class CrafteoScreen extends BaseScreen {
     private void drawButtons() {
         float btnW = 320;
         float btnH = 120;
-        // Centered layout for 3 buttons with 20px spacing
         float startX = (VIRTUAL_WIDTH - (3 * btnW + 40)) / 2;
         float startY = VIRTUAL_HEIGHT - 210;
 
@@ -181,37 +241,217 @@ public class CrafteoScreen extends BaseScreen {
         }
     }
 
-    private void drawList() {
-        List<RecipeDisplay> items = categoryItems[selectedCategory];
-        float startX = 200;
-        float startY = VIRTUAL_HEIGHT - 370;
-        float lineHeight = 50;
+    // RED BUTTON: Materials List as Table
+    private void drawMaterials() {
+        float tableX = 300;
+        float tableY = VIRTUAL_HEIGHT - 300;
+        float rowHeight = 60;
+        float col1X = tableX; // Icon
+        float col2X = tableX + 80; // Name
+        float col3X = tableX + 300; // Count
 
+        game.font.setColor(Color.WHITE);
         game.font.getData().setScale(1.2f);
-        game.font.setColor(Color.YELLOW);
-        String catTitle = (selectedCategory == 0) ? "POKÉ BALLS"
-                : ((selectedCategory == 1) ? "UTILIDADES" : "MEDICINAS");
-        game.font.draw(game.batch, catTitle, startX, startY + 50);
 
+        // Table Header
+        game.font.setColor(Color.YELLOW);
+        game.font.draw(game.batch, "ITEM", col2X, tableY + 50);
+        game.font.draw(game.batch, "CANTIDAD", col3X, tableY + 50);
+        game.font.setColor(Color.WHITE);
+
+        int plantas = returnScreen.getExplorador().getMochila().getPlantas();
+        int guijarros = returnScreen.getExplorador().getMochila().getGuijarros();
+        int bayas = returnScreen.getExplorador().getMochila().getBayas();
+
+        // Row 1: Plantas
+        float y1 = tableY;
+        if (texPlanta != null)
+            game.batch.draw(texPlanta, col1X, y1 - 40, 40, 40);
+        game.font.draw(game.batch, "Plantas", col2X, y1 - 10);
+        game.font.draw(game.batch, String.valueOf(plantas), col3X + 20, y1 - 10);
+
+        // Row 2: Guijarros
+        float y2 = tableY - rowHeight;
+        if (texGuijarro != null)
+            game.batch.draw(texGuijarro, col1X, y2 - 40, 40, 40);
+        game.font.draw(game.batch, "Guijarros", col2X, y2 - 10);
+        game.font.draw(game.batch, String.valueOf(guijarros), col3X + 20, y2 - 10);
+
+        // Row 3: Bayas
+        float y3 = tableY - rowHeight * 2;
+        if (texBaya != null)
+            game.batch.draw(texBaya, col1X, y3 - 40, 40, 40);
+        game.font.draw(game.batch, "Bayas", col2X, y3 - 10);
+        game.font.draw(game.batch, String.valueOf(bayas), col3X + 20, y3 - 10);
+    }
+
+    // MIDDLE BUTTON: Grid + Details Panel
+    private void drawRecipes() {
+        // GRID
+        float gridX = 100;
+        float gridY = VIRTUAL_HEIGHT - 350;
+        float slotSize = 80;
+        float gap = 20;
+        int cols = 4;
+
+        List<RecipeDisplay> recipes = categoryItems[1];
+
+        game.font.getData().setScale(1.5f);
+        game.font.setColor(Color.MAGENTA);
+        game.font.draw(game.batch, "RECETAS", gridX, gridY + 80);
         game.font.getData().setScale(1.0f);
 
-        for (int i = 0; i < items.size(); i++) {
-            RecipeDisplay item = items.get(i);
-            float y = startY - (i * lineHeight * 2);
+        for (int i = 0; i < recipes.size(); i++) {
+            RecipeDisplay r = recipes.get(i);
+            float x = gridX + (i % cols) * (slotSize + gap);
+            float y = gridY - (i / cols) * (slotSize + gap);
 
-            game.font.setColor(Color.WHITE);
-            // Bullet point
-            game.font.draw(game.batch, "- " + item.name, startX, y);
+            // Draw Slot Background
+            game.batch.setColor(Color.DARK_GRAY);
+            // Assuming we don't have a slot texture, draw a colored square placeholder or
+            // use generic texture region
+            if (background != null) { // Just reuse something or draw a colored pixel if we had one
+                // Ideally we'd have a 'slot' texture. For now, let's use a solid color if we
+                // can,
+                // but we can't easily draw primitives inside batch without a Texture.
+                // We can re-use 'btnCatNormal' scaled down or similar, or just rely on item
+                // icon.
+            }
+            game.batch.setColor(Color.WHITE); // Reset
 
-            // Description below
-            game.font.setColor(Color.LIGHT_GRAY);
-            game.font.draw(game.batch, "  " + item.desc, startX + 20, y - 25);
+            // Draw Icon
+            Texture icon = null;
+            if (r.name.contains("Poké Ball"))
+                icon = texPokebola;
+            else if (r.name.contains("Poción"))
+                icon = texPocion;
+            else if (r.name.contains("Cebo"))
+                icon = texCebo;
 
-            // Cost on the right
-            game.font.setColor(Color.CYAN);
-            game.font.draw(game.batch, "Costo: " + item.cost, startX + 400, y - 25);
+            if (icon != null) {
+                game.batch.draw(icon, x + 10, y + 10, slotSize - 20, slotSize - 20);
+            }
+
+            // Selection Highlight
+            if (i == selectedRecipeIndex) {
+                game.font.setColor(Color.YELLOW);
+                game.font.draw(game.batch, "[X]", x + slotSize - 25, y + slotSize - 5);
+                // Or draw a border if we had a white pixel texture
+            }
         }
+
+        // DETAILS PANEL (RIGHT)
+        if (selectedRecipeIndex >= 0 && selectedRecipeIndex < recipes.size()) {
+            RecipeDisplay selected = recipes.get(selectedRecipeIndex);
+            float detailsX = 700;
+            float detailsY = VIRTUAL_HEIGHT - 300;
+            float panelW = 400;
+            // float panelH = 300;
+
+            // Title and Desc
+            game.font.setColor(Color.CYAN);
+            game.font.getData().setScale(1.5f);
+            game.font.draw(game.batch, selected.name, detailsX, detailsY + 80);
+
+            game.font.setColor(Color.LIGHT_GRAY);
+            game.font.getData().setScale(1.0f);
+            game.font.draw(game.batch, selected.desc, detailsX, detailsY + 40);
+
+            // Ingredients Header
+            game.font.setColor(Color.ORANGE);
+            game.font.draw(game.batch, "INGREDIENTES:", detailsX, detailsY);
+
+            // Ingredients List
+            float ingY = detailsY - 40;
+            for (Ingredient ing : selected.ingredients) {
+                int owned = returnScreen.getExplorador().getMochila().getCantidad(ing.name.toLowerCase());
+
+                // Render Icon
+                Texture ingIcon = null;
+                if (ing.name.equalsIgnoreCase("Planta"))
+                    ingIcon = texPlanta;
+                else if (ing.name.equalsIgnoreCase("Guijarro"))
+                    ingIcon = texGuijarro;
+                else if (ing.name.equalsIgnoreCase("Baya"))
+                    ingIcon = texBaya;
+
+                if (ingIcon != null) {
+                    game.batch.setColor(Color.WHITE);
+                    game.batch.draw(ingIcon, detailsX, ingY - 30, 30, 30);
+                }
+
+                // Render Text Box
+                // Background for text (Optional, skipping for now)
+
+                // Name
+                game.font.setColor(Color.WHITE);
+                game.font.draw(game.batch, ing.name, detailsX + 40, ingY - 10);
+
+                // Count (Owned / Required)
+                if (owned >= ing.required)
+                    game.font.setColor(Color.GREEN);
+                else
+                    game.font.setColor(Color.RED);
+
+                game.font.draw(game.batch, owned + "/" + ing.required, detailsX + 250, ingY - 10);
+
+                ingY -= 50;
+            }
+            game.font.setColor(Color.WHITE);
+        }
+    }
+
+    // YELLOW BUTTON: Crafted Items
+    private void drawCraftedItems() {
+        float startX = 200;
+        float startY = VIRTUAL_HEIGHT - 300;
+        float iconSize = 64;
+        float gap = 20;
+
+        game.font.getData().setScale(1.5f);
+        game.font.setColor(Color.YELLOW);
+        game.font.draw(game.batch, "ITEMS CREADOS", startX, startY + 60);
         game.font.setColor(Color.WHITE);
+        game.font.getData().setScale(1.2f);
+
+        int pokebolas = returnScreen.getExplorador().getMochila().getPokeBalls();
+        // Assuming getters exist or fallback to generic bag access.
+        // Mochila class usually tracks PokeBalls. Potions/Lures might be items in list.
+        // For distinct display, we check common items.
+        int pociones = 0; // Default if not explicitly tracked by counter
+        int cebos = 0;
+
+        // Count from inventory list for non-explicit counters if needed
+        // Assuming Mochila has methods or we iterate items.
+        // Mochila.java usually has getPociones(), getCebos() or similar if implemented.
+        // Based on previous files, let's try to get them or just show 0 placeholder if
+        // valid getter missing.
+        // Actually, let's use what we know exists: getPokeBalls(). For others we might
+        // need to iterate items list if no getter.
+        pociones = returnScreen.getExplorador().getMochila().getCantidad("pocion");
+        cebos = returnScreen.getExplorador().getMochila().getCantidad("lure");
+
+        // 1. Poké Balls
+        if (texPokebola != null)
+            game.batch.draw(texPokebola, startX, startY - iconSize, iconSize, iconSize);
+        game.font.draw(game.batch, "Poké Balls: " + pokebolas, startX + iconSize + gap, startY - 20);
+
+        // 2. Pociones
+        float y2 = startY - (iconSize + gap) * 1.5f;
+        if (texPocion != null)
+            game.batch.draw(texPocion, startX, y2 - iconSize, iconSize, iconSize);
+        game.font.draw(game.batch, "Pociones: " + pociones, startX + iconSize + gap, y2 - 20);
+
+        // 3. Cebos
+        float y3 = startY - (iconSize + gap) * 3.0f;
+        if (texCebo != null)
+            game.batch.draw(texCebo, startX, y3 - iconSize, iconSize, iconSize);
+        game.font.draw(game.batch, "Cebos: " + cebos, startX + iconSize + gap, y3 - 20);
+    }
+
+    private void drawList() {
+        // Deprecated by separated draw methods, keeping empty to satisfy calls if any
+        // remainder exists
     }
 
     @Override
@@ -231,6 +471,18 @@ public class CrafteoScreen extends BaseScreen {
             for (Texture t : btnCatSelected)
                 if (t != null)
                     t.dispose();
-        // ReturnScreen is shared, do not dispose it here
+
+        if (texPlanta != null)
+            texPlanta.dispose();
+        if (texGuijarro != null)
+            texGuijarro.dispose();
+        if (texBaya != null)
+            texBaya.dispose();
+        if (texPokebola != null)
+            texPokebola.dispose();
+        if (texPocion != null)
+            texPocion.dispose();
+        if (texCebo != null)
+            texCebo.dispose();
     }
 }

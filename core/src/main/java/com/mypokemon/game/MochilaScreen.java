@@ -260,12 +260,12 @@ public class MochilaScreen extends BaseScreen {
 
         // Handle Mouse Click on Grid (NEW)
         if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
-            int columnas = 7;
-            float size = 85f;
-            float margen = 10f;
+            int columnas = 3;
+            float size = 120f;
+            float margen = 15f;
 
-            for (int i = 0; i < 21; i++) {
-                float x = 550 + (i % columnas) * (size + margen);
+            for (int i = 0; i < 6; i++) {
+                float x = 400 + (i % columnas) * (size + margen);
                 float y = 350 - (i / columnas) * (size + margen);
 
                 if (mousePos.x >= x && mousePos.x <= x + size &&
@@ -279,23 +279,23 @@ public class MochilaScreen extends BaseScreen {
         // Handle Input for Selection (Arrow Keys)
         if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT)) {
             indexSeleccionado++;
-            if (indexSeleccionado > 20)
+            if (indexSeleccionado > 5)
                 indexSeleccionado = 0;
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT)) {
             indexSeleccionado--;
             if (indexSeleccionado < 0)
-                indexSeleccionado = 20;
+                indexSeleccionado = 5;
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.UP)) {
-            indexSeleccionado -= 7;
+            indexSeleccionado -= 3;
             if (indexSeleccionado < 0)
-                indexSeleccionado += 21;
+                indexSeleccionado += 6;
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.DOWN)) {
-            indexSeleccionado += 7;
-            if (indexSeleccionado > 20)
-                indexSeleccionado -= 21;
+            indexSeleccionado += 3;
+            if (indexSeleccionado > 5)
+                indexSeleccionado -= 6;
         }
 
         // Handle Crafting Input
@@ -362,13 +362,13 @@ public class MochilaScreen extends BaseScreen {
         if (returnScreen == null || returnScreen.getExplorador() == null)
             return;
 
-        int columnas = 7;
-        float size = 85f; // Increased size (was 64f)
-        float margen = 10f; // Adjusted margin
+        int columnas = 3;
+        float size = 120f; // Increased size to 120
+        float margen = 15f; // Increased margin slightly
 
-        for (int i = 0; i < 21; i++) {
-            float x = 550 + (i % columnas) * (size + margen); // Moved slightly left to fit larger grid
-            float y = 350 - (i / columnas) * (size + margen); // Moved down (was 400)
+        for (int i = 0; i < 6; i++) {
+            float x = 400 + (i % columnas) * (size + margen);
+            float y = 350 - (i / columnas) * (size + margen);
 
             // 1. Dibujar fondo del slot
             if (textureFondoSlot != null) {
@@ -389,62 +389,6 @@ public class MochilaScreen extends BaseScreen {
             dibujarContenido(batch, i, x, y, size);
         }
 
-        // --- DRAW POKEMON TEAM SECTION (If selectedIndex == 4) ---
-        if (selectedIndex == 4) {
-            dibujarEquipoPokemon(batch);
-        }
-    }
-
-    private void dibujarEquipoPokemon(com.badlogic.gdx.graphics.g2d.SpriteBatch batch) {
-        Explorador exp = returnScreen.getExplorador();
-        List<Pokemon> equipo = exp.getEquipo();
-
-        float startX = 100;
-        float startY = 100;
-        float slotW = 180;
-        float slotH = 100;
-        float gap = 15;
-
-        fontContador.setColor(Color.WHITE);
-        fontContador.draw(batch, "EQUIPO POKEMON (Max 6):", startX, startY + slotH + 40);
-
-        for (int i = 0; i < 6; i++) {
-            float x = startX + i * (slotW + gap);
-            float y = startY;
-
-            // Slot Border
-            batch.setColor(Color.DARK_GRAY);
-            batch.draw(whitePixel, x, y, slotW, slotH);
-            batch.setColor(Color.WHITE);
-            batch.draw(textureFondoSlot, x + 2, y + 2, slotW - 4, slotH - 4);
-
-            if (i < equipo.size()) {
-                Pokemon p = equipo.get(i);
-                fontContador.getData().setScale(1.0f);
-                fontContador.setColor(Color.YELLOW);
-                fontContador.draw(batch, p.getNombre(), x + 10, y + slotH - 10);
-
-                // HP Bar
-                batch.setColor(Color.RED);
-                batch.draw(whitePixel, x + 10, y + 20, slotW - 20, 10);
-                float hpPercent = p.getHpActual() / p.getHpMaximo();
-                batch.setColor(Color.GREEN);
-                batch.draw(whitePixel, x + 10, y + 20, (slotW - 20) * hpPercent, 10);
-                batch.setColor(Color.WHITE);
-
-                fontContador.getData().setScale(0.8f);
-                fontContador.draw(batch, (int) p.getHpActual() + "/" + (int) p.getHpMaximo(), x + 10, y + 15);
-            } else {
-                fontContador.getData().setScale(0.8f);
-                fontContador.setColor(Color.GRAY);
-                fontContador.draw(batch, "VACIO", x + slotW / 2 - 20, y + slotH / 2);
-            }
-        }
-
-        if (equipo.size() >= 6) {
-            fontContador.setColor(Color.RED);
-            fontContador.draw(batch, "¡EQUIPO LLENO!", startX, startY - 20);
-        }
     }
 
     private void dibujarContenido(com.badlogic.gdx.graphics.g2d.SpriteBatch batch, int i, float x, float y,
@@ -525,6 +469,29 @@ public class MochilaScreen extends BaseScreen {
                     if (fontContador != null)
                         fontContador.draw(batch, "x" + inventario.getLures(), x + 40, y + 5);
                 }
+            }
+        } else if (selectedIndex == 4) { // Purple Button: Pokemon
+            List<Pokemon> equipo = returnScreen.getExplorador().getEquipo();
+            if (i < equipo.size()) {
+                Pokemon p = equipo.get(i);
+                // Draw Pokemon Name (since we only have sprites in Pokemon class which are
+                // TextureRegions, and we need Textures or complex drawing here)
+                // For now, drawing name mostly. If sprite is available as Texture we could draw
+                // it.
+                // Using a placeholder color for the pokemon slot or just name
+
+                // Draw small name
+                fontContador.setColor(Color.CYAN);
+                fontContador.getData().setScale(0.7f);
+                fontContador.draw(batch, p.getNombre(), x + 5, y + size - 5);
+
+                // HP Bar in grid cell
+                batch.setColor(Color.RED);
+                batch.draw(whitePixel, x + 5, y + 5, size - 10, 5);
+                float hpPercent = p.getHpActual() / p.getHpMaximo();
+                batch.setColor(Color.GREEN);
+                batch.draw(whitePixel, x + 5, y + 5, (size - 10) * hpPercent, 5);
+                batch.setColor(Color.WHITE);
             }
         }
     }
@@ -623,12 +590,25 @@ public class MochilaScreen extends BaseScreen {
             game.font.getData().setScale(1.2f);
             game.font.draw(batch, desc, 100, 310); // Description moved UP (was 110)
         } else if (selectedIndex == 4) {
-            titulo = "Equipo Pokémon";
-            desc = "Aquí puedes ver los Pokémon que te acompañan. Máximo 6 slots.";
-            game.font.setColor(Color.YELLOW);
-            game.font.draw(batch, titulo, 100, 350);
-            game.font.setColor(Color.WHITE);
-            game.font.draw(batch, desc, 100, 310);
+            // Pokemon Details
+            List<Pokemon> equipo = returnScreen.getExplorador().getEquipo();
+            if (indexSeleccionado < equipo.size()) {
+                Pokemon p = equipo.get(indexSeleccionado);
+                titulo = p.getNombre() + " Nv." + p.getNivel();
+                desc = "HP: " + (int) p.getHpActual() + "/" + (int) p.getHpMaximo() + " | Tipo: " + p.getTipo();
+            } else {
+                titulo = "Espacio vacío";
+                desc = "No hay Pokémon en este slot.";
+            }
+
+            if (!titulo.isEmpty() && game.font != null) {
+                game.font.setColor(Color.YELLOW);
+                game.font.getData().setScale(1.2f);
+                game.font.draw(batch, titulo, 100, 350);
+                game.font.setColor(Color.WHITE);
+                game.font.getData().setScale(1.0f);
+                game.font.draw(batch, desc, 100, 310);
+            }
         }
 
         // Draw Exit Instruction

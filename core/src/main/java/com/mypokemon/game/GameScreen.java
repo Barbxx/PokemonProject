@@ -119,7 +119,7 @@ public class GameScreen extends BaseScreen {
     // Menu State
     private boolean showMenu = false;
     private int menuSelectedIndex = 0;
-    private String[] menuOptions = { "POKÉDEX", "MOCHILA", "GUARDAR", "OPCIONES", "SALIR" };
+    private String[] menuOptions = { "POKÉDEX", "CRAFTEO", "MOCHILA", "GUARDAR", "OPCIONES", "SALIR" };
 
     // Intro Animation State
     private enum IntroState {
