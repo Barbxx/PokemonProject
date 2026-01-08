@@ -135,7 +135,6 @@ public class GameScreen extends BaseScreen {
     // Game Constants
     private static final float ENCOUNTER_CHECK_INTERVAL = 1.0f;
     private static final float NOTIFICATION_DURATION = 3.0f;
-    private static final float MISSION_COMPLETE_DURATION = 6.0f;
 
     // Encounter State
     private float encounterTimer = 0;
@@ -159,8 +158,13 @@ public class GameScreen extends BaseScreen {
     private boolean showMissionComplete = false;
     private float missionCompleteTimer = 0;
 
+    private int frameCols;
+    private int frameRows;
+
     public GameScreen(final PokemonMain game, String texturePath, int cols, int rows, String playerName) {
         super(game);
+        this.frameCols = cols;
+        this.frameRows = rows;
         this.playerName = playerName;
         // Check for saved progress or create new
         this.explorador = Explorador.cargarProgreso(playerName);
@@ -428,225 +432,70 @@ public class GameScreen extends BaseScreen {
         game.font.setUseIntegerPositions(true);
     }
 
+    // Fade State
+    private float fadeAlpha = 1f;
+    private boolean fadingIn = true;
+    private boolean fadingOut = false;
+    private BaseScreen nextScreen; // Screen to switch to after fade
+
+    // ... (keep class definition)
+
+    // In Constructor or Init
+    // ...
+    // fadeAlpha = 1f;
+    // fadingIn = true;
+
     @Override
     public void show() {
         inEncounter = false;
-        // Register InputHandler for shortcuts
+        // Register InputHandler
         if (explorador != null) {
             InputHandler inputHandler = new InputHandler(this.explorador);
             Gdx.input.setInputProcessor(inputHandler);
         }
+
+        // Reset Fade for when returning to this screen
+        fadingIn = true;
+        fadingOut = false;
+        fadeAlpha = 1f;
+        nextScreen = null;
     }
 
-    private void createFallback() {
-        // Create a simple magenta square as fallback
-        playerSheet = TextureUtils.createSolidTexture(239, 256, Color.MAGENTA);
-
-        // Create a single region from it
-        TextureRegion fallbackRegion = new TextureRegion(playerSheet);
-        TextureRegion[] fallbackArray = new TextureRegion[] { fallbackRegion };
-
-        // Assign to all animations
-        walkDown = new Animation<>(0.15f, fallbackArray);
-        walkLeft = new Animation<>(0.15f, fallbackArray);
-        walkRight = new Animation<>(0.15f, fallbackArray);
-        walkUp = new Animation<>(0.15f, fallbackArray);
-        currentFrame = fallbackRegion;
-    }
+    // ...
 
     @Override
     public void render(float delta) {
-        // --- NPC INTERACTION LOGIC ---
-        float distFeid = com.badlogic.gdx.math.Vector2.dst(posX, posY, feidX, feidY);
-        isNearFeid = distFeid < 80;
+        // --- 1. UPDATE AND LOGIC ---
 
-        float distHarry = com.badlogic.gdx.math.Vector2.dst(posX, posY, harryX, harryY);
-        isNearHarry = distHarry < 80;
+        // FADE IN LOGIC
+        if (fadingIn) {
+            fadeAlpha -= delta * 1.5f;
+            if (fadeAlpha <= 0) {
+                fadeAlpha = 0;
+                fadingIn = false;
+            }
+        }
 
-        float distBrenner = com.badlogic.gdx.math.Vector2.dst(posX, posY, brennerX, brennerY);
-        isNearBrenner = distBrenner < 80;
-
-        // Toggle dialog on interaction key (E)
-        if (Gdx.input.isKeyJustPressed(Input.Keys.E)) {
-            if (isNearFeid) {
-                if (!showDialog) {
-                    showDialog = true;
-                    currentDialogPage = 0;
-                    activeNpcName = "Profesor Ferxxo";
-                    activeDialogPages = feidDialogPages;
-                    currentPortrait = dialogIconTexture;
-                } else {
-                    showDialog = false;
-                }
-            } else if (isNearHarry) {
-                if (!showDialog) {
-                    showDialog = true;
-                    currentDialogPage = 0;
-                    activeNpcName = "General Harry Potter";
-                    activeDialogPages = harryDialogPages;
-                    currentPortrait = harryPortraitTexture;
-                } else {
-                    showDialog = false;
-                }
-            } else if (isNearBrenner) {
-                if (!showDialog) {
-                    showDialog = true;
-                    currentDialogPage = 0;
-                    activeNpcName = "Dr. Martin Brenner";
-                    activeDialogPages = brennerDialogPages;
-                    currentPortrait = brennerPortraitTexture;
-                } else {
-                    showDialog = false;
+        // FADE OUT LOGIC
+        if (fadingOut) {
+            fadeAlpha += delta * 1.5f;
+            if (fadeAlpha >= 1) {
+                fadeAlpha = 1;
+                if (nextScreen != null) {
+                    game.setScreen(nextScreen);
                 }
             }
         }
 
-        // --- RESOURCE COLLECTION LOGIC ---
-        if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
-            // Unproject mouse coordinates to world coordinates
-            com.badlogic.gdx.math.Vector3 mousePos = new com.badlogic.gdx.math.Vector3(Gdx.input.getX(),
-                    Gdx.input.getY(), 0);
-            viewport.unproject(mousePos);
-            float mouseX = mousePos.x;
-            float mouseY = mousePos.y;
-
-            RecursoMapa closest = null;
-            float minDist = 60f; // Interaction range for player proximity
-
-            for (RecursoMapa r : recursosMapa) {
-                if (!r.recolectado) {
-                    float tileW = (collisionLayer != null) ? collisionLayer.getTileWidth() : 32;
-                    float tileH = (collisionLayer != null) ? collisionLayer.getTileHeight() : 32;
-                    float rx = r.cellX * tileW + tileW / 2;
-                    float ry = r.cellY * tileH + tileH / 2;
-
-                    // 1. Check if player is close enough to the resource
-                    float distToPlayer = com.badlogic.gdx.math.Vector2.dst(posX, posY, rx, ry);
-
-                    // 2. Check if mouse click is ON the resource
-                    boolean clickOnResource = mouseX >= (rx - tileW / 2) && mouseX <= (rx + tileW / 2) &&
-                            mouseY >= (ry - tileH / 2) && mouseY <= (ry + tileH / 2);
-
-                    if (distToPlayer < minDist && clickOnResource) {
-                        // If multiple are clicked (overlapping?), pick one, or just the first valid one
-                        closest = r;
-                        break;
-                    }
-                }
-            }
-
-            if (closest != null) {
-                if (explorador.getMochila().recolectarRecurso(closest.tipo, closest.cantidad)) {
-                    closest.recolectado = true;
-                    closest.timerRespawn = closest.TIEMPO_RESPAWN;
-                    // Remove from all layers
-                    for (TiledMapTileLayer layer : closest.cellsPorCapa.keySet()) {
-                        layer.setCell(closest.cellX, closest.cellY, null);
-                    }
-                    notificationMessage = "Recogiste " + closest.tipo;
-                    notificationTimer = NOTIFICATION_DURATION;
-                } else {
-                    notificationMessage = "Mochila llena";
-                    notificationTimer = NOTIFICATION_DURATION;
-                }
-            }
-        }
-
-        // --- RESOURCE RESPAWN LOGIC ---
-        for (RecursoMapa r : recursosMapa) {
-            if (r.recolectado) {
-                r.timerRespawn -= delta;
-                if (r.timerRespawn <= 0) {
-                    r.recolectado = false;
-                    // Restore all layers at this position
-                    for (java.util.Map.Entry<TiledMapTileLayer, TiledMapTileLayer.Cell> entry : r.cellsPorCapa
-                            .entrySet()) {
-                        entry.getKey().setCell(r.cellX, r.cellY, entry.getValue());
-                    }
-                    Gdx.app.log("GameScreen", "Resource respawned: " + r.tipo + " at " + r.cellX + "," + r.cellY);
-                }
-            }
-        }
-
-        // --- CRAFTING DIALOG LOGIC ---
-        if (Gdx.input.isKeyJustPressed(Input.Keys.C) && craftingState == CraftingState.CLOSED) {
-            // Open crafting dialog
-            int plantas = explorador.getMochila().getPlantas();
-            int guijarros = explorador.getMochila().getGuijarros();
-
-            if (plantas == 0 && guijarros == 0) {
-                notificationMessage = "Inventario vacío";
-                notificationTimer = NOTIFICATION_DURATION;
-            } else {
-                craftingState = CraftingState.SHOWING_RECIPES;
-                craftingRecipe = "2 Plantas + 3 Guijarros = 1 Poké Ball";
-            }
-        }
-
-        // Handle crafting confirmation with S/N keys
-        if (craftingState == CraftingState.SHOWING_RECIPES) {
-            if (Gdx.input.isKeyJustPressed(Input.Keys.S)) {
-                // User wants to craft
-                if (explorador.getMochila().fabricarPokeBall()) {
-                    notificationMessage = "¡Poké Ball creada!";
-                    notificationTimer = NOTIFICATION_DURATION;
-                    // Check if this is the first Poké Ball (Mission 1 complete)
-                    if (explorador.getMochila().getPokeBalls() == 1) {
-                        showMissionComplete = true;
-                        missionCompleteTimer = MISSION_COMPLETE_DURATION;
-                    }
-                } else {
-                    notificationMessage = "Materiales insuficientes";
-                    notificationTimer = NOTIFICATION_DURATION;
-                }
-                craftingState = CraftingState.CLOSED;
-            } else if (Gdx.input.isKeyJustPressed(Input.Keys.N)) {
-                // User cancelled
-                craftingState = CraftingState.CLOSED;
-            }
-        }
-
-        // Update notification timer
-        if (notificationTimer > 0) {
-            notificationTimer -= delta;
-            if (notificationTimer < 0) {
-                notificationTimer = 0;
-                notificationMessage = "";
-            }
-        }
-
-        // Update mission complete timer
-        if (missionCompleteTimer > 0) {
-            missionCompleteTimer -= delta;
-            if (missionCompleteTimer < 0) {
-                missionCompleteTimer = 0;
-                showMissionComplete = false;
-            }
-        }
-
-        // Advance dialog with Enter only
-        if (showDialog && Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
-            currentDialogPage++;
-            if (activeDialogPages != null && currentDialogPage >= activeDialogPages.length) {
-                showDialog = false;
-                currentDialogPage = 0;
-            }
-        }
-
-        // Hide dialog if we walk away
-        if (!isNearFeid && !isNearHarry && !isNearBrenner) {
-            showDialog = false;
-            currentDialogPage = 0;
-        }
-
-        // --- MENU LOGIC ---
+        // Menu Toggle
         if (Gdx.input.isKeyJustPressed(Input.Keys.I)) {
             showMenu = !showMenu;
             if (showMenu)
-                showDialog = false; // Close dialog if menu is opened
+                showDialog = false;
         }
 
         if (showMenu) {
+            // Menu Navigation
             if (Gdx.input.isKeyJustPressed(Input.Keys.UP)) {
                 menuSelectedIndex--;
                 if (menuSelectedIndex < 0)
@@ -666,13 +515,11 @@ public class GameScreen extends BaseScreen {
                 } else if (selected.equals("CRAFTEO")) {
                     game.setScreen(new CrafteoScreen(game, this));
                 }
-                // Other options can be implemented here later
                 showMenu = false;
             }
-
-            // If menu is open, we skip movement
             isMoving = false;
         } else {
+            // NORMAL GAMEPLAY (Not in Menu)
             isMoving = false;
 
             // Handle Input for Movement (only if not showing instructions)
@@ -680,157 +527,199 @@ public class GameScreen extends BaseScreen {
                 Gdx.app.exit();
             }
 
-            float oldX = posX;
-            float oldY = posY;
-
-            boolean movementAttempted = false;
-
-            // Handle Input for Movement
-            // Only allow movement if intro is NOT sliding in
-            if (introState != IntroState.SLIDING_IN) {
+            // Only move if not fading out and intro finished
+            if (introState != IntroState.SLIDING_IN && !fadingOut) {
                 float moveX = 0;
                 float moveY = 0;
-
-                if (Gdx.input.isKeyPressed(Input.Keys.A) || Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
+                if (Gdx.input.isKeyPressed(Input.Keys.A) || Gdx.input.isKeyPressed(Input.Keys.LEFT))
                     moveX = -1;
-                }
-                if (Gdx.input.isKeyPressed(Input.Keys.D) || Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
+                if (Gdx.input.isKeyPressed(Input.Keys.D) || Gdx.input.isKeyPressed(Input.Keys.RIGHT))
                     moveX = 1;
-                }
-                if (Gdx.input.isKeyPressed(Input.Keys.W) || Gdx.input.isKeyPressed(Input.Keys.UP)) {
+                if (Gdx.input.isKeyPressed(Input.Keys.W) || Gdx.input.isKeyPressed(Input.Keys.UP))
                     moveY = 1;
-                }
-                if (Gdx.input.isKeyPressed(Input.Keys.S) || Gdx.input.isKeyPressed(Input.Keys.DOWN)) {
+                if (Gdx.input.isKeyPressed(Input.Keys.S) || Gdx.input.isKeyPressed(Input.Keys.DOWN))
                     moveY = -1;
-                }
 
                 if (moveX != 0 || moveY != 0) {
-                    // Start movement logic
-                    movementAttempted = true;
                     isMoving = true;
-
-                    // Normalize diagonal speed? Optional. For now, keep it simple.
-                    // If we want consistent speed:
-                    // if (moveX != 0 && moveY != 0) { moveX *= 0.7071f; moveY *= 0.7071f; }
+                    float oldX = posX;
+                    float oldY = posY;
 
                     posX += moveX * speed * delta;
                     posY += moveY * speed * delta;
 
-                    // Update Animation
-                    if (moveX < 0) {
+                    // Animation Update
+                    if (moveX < 0)
                         currentFrame = walkLeft.getKeyFrame(stateTime, true);
-                    } else if (moveX > 0) {
+                    else if (moveX > 0)
                         currentFrame = walkRight.getKeyFrame(stateTime, true);
-                    } else if (moveY > 0) {
+                    else if (moveY > 0)
                         currentFrame = walkUp.getKeyFrame(stateTime, true);
-                    } else if (moveY < 0) {
+                    else if (moveY < 0)
                         currentFrame = walkDown.getKeyFrame(stateTime, true);
+
+                    // Collision
+                    if (isColliding(posX, posY)) {
+                        // Simple collision resolve
+                        if (!isColliding(posX, oldY)) {
+                            posY = oldY;
+                        } else if (!isColliding(oldX, posY)) {
+                            posX = oldX;
+                        } else {
+                            posX = oldX;
+                            posY = oldY;
+                        }
                     }
+                    stateTime += delta;
+                } else {
+                    stateTime = 0;
                 }
             }
 
-            // Update Intro Animation Logic
-            // Update Intro Animation Logic
-            float introScale = 0.5f;
-            float introH = (introTexture != null ? introTexture.getHeight() * introScale : 0);
-
+            // Intro Logic
+            float introH = (introTexture != null ? introTexture.getHeight() * 0.5f : 0);
             if (introState == IntroState.SLIDING_IN) {
-                // targetY is near top left area.
                 float targetY = 480 - introH;
-                if (introY > targetY) {
+                if (introY > targetY)
                     introY -= introSpeed * delta;
-                } else {
+                else {
                     introY = targetY;
                     introState = IntroState.WAITING;
                 }
             } else if (introState == IntroState.WAITING) {
-                if (movementAttempted) {
+                if (isMoving)
                     introState = IntroState.SLIDING_OUT;
-                }
             } else if (introState == IntroState.SLIDING_OUT) {
-                if (introY < 480) {
+                if (introY < 480)
                     introY += introSpeed * delta;
-                } else {
+                else
                     introState = IntroState.FINISHED;
-                }
             }
 
-            // Simple Collision Detection
-            if (isMoving) {
-                if (isColliding(posX, posY)) {
-                    // Try sliding (optional, but here we just block)
-                    if (!isColliding(posX, oldY)) {
-                        posY = oldY;
-                    } else if (!isColliding(oldX, posY)) {
-                        posX = oldX;
-                    } else {
-                        posX = oldX;
-                        posY = oldY;
-                    }
-                }
-                stateTime += delta;
-            } else {
-                stateTime = 0;
-            }
-
-            // --- LAB ENTRANCE CHECK ---
+            // Lab Entrance Check
             isNearLab = false;
             if (labZone != null && labZone.contains(posX, posY)) {
                 isNearLab = true;
-                if (Gdx.input.isKeyJustPressed(Input.Keys.E)) {
-                    game.setScreen(new LaboratorioScreen(game, this));
+                if (!fadingOut && Gdx.input.isKeyJustPressed(Input.Keys.E)) {
+                    fadingOut = true;
+                    // Pre-create screen
+                    nextScreen = new LaboratorioScreen(game, this);
                 }
             }
 
-            // --- POKEMON ENCOUNTER LOGIC ---
-            if (!inEncounter && !showDialog && !showMenu) {
-                encounterTimer += delta;
+            // NPC Interaction Input
+            // Toggle dialog on interaction key (E)
+            if (Gdx.input.isKeyJustPressed(Input.Keys.E) && !showMenu) {
+                if (isNearFeid) {
+                    if (!showDialog) {
+                        showDialog = true;
+                        currentDialogPage = 0;
+                        activeNpcName = "Profesor Ferxxo";
+                        activeDialogPages = feidDialogPages;
+                        currentPortrait = dialogIconTexture;
+                    } else {
+                        showDialog = false;
+                    }
+                } else if (isNearHarry) {
+                    if (!showDialog) {
+                        showDialog = true;
+                        currentDialogPage = 0;
+                        activeNpcName = "General Harry Potter";
+                        activeDialogPages = harryDialogPages;
+                        currentPortrait = harryPortraitTexture;
+                    } else {
+                        showDialog = false;
+                    }
+                } else if (isNearBrenner) {
+                    if (!showDialog) {
+                        showDialog = true;
+                        currentDialogPage = 0;
+                        activeNpcName = "Dr. Martin Brenner";
+                        activeDialogPages = brennerDialogPages;
+                        currentPortrait = brennerPortraitTexture;
+                    } else {
+                        showDialog = false;
+                    }
+                }
+            }
 
+            // Resource Collection
+            if (!fadingOut && Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
+                com.badlogic.gdx.math.Vector3 mousePos = new com.badlogic.gdx.math.Vector3(Gdx.input.getX(),
+                        Gdx.input.getY(), 0);
+                viewport.unproject(mousePos);
+
+                float tileW = (collisionLayer != null) ? collisionLayer.getTileWidth() : 32;
+                float tileH = (collisionLayer != null) ? collisionLayer.getTileHeight() : 32;
+
+                for (RecursoMapa r : recursosMapa) {
+                    if (!r.recolectado) {
+                        float rx = r.cellX * tileW + tileW / 2;
+                        float ry = r.cellY * tileH + tileH / 2;
+                        if (com.badlogic.gdx.math.Vector2.dst(posX, posY, rx, ry) < 60f &&
+                                mousePos.x >= rx - tileW / 2 && mousePos.x <= rx + tileW / 2 &&
+                                mousePos.y >= ry - tileH / 2 && mousePos.y <= ry + tileH / 2) {
+                            if (explorador.getMochila().recolectarRecurso(r.tipo, r.cantidad)) {
+                                r.recolectado = true;
+                                r.timerRespawn = r.TIEMPO_RESPAWN;
+                                // Remove from layers
+                                for (TiledMapTileLayer layer : r.cellsPorCapa.keySet())
+                                    layer.setCell(r.cellX, r.cellY, null);
+                                notificationMessage = "Recogiste " + r.tipo;
+                                notificationTimer = NOTIFICATION_DURATION;
+                            } else {
+                                notificationMessage = "Mochila llena";
+                                notificationTimer = NOTIFICATION_DURATION;
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // Crafting Open
+            if (Gdx.input.isKeyJustPressed(Input.Keys.C) && craftingState == CraftingState.CLOSED) {
+                int plantas = explorador.getMochila().getPlantas();
+                int guijarros = explorador.getMochila().getGuijarros();
+                if (plantas == 0 && guijarros == 0) {
+                    notificationMessage = "Inventario vacío";
+                    notificationTimer = NOTIFICATION_DURATION;
+                } else {
+                    craftingState = CraftingState.SHOWING_RECIPES;
+                    craftingRecipe = "2 Plantas + 3 Guijarros = 1 Poké Ball";
+                }
+            }
+
+            // Encounter Logic
+            if (!inEncounter && !showDialog) {
+                encounterTimer += delta;
                 if (encounterTimer >= ENCOUNTER_CHECK_INTERVAL) {
                     encounterTimer = 0;
-
-                    // Check if player is on grass with NivelDificultad and ZonaEncuentro
                     int tileW = (collisionLayer != null) ? (int) collisionLayer.getTileWidth() : 32;
                     int tileH = (collisionLayer != null) ? (int) collisionLayer.getTileHeight() : 32;
                     int playerTileX = (int) (posX / tileW);
                     int playerTileY = (int) (posY / tileH);
 
-                    // Check ALL layers for grass properties, not just collision layer
                     boolean foundGrass = false;
                     int nivelDificultad = 0;
-
                     if (map != null) {
                         for (com.badlogic.gdx.maps.MapLayer layer : map.getLayers()) {
                             if (layer instanceof TiledMapTileLayer) {
-                                TiledMapTileLayer tileLayer = (TiledMapTileLayer) layer;
-                                TiledMapTileLayer.Cell cell = tileLayer.getCell(playerTileX, playerTileY);
-
+                                TiledMapTileLayer.Cell cell = ((TiledMapTileLayer) layer).getCell(playerTileX,
+                                        playerTileY);
                                 if (cell != null && cell.getTile() != null) {
-                                    com.badlogic.gdx.maps.MapProperties props = cell.getTile().getProperties();
-
-                                    Object nivelDificultadObj = props.get("NivelDificultad");
-                                    Object zonaEncuentroObj = props.get("ZonaEncuentro");
-
-                                    if (zonaEncuentroObj != null) {
+                                    Object zona = cell.getTile().getProperties().get("ZonaEncuentro");
+                                    if (zona != null) {
                                         foundGrass = true;
+                                        Object nd = cell.getTile().getProperties().get("NivelDificultad");
+                                        if (nd instanceof Integer)
+                                            nivelDificultad = (Integer) nd;
+                                        else
+                                            nivelDificultad = 1;
 
-                                        // Parse NivelDificultad
-                                        if (nivelDificultadObj instanceof Integer) {
-                                            nivelDificultad = (Integer) nivelDificultadObj;
-                                        } else if (nivelDificultadObj != null) {
-                                            try {
-                                                nivelDificultad = Integer.parseInt(nivelDificultadObj.toString());
-                                            } catch (NumberFormatException e) {
-                                                nivelDificultad = 1; // Default to 1 if it has ZonaEncuentro but invalid
-                                                                     // lvl
-                                            }
-                                        }
-
-                                        // Play grass sound if this is a new tile
                                         if (playerTileX != lastGrassTileX || playerTileY != lastGrassTileY) {
-                                            if (grassSound != null) {
+                                            if (grassSound != null)
                                                 grassSound.play(0.5f);
-                                            }
                                             lastGrassTileX = playerTileX;
                                             lastGrassTileY = playerTileY;
                                         }
@@ -839,26 +728,16 @@ public class GameScreen extends BaseScreen {
                                 }
                             }
                         }
-
-                        // Check for encounter across all levels 1-5
                         if (foundGrass && nivelDificultad >= 1 && nivelDificultad <= 5) {
                             if (GestorEncuentros.verificarEncuentro(nivelDificultad)) {
                                 inEncounter = true;
-                                String pokemonName = GestorEncuentros.obtenerPokemonAleatorio(nivelDificultad);
-                                Gdx.app.log("GameScreen", "Pokemon encounter! " + pokemonName + " appeared!");
-
-                                // Todos los Pokémon aparecerán inicialmente con nivel 0
-                                int wildLvl = 0;
-
-                                Pokemon salvaje = new Pokemon(pokemonName, wildLvl, wildLvl * 4, false, "Normal");
-                                // Add a default move
+                                String pName = GestorEncuentros.obtenerPokemonAleatorio(nivelDificultad);
+                                Gdx.app.log("GameScreen", "Encounter: " + pName);
+                                Pokemon salvaje = new Pokemon(pName, 0, 0, false, "Normal");
                                 salvaje.agregarMovimiento(new Movimiento("Tackle", 0, "Normal", 40));
-
                                 game.setScreen(new BattleScreen(game, this, explorador, salvaje));
                             }
                         }
-
-                        // Reset last tile if not on grass
                         if (!foundGrass) {
                             lastGrassTileX = -1;
                             lastGrassTileY = -1;
@@ -866,121 +745,146 @@ public class GameScreen extends BaseScreen {
                     }
                 }
             }
+        } // End !showMenu
 
-            // Camera Zoom Toggle (Z key)
-            if (Gdx.input.isKeyJustPressed(Input.Keys.Z)) {
-                if (camera.zoom == 1.0f) {
-                    // Zoom out to see more map (e.g. 2x)
-                    camera.zoom = 2.0f;
-                } else if (camera.zoom == 2.0f) {
-                    // Zoom out to see FULL map (based on 3200x3200 map and 480px height)
-                    camera.zoom = (float) mapHeight / viewport.getWorldHeight();
-                } else {
-                    camera.zoom = 1.0f;
+        // Resource Respawn Logic (Always run)
+        // ...
+        for (RecursoMapa r : recursosMapa) {
+            if (r.recolectado) {
+                r.timerRespawn -= delta;
+                if (r.timerRespawn <= 0) {
+                    r.recolectado = false;
+                    for (java.util.Map.Entry<TiledMapTileLayer, TiledMapTileLayer.Cell> e : r.cellsPorCapa.entrySet())
+                        e.getKey().setCell(r.cellX, r.cellY, e.getValue());
                 }
             }
-
-            // Clamping camera within map bounds (3200x3200 map, 800x480 viewport)
-            float camX = posX;
-            float camY = posY;
-
-            // Half viewport sizes
-            float hw = viewport.getWorldWidth() / 2;
-            float hh = viewport.getWorldHeight() / 2;
-
-            if (camX < hw)
-                camX = hw;
-            if (camX > mapWidth - hw)
-                camX = mapWidth - hw;
-            if (camY < hh)
-                camY = hh;
-            if (camY > mapHeight - hh)
-                camY = mapHeight - hh;
-
-            camera.position.set(camX, camY, 0);
-            camera.update();
         }
+
+        // Crafting Input
+        if (craftingState == CraftingState.SHOWING_RECIPES) {
+            if (Gdx.input.isKeyJustPressed(Input.Keys.S)) {
+                if (explorador.getMochila().fabricarPokeBall()) {
+                    notificationMessage = "¡Poké Ball creada!";
+                    notificationTimer = NOTIFICATION_DURATION;
+                    if (explorador.getMochila().getPokeBalls() == 1) {
+                        showMissionComplete = true;
+                        missionCompleteTimer = 6.0f;
+                    }
+                } else {
+                    notificationMessage = "Materiales insuficientes";
+                    notificationTimer = NOTIFICATION_DURATION;
+                }
+                craftingState = CraftingState.CLOSED;
+            } else if (Gdx.input.isKeyJustPressed(Input.Keys.N)) {
+                craftingState = CraftingState.CLOSED;
+            }
+        }
+
+        // Dialog Advance
+        if (showDialog && Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
+            currentDialogPage++;
+            if (activeDialogPages != null && currentDialogPage >= activeDialogPages.length) {
+                showDialog = false;
+                currentDialogPage = 0;
+            }
+        }
+
+        // NPC Range Check for Dialog Closing
+        // ...
+        float distFeid = com.badlogic.gdx.math.Vector2.dst(posX, posY, feidX, feidY);
+        isNearFeid = distFeid < 80;
+        float distHarry = com.badlogic.gdx.math.Vector2.dst(posX, posY, harryX, harryY);
+        isNearHarry = distHarry < 80;
+        float distBrenner = com.badlogic.gdx.math.Vector2.dst(posX, posY, brennerX, brennerY);
+        isNearBrenner = distBrenner < 80;
+
+        if (!isNearFeid && !isNearHarry && !isNearBrenner) {
+            showDialog = false;
+        }
+
+        // Timers
+        if (notificationTimer > 0)
+            notificationTimer -= delta;
+        if (missionCompleteTimer > 0) {
+            missionCompleteTimer -= delta;
+            if (missionCompleteTimer <= 0)
+                showMissionComplete = false;
+        }
+
+        // --- RENDER ---
+
+        // Camera Clamp & Zoom
+        if (Gdx.input.isKeyJustPressed(Input.Keys.Z)) {
+            if (camera.zoom == 1.0f)
+                camera.zoom = 2.0f;
+            else if (camera.zoom == 2.0f)
+                camera.zoom = (float) mapHeight / viewport.getWorldHeight();
+            else
+                camera.zoom = 1.0f;
+        }
+        // Clamp
+        float camX = posX, camY = posY;
+        float hw = viewport.getWorldWidth() / 2, hh = viewport.getWorldHeight() / 2;
+        if (camX < hw)
+            camX = hw;
+        if (camX > mapWidth - hw)
+            camX = mapWidth - hw;
+        if (camY < hh)
+            camY = hh;
+        if (camY > mapHeight - hh)
+            camY = mapHeight - hh;
+        camera.position.set(camX, camY, 0);
+        camera.update();
 
         viewport.apply();
         ScreenUtils.clear(Color.BLACK);
 
         if (mapRenderer != null) {
             mapRenderer.setView(camera);
-            if (backgroundLayers != null && backgroundLayers.length > 0) {
+            if (backgroundLayers != null && backgroundLayers.length > 0)
                 mapRenderer.render(backgroundLayers);
-            } else {
-                // Fallback: if dynamic detection failed, render the whole map to avoid black
-                // screen
+            else
                 mapRenderer.render();
-            }
         }
 
         game.batch.setProjectionMatrix(camera.combined);
         game.batch.begin();
-
-        // Simple Z-sorting (painter's algorithm)
-
-        // Simple Z-sorting (painter's algorithm)
-        // Sort entities by Y coordinate (higher Y drawn earlier/behind)
-        // We have 3 entities: Player, Feid, Harry
-        // Normalized list or just simple checks?
-        // Let's just draw NPCs then Player if Player is lower (in front), or vice
-        // versa.
-        // For simplicity with 2 NPCs, let's just draw both NPCs then Player, or Player
-        // then both.
-        // A better way for just 3 items:
-
-        // Default: Draw NPCs first (behind), then Player
-        // Default: Draw NPCs first (behind), then Player
         drawNPC();
         drawPlayer();
-        drawBrenner(); // Draw Brenner ON TOP of player
-
-        // If sorting is critical for "walking behind" effect, we need more logic.
-        // Given the request is just "put the image", this should suffice for now unless
-        // overlap issues occur.
-
+        drawBrenner();
         game.batch.end();
 
-        // Render top layer above player (Objetos_superiores)
-        if (mapRenderer != null && foregroundLayers != null) {
+        if (mapRenderer != null && foregroundLayers != null)
             mapRenderer.render(foregroundLayers);
-        }
 
-        // Draw Lab Sign explicitly AFTER foreground layers to ensure visibility
         game.batch.begin();
         drawLabSign();
         game.batch.end();
 
-        // Draw HUD/UI in screen coordinates (800x480 virtual resolution)
+        // UI
         game.batch.setProjectionMatrix(uiMatrix);
         game.batch.begin();
 
-        // Draw Intro Texture if active
+        // Intro
         if (introState != IntroState.FINISHED && introTexture != null) {
             float introScale = 0.5f;
-            float introW = introTexture.getWidth() * introScale;
-            float introH = introTexture.getHeight() * introScale;
-            game.batch.draw(introTexture, 0, introY, introW, introH);
+            game.batch.draw(introTexture, 0, introY, introTexture.getWidth() * introScale,
+                    introTexture.getHeight() * introScale);
         }
 
-        // DEBUG: Show Coordinates (Top Left)
+        // Debug
         game.font.setColor(Color.RED);
         game.font.getData().setScale(0.8f);
         game.font.draw(game.batch, "X: " + (int) posX + " Y: " + (int) posY, 10, 470);
         game.font.setColor(Color.WHITE);
         game.font.getData().setScale(1.0f);
 
-        // --- HUD / INTERFAZ DE USUARIO ---
-        if (explorador != null && game.font != null) {
+        // HUD
+        if (explorador != null) {
             game.font.setColor(Color.WHITE);
-            float hudX = 780; // Right side margin
-
-            // Títulos y estado del explorador - Top Right
+            float hudX = 780;
             game.font.draw(game.batch, "EXPLORADOR: " + explorador.getNombre(), hudX, 460, 0,
                     com.badlogic.gdx.utils.Align.right, false);
-
-            // Datos del Inventario (Misión 1)
             game.font.draw(game.batch, "--- INVENTARIO ---", hudX, 430, 0, com.badlogic.gdx.utils.Align.right, false);
             game.font.draw(game.batch, "Plantas: " + explorador.getMochila().getPlantas(), hudX, 410, 0,
                     com.badlogic.gdx.utils.Align.right, false);
@@ -988,60 +892,38 @@ public class GameScreen extends BaseScreen {
                     com.badlogic.gdx.utils.Align.right, false);
             game.font.draw(game.batch, "Poké Balls: " + explorador.getMochila().getPokeBalls(), hudX, 370, 0,
                     com.badlogic.gdx.utils.Align.right, false);
-
-            // Carga
             game.font.draw(game.batch,
                     "Carga: " + explorador.getMochila().getEspacioOcupado() + "/"
                             + explorador.getMochila().getCapacidadMaxima(),
-                    hudX, 340, 0,
-                    com.badlogic.gdx.utils.Align.right, false);
-
-            // Guía de controles (Ayuda) - Bottom Right
+                    hudX, 340, 0, com.badlogic.gdx.utils.Align.right, false);
             game.font.draw(game.batch, "[I] Menú  [P] Planta  [G] Guijarro  [C] Craftear  [K] Pokedex", hudX, 40, 0,
                     com.badlogic.gdx.utils.Align.right, false);
+        }
 
-            // --- NOTIFICACIONES Y CRAFTING UI ---
-            if (notificationTimer > 0) {
-                game.font.setColor(Color.YELLOW);
-                game.font.draw(game.batch, notificationMessage, 400, 400, 0, com.badlogic.gdx.utils.Align.center,
+        // Notifications
+        if (notificationTimer > 0) {
+            game.font.setColor(Color.YELLOW);
+            game.font.draw(game.batch, notificationMessage, 400, 400, 0, com.badlogic.gdx.utils.Align.center, false);
+            game.font.setColor(Color.WHITE);
+        }
+
+        // Mission
+        if (showMissionComplete) {
+            if (avisoTexture != null) {
+                float targetWidth = 300f;
+                float scale = targetWidth / avisoTexture.getWidth();
+                float targetHeight = avisoTexture.getHeight() * scale;
+                game.batch.draw(avisoTexture, (800 - targetWidth) / 2, (480 - targetHeight) / 2, targetWidth,
+                        targetHeight);
+            } else {
+                game.font.setColor(Color.GREEN);
+                game.font.draw(game.batch, "¡MISIÓN COMPLETADA!", 400, 350, 0, com.badlogic.gdx.utils.Align.center,
                         false);
                 game.font.setColor(Color.WHITE);
             }
-
-            if (craftingState == CraftingState.SHOWING_RECIPES) {
-                game.font.setColor(Color.CYAN);
-                game.font.draw(game.batch, craftingRecipe, 400, 250, 0, com.badlogic.gdx.utils.Align.center, false);
-                game.font.draw(game.batch, "¿Fabricar? [S/N]", 400, 220, 0, com.badlogic.gdx.utils.Align.center, false);
-                game.font.setColor(Color.WHITE);
-            }
-
-            if (showMissionComplete) {
-                if (avisoTexture != null) {
-                    // Set a fixed width for the notification (e.g., 300 pixels)
-                    float targetWidth = 300f;
-                    // Calculate height to maintain aspect ratio
-                    float scale = targetWidth / avisoTexture.getWidth();
-                    float targetHeight = avisoTexture.getHeight() * scale;
-
-                    // Center the image with the new dimensions
-                    float avisoX = (800 - targetWidth) / 2;
-                    float avisoY = (480 - targetHeight) / 2;
-
-                    game.batch.draw(avisoTexture, avisoX, avisoY, targetWidth, targetHeight);
-                } else {
-                    game.font.getData().setScale(1.2f);
-                    game.font.setColor(Color.GREEN);
-                    game.font.draw(game.batch, "¡MISIÓN COMPLETADA!", 400, 350, 0, com.badlogic.gdx.utils.Align.center,
-                            false);
-                    game.font.getData().setScale(1.0f);
-                    game.font.setColor(Color.WHITE);
-                }
-            }
         }
 
-        // --- NPC INTERACTION / DIALOG ---
-        // --- NPC INTERACTION / DIALOG ---
-        // Interaction Hint
+        // NPC Hints
         if (isNearFeid && !showDialog) {
             game.font.getData().setScale(0.8f);
             game.font.setColor(Color.YELLOW);
@@ -1068,76 +950,72 @@ public class GameScreen extends BaseScreen {
             game.font.setColor(Color.WHITE);
         }
 
-        // Show Dialog
+        // Dialog
         if (showDialog && activeDialogPages != null && currentDialogPage < activeDialogPages.length) {
-            // Constants for UI
             float screenW = 800;
             float dialogHeight = 110;
             float portraitSize = 250;
-            if (currentPortrait == harryPortraitTexture) {
-                portraitSize = 320; // Enlarge specifically for Harry
-            }
-
-            // Draw Portrait (Right side)
-            if (currentPortrait != null) {
+            if (currentPortrait == harryPortraitTexture)
+                portraitSize = 320;
+            if (currentPortrait != null)
                 game.batch.draw(currentPortrait, screenW - portraitSize - 20, dialogHeight - 20, portraitSize,
                         portraitSize);
-            }
 
-            // Draw Main Dialog Box
-            // Border (Dark Gray)
+            // Draw Box
             game.batch.setColor(Color.DARK_GRAY);
             if (uiWhitePixel != null)
                 game.batch.draw(uiWhitePixel, 20, 20, screenW - 40, dialogHeight);
-
-            // Body (White)
             game.batch.setColor(Color.WHITE);
             if (uiWhitePixel != null)
                 game.batch.draw(uiWhitePixel, 23, 23, screenW - 46, dialogHeight - 6);
-
-            // Name Tag Box (Top-Left of dialog, overlapping)
-            float nameTagW = 200;
-            float nameTagH = 35; // Slightly shorter
+            // Name Tag
             float nameTagY = dialogHeight + 10;
-
-            // Name Tag Border (Dark Gray)
             game.batch.setColor(Color.DARK_GRAY);
             if (uiWhitePixel != null)
-                game.batch.draw(uiWhitePixel, 45, nameTagY, nameTagW, nameTagH);
-
-            // Name Tag Background (White)
+                game.batch.draw(uiWhitePixel, 45, nameTagY, 200, 35);
             game.batch.setColor(Color.WHITE);
             if (uiWhitePixel != null)
-                game.batch.draw(uiWhitePixel, 47, nameTagY + 2, nameTagW - 4, nameTagH - 4);
+                game.batch.draw(uiWhitePixel, 47, nameTagY + 2, 196, 31);
 
-            // Reset Color for Text
             game.batch.setColor(Color.WHITE);
-
-            // Draw Text
-            // Name
             game.font.setColor(Color.BLACK);
             game.font.getData().setScale(0.9f);
             game.font.draw(game.batch, activeNpcName, 55, nameTagY + 25);
-
-            // Dialog Body
             game.font.setColor(Color.BLACK);
             game.font.getData().setScale(0.85f);
             game.font.draw(game.batch, activeDialogPages[currentDialogPage], 45, dialogHeight - 10, screenW - 90,
                     com.badlogic.gdx.utils.Align.left, true);
             game.font.getData().setScale(1.0f);
             game.font.setColor(Color.WHITE);
-
-            // "Continue" hint
+            String hint = (currentDialogPage < activeDialogPages.length - 1) ? "SIGUIENTE (ENTER)" : "CERRAR (ENTER)";
             game.font.getData().setScale(0.6f);
-            String hint = (currentDialogPage < activeDialogPages.length - 1) ? "SIGUIENTE (ENTER)"
-                    : "CERRAR (ENTER / E)";
             game.font.draw(game.batch, hint, 45, 50);
             game.font.getData().setScale(1.0f);
         }
 
-        // Draw side menu if open
+        // CRAFTING UI
+        if (craftingState == CraftingState.SHOWING_RECIPES) {
+            game.font.setColor(Color.CYAN);
+            game.font.draw(game.batch, craftingRecipe, 400, 250, 0, com.badlogic.gdx.utils.Align.center, false);
+            game.font.draw(game.batch, "¿Fabricar? [S/N]", 400, 220, 0, com.badlogic.gdx.utils.Align.center, false);
+            game.font.setColor(Color.WHITE);
+        }
+
+        // Menu
         if (showMenu) {
             drawMenu();
+        }
+
+        // FADE OVERLAY
+        if (fadeAlpha > 0 && uiWhitePixel != null) {
+            game.batch.end();
+            game.batch.begin();
+            Gdx.gl.glEnable(com.badlogic.gdx.graphics.GL20.GL_BLEND);
+            Gdx.gl.glBlendFunc(com.badlogic.gdx.graphics.GL20.GL_SRC_ALPHA,
+                    com.badlogic.gdx.graphics.GL20.GL_ONE_MINUS_SRC_ALPHA);
+            game.batch.setColor(0, 0, 0, fadeAlpha);
+            game.batch.draw(uiWhitePixel, 0, 0, 800, 480);
+            game.batch.setColor(Color.WHITE);
         }
 
         game.batch.end();
@@ -1369,5 +1247,29 @@ public class GameScreen extends BaseScreen {
     // Getter for Explorador
     public Explorador getExplorador() {
         return explorador;
+    }
+
+    public Texture getPlayerSheet() {
+        return playerSheet;
+    }
+
+    public int getFrameCols() {
+        return frameCols;
+    }
+
+    public int getFrameRows() {
+        return frameRows;
+    }
+
+    private void createFallback() {
+        // Create a simple magenta square as fallback
+        playerSheet = TextureUtils.createSolidTexture(239, 256, Color.MAGENTA);
+        TextureRegion fallbackRegion = new TextureRegion(playerSheet);
+        TextureRegion[] fallbackArray = new TextureRegion[] { fallbackRegion };
+        walkDown = new Animation<>(0.15f, fallbackArray);
+        walkLeft = new Animation<>(0.15f, fallbackArray);
+        walkRight = new Animation<>(0.15f, fallbackArray);
+        walkUp = new Animation<>(0.15f, fallbackArray);
+        currentFrame = fallbackRegion;
     }
 }
