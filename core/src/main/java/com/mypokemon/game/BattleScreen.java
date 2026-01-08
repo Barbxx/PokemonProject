@@ -311,17 +311,41 @@ public class BattleScreen extends ScreenAdapter {
     }
 
     private void abrirMochila() {
-        // Mostrar información del inventario
+        if (explorador.getEquipo().size() >= 6) {
+            updateInfo("¡Tu equipo está completo! No puedes capturar más Pokémon.");
+            return;
+        }
+
         Inventario inv = explorador.getInventario();
-        StringBuilder info = new StringBuilder("Mochila:\n");
-        info.append("Poké Balls: ").append(inv.getPokeBalls()).append("\n");
-        info.append("PesoBalls: ").append(inv.getHeavyBalls()).append("\n");
-        info.append("Bayas: ").append(inv.getBayas()).append("\n");
-        info.append("Pociones: ").append(inv.getPociones()).append("\n");
-        info.append("Guijarros: ").append(inv.getGuijarros()).append("\n");
-        info.append("Plantas: ").append(inv.getPlantas()).append("\n");
-        updateInfo(info.toString());
-        // TODO: Crear pantalla dedicada de Mochila para gestión completa
+        if (inv.getPokeBalls() > 0) {
+            updateInfo("¡Usaste una Poké Ball!");
+            inv.consumirItem("pokeball", 1);
+
+            float hpPercent = pokemonEnemigo.getHpActual() / pokemonEnemigo.getHpMaximo();
+            if (hpPercent <= 0.20f) {
+                // Success!
+                updateInfo("¡" + pokemonEnemigo.getNombre() + " ha sido capturado!");
+                explorador.getRegistro().registrarAccion(pokemonEnemigo.getNombre(), true);
+                explorador.agregarAlEquipo(pokemonEnemigo);
+                endBattle(true);
+            } else {
+                updateInfo("¡El Pokémon escapó de la Poké Ball! Su HP debe estar en 20% o menos.");
+                currentState = BattleState.ENEMY_TURN;
+                performEnemyTurnWithDelay();
+            }
+        } else {
+            updateInfo("¡No tienes Poké Balls!");
+        }
+    }
+
+    private void performEnemyTurnWithDelay() {
+        Gdx.app.postRunnable(() -> {
+            try {
+                Thread.sleep(1500);
+            } catch (InterruptedException e) {
+            }
+            performEnemyTurn();
+        });
     }
 
     private void abrirPokemon() {
@@ -616,12 +640,28 @@ public class BattleScreen extends ScreenAdapter {
         game.batch.draw(borderBg, infoX - 2, infoY - 2, infoW + 4, infoH + 4);
         game.batch.draw(buttonBg, infoX, infoY, infoW, infoH);
         font.getData().setScale(1.0f);
-        font.draw(game.batch, pokemonEnemigo.getNombre().toUpperCase(), infoX + 15, infoY + infoH - 15);
-        font.draw(game.batch, "Nv" + pokemonEnemigo.getNivel(), infoX + infoW - 70, infoY + infoH - 15);
-        font.draw(game.batch, "PS", infoX + 15, infoY + 25);
+        font.setColor(Color.BLACK);
+        font.draw(game.batch, pokemonEnemigo.getNombre().toUpperCase(), infoX + 15, infoY + infoH - 12);
+        font.draw(game.batch, "Nv" + pokemonEnemigo.getNivel(), infoX + infoW - 70, infoY + infoH - 12);
+
+        font.draw(game.batch, "PS: " + (int) pokemonEnemigo.getHpActual() + "/" + (int) pokemonEnemigo.getHpMaximo(),
+                infoX + 50, infoY + 40);
+
         game.batch.draw(hpBarBg, infoX + 50, infoY + 15, 200, 12);
         float hpPercent = pokemonEnemigo.getHpActual() / pokemonEnemigo.getHpMaximo();
         game.batch.draw(hpBarFill, infoX + 50, infoY + 15, 200 * hpPercent, 12);
+
+        // Draw Player Info as well (Required by Goal 6)
+        float pInfoX = viewport.getWorldWidth() - infoX - infoW;
+        float pInfoY = 180;
+        game.batch.draw(borderBg, pInfoX - 2, pInfoY - 2, infoW + 4, infoH + 4);
+        game.batch.draw(buttonBg, pInfoX, pInfoY, infoW, infoH);
+        font.draw(game.batch, pokemonJugador.getNombre().toUpperCase(), pInfoX + 15, pInfoY + infoH - 12);
+        font.draw(game.batch, "PS: " + (int) pokemonJugador.getHpActual() + "/" + (int) pokemonJugador.getHpMaximo(),
+                pInfoX + 50, pInfoY + 40);
+        game.batch.draw(hpBarBg, pInfoX + 50, pInfoY + 15, 200, 12);
+        float pHPPercent = pokemonJugador.getHpActual() / pokemonJugador.getHpMaximo();
+        game.batch.draw(hpBarFill, pInfoX + 50, pInfoY + 15, 200 * pHPPercent, 12);
     }
 
     private void drawButton(Rectangle rect, String text, boolean selected) {

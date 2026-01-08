@@ -8,11 +8,13 @@ public class EspeciePokemon implements Serializable {
     private String nombre;
     private int nivelInvestigacion;
     private boolean completa;
+    private boolean capturado;
 
     public EspeciePokemon(String nombre) {
         this.nombre = nombre;
         this.nivelInvestigacion = 0;
         this.completa = false;
+        this.capturado = false;
     }
 
     public void añadirPuntos(int puntos) {
@@ -26,10 +28,10 @@ public class EspeciePokemon implements Serializable {
         }
     }
 
-    // Método especial para el Hito Final (Dr. Brenner)
     public void setInvestigacionMaxica() {
         this.nivelInvestigacion = 10;
         this.completa = true;
+        this.capturado = true;
     }
 
     // Mantenemos compatibilidad con lógica previa si es necesario
@@ -52,11 +54,10 @@ public class EspeciePokemon implements Serializable {
 
     // Compatibilidad
     public boolean isCapturado() {
-        // En la lógica anterior 'capturado' era un boolean separado.
-        // Ahora el progreso se mide en puntos. Dependiendo de cómo quiera usarse,
-        // podemos asumir que si está completo o algo más.
-        // O simplemente ignoramos este método legado si ya no se usa fuera.
-        // Pero mantengamos getters limpios.
-        return completa;
+        return capturado;
+    }
+
+    public void setCapturado(boolean capturado) {
+        this.capturado = capturado;
     }
 }

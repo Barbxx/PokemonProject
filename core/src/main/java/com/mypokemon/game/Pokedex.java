@@ -20,6 +20,8 @@ public class Pokedex implements Serializable {
         registro.putIfAbsent(nombre, new EspeciePokemon(nombre));
 
         EspeciePokemon especie = registro.get(nombre);
+        if (esCaptura)
+            especie.setCapturado(true);
 
         // Obtener puntos específicos de la especie
         BasePokemonData data = BasePokemonData.get(nombre);
@@ -79,5 +81,9 @@ public class Pokedex implements Serializable {
     // Método de compatibilidad para Explorador.java que usaba puedeRetarArceus()
     public boolean puedeRetarArceus() {
         return puedeAccederAlHito();
+    }
+
+    public Map<String, EspeciePokemon> getRegistro() {
+        return registro;
     }
 }

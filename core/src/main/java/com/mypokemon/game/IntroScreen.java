@@ -51,7 +51,7 @@ public class IntroScreen extends BaseScreen {
     private static final float VP_W_PCT = 0.76f;
     private static final float VP_H_PCT = 0.76f; // Bottom padding slightly larger
 
-    private static final float TEXT_BOX_HEIGHT = 100f;
+    private static final float TEXT_BOX_HEIGHT = 140f;
 
     // Textos de Diálogo
     private static final String TEXT_1 = "¡Epaaa, qué más pues, mor! Bienvenido a la región 'One Ferxxo', el lugar más chimba de todos.";
@@ -508,7 +508,7 @@ public class IntroScreen extends BaseScreen {
         // 4. Name Input UI
         if (currentState == State.ENTER_NAME) {
             shapeRenderer.setColor(Color.DARK_GRAY);
-            float lineY = boxY + 50;
+            float lineY = boxY + 45;
             float lineX = boxX + 100;
             shapeRenderer.rect(lineX, lineY, 400, 3);
         }
@@ -562,7 +562,7 @@ public class IntroScreen extends BaseScreen {
             case ENTER_NAME:
                 currentText = TEXT_NAME_Q;
                 // Draw entered name
-                float nameY = boxY + 80;
+                float nameY = boxY + 65;
                 float nameX = boxX + 110;
 
                 String display = playerName;
@@ -638,7 +638,7 @@ public class IntroScreen extends BaseScreen {
         }
 
         if (currentState != State.FADE_OUT) {
-            game.font.draw(game.batch, helper, boxX + 60, boxY + 30); // Moved RIGHT
+            game.font.draw(game.batch, helper, boxX + boxW - 250, boxY + 30, 200, Align.right, false);
         }
 
         game.batch.end();

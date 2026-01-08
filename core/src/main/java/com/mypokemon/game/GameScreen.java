@@ -119,7 +119,7 @@ public class GameScreen extends BaseScreen {
     // Menu State
     private boolean showMenu = false;
     private int menuSelectedIndex = 0;
-    private String[] menuOptions = { "POKÉDEX", "MOCHILA", "CRAFTEO", "GUARDAR", "OPCIONES", "SALIR" };
+    private String[] menuOptions = { "POKÉDEX", "MOCHILA", "GUARDAR", "OPCIONES", "SALIR" };
 
     // Intro Animation State
     private enum IntroState {
@@ -494,6 +494,10 @@ public class GameScreen extends BaseScreen {
                 showDialog = false;
         }
 
+        if (Gdx.input.isKeyJustPressed(Input.Keys.K)) {
+            game.setScreen(new PokedexScreen(game, this, explorador));
+        }
+
         if (showMenu) {
             // Menu Navigation
             if (Gdx.input.isKeyJustPressed(Input.Keys.UP)) {
@@ -514,6 +518,8 @@ public class GameScreen extends BaseScreen {
                     game.setScreen(new MochilaScreen(game, this));
                 } else if (selected.equals("CRAFTEO")) {
                     game.setScreen(new CrafteoScreen(game, this));
+                } else if (selected.equals("POKÉDEX")) {
+                    game.setScreen(new PokedexScreen(game, this, explorador));
                 }
                 showMenu = false;
             }
@@ -677,18 +683,21 @@ public class GameScreen extends BaseScreen {
                 }
             }
 
-            // Crafting Open
-            if (Gdx.input.isKeyJustPressed(Input.Keys.C) && craftingState == CraftingState.CLOSED) {
-                int plantas = explorador.getMochila().getPlantas();
-                int guijarros = explorador.getMochila().getGuijarros();
-                if (plantas == 0 && guijarros == 0) {
-                    notificationMessage = "Inventario vacío";
-                    notificationTimer = NOTIFICATION_DURATION;
-                } else {
-                    craftingState = CraftingState.SHOWING_RECIPES;
-                    craftingRecipe = "2 Plantas + 3 Guijarros = 1 Poké Ball";
-                }
-            }
+            // Crafting disabled as requested
+            /*
+             * if (Gdx.input.isKeyJustPressed(Input.Keys.C) && craftingState ==
+             * CraftingState.CLOSED) {
+             * int plantas = explorador.getMochila().getPlantas();
+             * int guijarros = explorador.getMochila().getGuijarros();
+             * if (plantas == 0 && guijarros == 0) {
+             * notificationMessage = "Inventario vacío";
+             * notificationTimer = NOTIFICATION_DURATION;
+             * } else {
+             * craftingState = CraftingState.SHOWING_RECIPES;
+             * craftingRecipe = "2 Plantas + 3 Guijarros = 1 Poké Ball";
+             * }
+             * }
+             */
 
             // Encounter Logic
             if (!inEncounter && !showDialog) {
@@ -873,11 +882,14 @@ public class GameScreen extends BaseScreen {
         }
 
         // Debug
-        game.font.setColor(Color.RED);
-        game.font.getData().setScale(0.8f);
-        game.font.draw(game.batch, "X: " + (int) posX + " Y: " + (int) posY, 10, 470);
-        game.font.setColor(Color.WHITE);
-        game.font.getData().setScale(1.0f);
+        /*
+         * game.font.setColor(Color.RED);
+         * game.font.getData().setScale(0.8f);
+         * game.font.draw(game.batch, "X: " + (int) posX + " Y: " + (int) posY, 10,
+         * 470);
+         * game.font.setColor(Color.WHITE);
+         * game.font.getData().setScale(1.0f);
+         */
 
         // HUD
         if (explorador != null) {
@@ -896,7 +908,7 @@ public class GameScreen extends BaseScreen {
                     "Carga: " + explorador.getMochila().getEspacioOcupado() + "/"
                             + explorador.getMochila().getCapacidadMaxima(),
                     hudX, 340, 0, com.badlogic.gdx.utils.Align.right, false);
-            game.font.draw(game.batch, "[I] Menú  [P] Planta  [G] Guijarro  [C] Craftear  [K] Pokedex", hudX, 40, 0,
+            game.font.draw(game.batch, "[I] MENU   [CLICK]   [ESC] SALIR", hudX, 40, 0,
                     com.badlogic.gdx.utils.Align.right, false);
         }
 

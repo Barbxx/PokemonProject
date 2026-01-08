@@ -88,11 +88,15 @@ public class Explorador implements Serializable {
         return misionesCompletadas;
     }
 
-    public void agregarPokemonEquipo(Pokemon pokemon) {
-        this.equipo.add(pokemon);
+    public boolean agregarAlEquipo(Pokemon pokemon) {
+        if (this.equipo.size() < 6) {
+            this.equipo.add(pokemon);
+            return true;
+        }
+        return false;
     }
 
-    public void agregarAlEquipo(Pokemon pokemon) {
-        this.equipo.add(pokemon); // Alias para agregarPokemonEquipo()
+    public void agregarPokemonEquipo(Pokemon pokemon) {
+        agregarAlEquipo(pokemon);
     }
 }

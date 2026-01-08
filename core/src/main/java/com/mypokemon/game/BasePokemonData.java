@@ -69,9 +69,9 @@ public class BasePokemonData {
                 DATABASE.put("Stantler", new BasePokemonData(
                                 "Stantler",
                                 "Sus cuernos curvados alteran el flujo del aire y crean una distorsión en la realidad que marea a quien los mira.",
-                                73, 95, 62, 85, 65, 85, // Stats Nivel 0
-                                9, 9, 0, 0, 0, 9, // Bonus Nivel 5
-                                "Normal",
+                                73, 95, 62, 85, 65, 85,
+                                9, 9, 0, 0, 0, 9,
+                                "Normal / Psíquico",
                                 new String[] { "Placaje", "Confusión" },
                                 "Hipnosis",
                                 new String[] { "Fantasma" }));
@@ -79,8 +79,8 @@ public class BasePokemonData {
                 DATABASE.put("Pichu", new BasePokemonData(
                                 "Pichu",
                                 "Le cuesta controlar la energía y se asusta de sus propios chispazos.",
-                                20, 40, 15, 35, 35, 60, // Stats Nivel 0
-                                5, 5, 0, 0, 0, 5, // Bonus Nivel 5
+                                20, 40, 15, 35, 35, 60,
+                                5, 5, 0, 0, 0, 5,
                                 "Eléctrico",
                                 new String[] { "Impactrueno", "Latigazo" },
                                 "Onda Trueno",
@@ -89,9 +89,9 @@ public class BasePokemonData {
                 DATABASE.put("Mime Jr.", new BasePokemonData(
                                 "Mime Jr.",
                                 "Imita movimientos de otros para comprender sus intenciones y emociones.",
-                                20, 25, 45, 70, 90, 60, // Stats Nivel 0
-                                5, 0, 5, 0, 0, 5, // Bonus Nivel 5
-                                "Psíquico",
+                                20, 25, 45, 70, 90, 60,
+                                5, 0, 5, 0, 0, 5,
+                                "Psíquico / Hada",
                                 new String[] { "Confusión", "Copión" },
                                 "Hipnosis",
                                 new String[] {}));
@@ -99,8 +99,8 @@ public class BasePokemonData {
                 DATABASE.put("Chimchar", new BasePokemonData(
                                 "Chimchar",
                                 "La llama de su cola se apaga cuando duerme. Es un experto escalador.",
-                                44, 58, 44, 58, 44, 61, // Stats Nivel 0
-                                5, 5, 0, 0, 0, 5, // Bonus Nivel 5
+                                44, 58, 44, 58, 44, 61,
+                                5, 5, 0, 0, 0, 5,
                                 "Fuego",
                                 new String[] { "Arañazo", "Ascuas" },
                                 "Rueda Fuego",
@@ -109,9 +109,9 @@ public class BasePokemonData {
                 DATABASE.put("Scyther", new BasePokemonData(
                                 "Scyther",
                                 "Sus guadañas son tan afiladas que pueden cortar troncos de un solo golpe.",
-                                70, 110, 80, 55, 80, 105, // Stats Nivel 0
-                                9, 9, 0, 0, 0, 9, // Bonus Nivel 5
-                                "Bicho",
+                                70, 110, 80, 55, 80, 105,
+                                9, 9, 0, 0, 0, 9,
+                                "Bicho / Volador",
                                 new String[] { "At. Rápido", "Falsotortazo" },
                                 "Aire Afilado",
                                 new String[] { "Tierra" }));
@@ -121,9 +121,9 @@ public class BasePokemonData {
                 DATABASE.put("Gastly", new BasePokemonData(
                                 "Gastly",
                                 "Cuerpo de gas. Puede dormir a su presa en segundos.",
-                                30, 35, 30, 100, 35, 80, // Stats Nivel 0
-                                5, 0, 0, 9, 0, 9, // Bonus Nivel 5
-                                "Fantasma",
+                                30, 35, 30, 100, 35, 80,
+                                5, 0, 0, 9, 0, 9,
+                                "Fantasma / Veneno",
                                 new String[] { "Impresionar", "Polución" },
                                 "Infortunio",
                                 new String[] { "Normal", "Lucha" }));
@@ -131,8 +131,8 @@ public class BasePokemonData {
                 DATABASE.put("Goomy", new BasePokemonData(
                                 "Goomy",
                                 "El tipo Dragón más débil. Su cuerpo viscoso necesita humedad.",
-                                45, 50, 35, 55, 75, 40, // Stats Nivel 0
-                                5, 0, 0, 0, 9, 5, // Bonus Nivel 5
+                                45, 50, 35, 55, 75, 40,
+                                5, 0, 0, 0, 9, 5,
                                 "Dragón",
                                 new String[] { "Burbuja", "Ácido" },
                                 "Absorber",
@@ -141,8 +141,8 @@ public class BasePokemonData {
                 DATABASE.put("Togepi", new BasePokemonData(
                                 "Togepi",
                                 "Su cascarón comparte buena suerte con personas de corazón puro.",
-                                35, 20, 65, 40, 65, 20, // Stats Nivel 0
-                                5, 0, 5, 0, 0, 5, // Bonus Nivel 5
+                                35, 20, 65, 40, 65, 20,
+                                5, 0, 5, 0, 0, 5,
                                 "Hada",
                                 new String[] { "Picotazo", "Beso Drenaje" },
                                 "Dulce Aroma",
@@ -151,8 +151,8 @@ public class BasePokemonData {
                 DATABASE.put("Turtwig", new BasePokemonData(
                                 "Turtwig",
                                 "Concha de tierra endurecida. Si tiene sed, la hoja de su cabeza se marchita.",
-                                55, 68, 64, 45, 55, 31, // Stats Nivel 0
-                                5, 5, 5, 0, 0, 0, // Bonus Nivel 5
+                                55, 68, 64, 45, 55, 31,
+                                5, 5, 5, 0, 0, 0,
                                 "Planta",
                                 new String[] { "Placaje", "H. Afilada" },
                                 "Refugio",
@@ -163,9 +163,9 @@ public class BasePokemonData {
                 DATABASE.put("Growlithe H.", new BasePokemonData(
                                 "Growlithe H.",
                                 "Pelaje grueso y cuerno de roca por la actividad volcánica.",
-                                60, 75, 45, 65, 50, 55, // Stats Nivel 0
-                                5, 9, 0, 0, 0, 5, // Bonus Nivel 5
-                                "Fuego",
+                                60, 75, 45, 65, 50, 55,
+                                5, 9, 0, 0, 0, 5,
+                                "Fuego / Roca",
                                 new String[] { "Placaje", "Ascuas" },
                                 "Mordisco",
                                 new String[] {}));
@@ -173,9 +173,9 @@ public class BasePokemonData {
                 DATABASE.put("Qwilfish H.", new BasePokemonData(
                                 "Qwilfish H.",
                                 "Dispara espinas cargadas de un veneno oscuro y denso.",
-                                65, 95, 85, 55, 55, 103, // Stats Nivel 0 (corregido DEF)
-                                5, 9, 9, 0, 0, 0, // Bonus Nivel 5
-                                "Siniestro",
+                                65, 95, 85, 55, 55, 103,
+                                5, 9, 9, 0, 0, 0,
+                                "Siniestro / Veneno",
                                 new String[] { "Picotazo", "P. Tóxicas" },
                                 "Pin Misil",
                                 new String[] { "Psíquico" }));
@@ -183,8 +183,8 @@ public class BasePokemonData {
                 DATABASE.put("Piplup", new BasePokemonData(
                                 "Piplup",
                                 "Muy orgulloso. Su plumón lo protege del frío intenso.",
-                                53, 51, 53, 61, 56, 40, // Stats Nivel 0
-                                5, 0, 0, 9, 0, 5, // Bonus Nivel 5
+                                53, 51, 53, 61, 56, 40,
+                                5, 0, 0, 9, 0, 5,
                                 "Agua",
                                 new String[] { "Burbuja", "Destructor" },
                                 "Gruñido",
@@ -193,8 +193,8 @@ public class BasePokemonData {
                 DATABASE.put("Basculin", new BasePokemonData(
                                 "Basculin",
                                 "Resistencia física increíble al nadar contra la corriente.",
-                                70, 92, 65, 80, 55, 116, // Stats Nivel 0 (corregido VEL)
-                                9, 9, 0, 0, 0, 9, // Bonus Nivel 5
+                                70, 92, 65, 80, 55, 116,
+                                9, 9, 0, 0, 0, 9,
                                 "Agua",
                                 new String[] { "Placaje", "Aqua Jet" },
                                 "Burbuja",
@@ -205,9 +205,9 @@ public class BasePokemonData {
                 DATABASE.put("Sneasel H.", new BasePokemonData(
                                 "Sneasel H.",
                                 "Escala riscos helados con sus garras venenosas.",
-                                55, 95, 55, 35, 75, 115, // Stats Nivel 0
-                                5, 9, 0, 0, 0, 9, // Bonus Nivel 5
-                                "Lucha",
+                                55, 95, 55, 35, 75, 115,
+                                5, 9, 0, 0, 0, 9,
+                                "Lucha / Veneno",
                                 new String[] { "Arañazo", "Gas Venenoso" },
                                 "Mofa",
                                 new String[] {}));
@@ -215,9 +215,9 @@ public class BasePokemonData {
                 DATABASE.put("Gible", new BasePokemonData(
                                 "Gible",
                                 "Ataca a todo lo que se mueva con sus potentes mandíbulas.",
-                                58, 70, 45, 40, 45, 42, // Stats Nivel 0
-                                5, 9, 0, 0, 0, 5, // Bonus Nivel 5
-                                "Dragón",
+                                58, 70, 45, 40, 45, 42,
+                                5, 9, 0, 0, 0, 5,
+                                "Dragón / Tierra",
                                 new String[] { "Placaje", "Dragoaliento" },
                                 "Arena Arena",
                                 new String[] { "Eléctrico" }));
@@ -225,9 +225,9 @@ public class BasePokemonData {
                 DATABASE.put("Voltorb H.", new BasePokemonData(
                                 "Voltorb H.",
                                 "Aspecto similar a las Poké Balls antiguas; descarga energía por su orificio.",
-                                40, 30, 50, 55, 55, 100, // Stats Nivel 0
-                                5, 0, 0, 5, 0, 9, // Bonus Nivel 5
-                                "Eléctrico",
+                                40, 30, 50, 55, 55, 100,
+                                5, 0, 0, 5, 0, 9,
+                                "Eléctrico / Planta",
                                 new String[] { "Trueno", "Carga" },
                                 "Chispa",
                                 new String[] {}));
@@ -235,8 +235,8 @@ public class BasePokemonData {
                 DATABASE.put("Cleffa", new BasePokemonData(
                                 "Cleffa",
                                 "Se cree que llegó en un meteorito. Solo aparece con luna clara.",
-                                50, 25, 28, 45, 55, 15, // Stats Nivel 0
-                                5, 0, 0, 0, 5, 5, // Bonus Nivel 5
+                                50, 25, 28, 45, 55, 15,
+                                5, 0, 0, 0, 5, 5,
                                 "Hada",
                                 new String[] { "Destructor", "B. Drenaje" },
                                 "Encanto",
@@ -247,8 +247,8 @@ public class BasePokemonData {
                 DATABASE.put("Bergmite", new BasePokemonData(
                                 "Bergmite",
                                 "Bloquea ataques con el escudo de hielo de su lomo.",
-                                55, 69, 85, 32, 35, 28, // Stats Nivel 0
-                                5, 5, 9, 0, 0, 0, // Bonus Nivel 5
+                                55, 69, 85, 32, 35, 28,
+                                5, 5, 9, 0, 0, 0,
                                 "Hielo",
                                 new String[] { "Placaje", "Polvo Nieve" },
                                 "Fortaleza",
@@ -257,8 +257,8 @@ public class BasePokemonData {
                 DATABASE.put("Snorunt", new BasePokemonData(
                                 "Snorunt",
                                 "Se dice que los hogares visitados por él prosperarán.",
-                                50, 50, 50, 50, 50, 50, // Stats Nivel 0
-                                5, 5, 0, 0, 0, 5, // Bonus Nivel 5
+                                50, 50, 50, 50, 50, 50,
+                                5, 5, 0, 0, 0, 5,
                                 "Hielo",
                                 new String[] { "Polvo Nieve", "Impresionar" },
                                 "Mordisco",
@@ -267,16 +267,54 @@ public class BasePokemonData {
                 DATABASE.put("Zorua H.", new BasePokemonData(
                                 "Zorua H.",
                                 "Remanente de almas que perecieron en el frío. Crea ilusiones de rencor.",
-                                35, 60, 40, 85, 40, 70, // Stats Nivel 0
-                                5, 0, 0, 9, 0, 9, // Bonus Nivel 5
-                                "Fantasma",
+                                35, 60, 40, 85, 40, 70,
+                                5, 0, 0, 9, 0, 9,
+                                "Normal / Fantasma",
                                 new String[] { "Arañazo", "Rencor" },
                                 "Sombra Vil",
                                 new String[] { "Normal", "Lucha" }));
+
+                // STARTERS (Adicionales si no están en la lista)
+                DATABASE.put("Rowlet",
+                                new BasePokemonData("Rowlet", "Lanza plumas afiladas.", 68, 55, 55, 50, 50, 42, 5, 5, 0,
+                                                0, 0, 5, "Planta / Volador", new String[] { "Tackle" }, "Leafage",
+                                                new String[] {}));
+                DATABASE.put("Cyndaquil", new BasePokemonData("Cyndaquil", "Tímido pero fogoso.", 39, 52, 43, 60, 50,
+                                65, 5, 5, 0, 0, 0, 5, "Fuego", new String[] { "Tackle" }, "Ember", new String[] {}));
+                DATABASE.put("Oshawott", new BasePokemonData("Oshawott", "Lucha con su concha.", 55, 55, 45, 63, 45, 45,
+                                5, 5, 0, 0, 0, 5, "Agua", new String[] { "Tackle" }, "Water Gun", new String[] {}));
         }
 
         public static BasePokemonData get(String nombre) {
                 return DATABASE.get(nombre);
+        }
+
+        public static java.util.Set<String> getNombres() {
+                return DATABASE.keySet();
+        }
+
+        public String getNombre() {
+                return nombre;
+        }
+
+        public String getDescripcion() {
+                return descripcion;
+        }
+
+        public double getHpBase() {
+                return psNivel0;
+        }
+
+        public double getAtqBase() {
+                return atqNivel0;
+        }
+
+        public double getVelBase() {
+                return velNivel0;
+        }
+
+        public String getTipo() {
+                return tipo;
         }
 
         /**
