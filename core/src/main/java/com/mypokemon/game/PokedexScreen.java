@@ -120,19 +120,14 @@ public class PokedexScreen extends BaseScreen {
         // Sin registros text position
         if (capturedNames.isEmpty()) {
             fontText.setColor(Color.LIGHT_GRAY);
-            fontText.draw(game.batch, "Sin registros...", 60, VIRTUAL_HEIGHT - 160);
+            fontText.draw(game.batch, "Sin registros...", 80, VIRTUAL_HEIGHT - 500);
         }
 
         // Info Panel (Left side - Lowered to match background "INFO PKMN" box)
-        float infoX = 55;
-        float infoY = 160;
-        float infoW = 310;
-        float infoH = 260;
-
-        // Draw light background for info area
-        game.batch.setColor(1, 1, 1, 0.15f);
-        game.batch.draw(entryBg, infoX, infoY, infoW, infoH);
-        game.batch.setColor(Color.WHITE);
+        float infoX = 70;
+        float infoY = 50;
+        float infoW = 340;
+        float infoH = 190;
 
         // fontTitle.setColor(Color.YELLOW);
         // fontTitle.getData().setScale(1.8f);
@@ -144,11 +139,29 @@ public class PokedexScreen extends BaseScreen {
             BasePokemonData data = BasePokemonData.get(currentPokemonName);
             EspeciePokemon registro = explorador.getRegistro().getRegistro().get(currentPokemonName);
 
+            // Load/Get Texture for Big Display
+            String pName = currentPokemonName;
+            if (!textureCache.containsKey(pName)) {
+                try {
+                    String nameClean = pName.toLowerCase().replace(" h.", "").replace(" jr.", "-jr").replace(" ", "-");
+                    textureCache.put(pName, new Texture(Gdx.files.internal(nameClean + ".png")));
+                } catch (Exception e) {
+                }
+            }
+            Texture bigTex = textureCache.get(pName);
+            if (bigTex != null) {
+                float bigSize = 300;
+                float bigX = infoX + (infoW - bigSize) / 2;
+                float bigY = infoY + infoH - 25; // Position above the text box
+                game.batch.draw(bigTex, bigX, bigY, bigSize, bigSize);
+            }
+
             fontTitle.setColor(Color.WHITE);
             fontTitle.getData().setScale(1.3f);
             fontTitle.draw(game.batch, currentPokemonName.toUpperCase(), infoX + 20, infoY + infoH - 30);
 
             fontText.setColor(Color.CYAN);
+            fontText.getData().setScale(1.5f);
             fontText.draw(game.batch, "TIPO: " + (data != null ? data.tipo : "???"), infoX + 20, infoY + infoH - 70);
 
             fontText.setColor(Color.ORANGE);
@@ -164,10 +177,10 @@ public class PokedexScreen extends BaseScreen {
         }
 
         // Grid (Right side - Aligned with image boxes)
-        float gridStartX = 470;
-        float gridStartY = VIRTUAL_HEIGHT - 275; // Adjusted to match boxes
-        float boxSize = 108; // Roughly the size of slots in image
-        float spacing = 14;
+        float gridStartX = 520;
+        float gridStartY = VIRTUAL_HEIGHT - 300; // Adjusted to match boxes
+        float boxSize = 100; // Roughly the size of slots in image
+        float spacing = 18;
 
         for (int row = 0; row < GRID_ROWS; row++) {
             for (int col = 0; col < GRID_COLS; col++) {

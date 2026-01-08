@@ -46,6 +46,9 @@ public class MochilaScreen extends BaseScreen {
     // New Texture for Green Frame
     private Texture texMarcoVerde;
 
+    // Pokemon Texture Cache
+    private java.util.Map<String, Texture> pokemonTextureCache = new java.util.HashMap<>();
+
     // Helper class for grid items
     // Data Model
     public class ItemData {
@@ -439,12 +442,12 @@ public class MochilaScreen extends BaseScreen {
             return;
 
         int columnas = 3;
-        float size = 120f; // Increased size to 120
+        float size = 150f; // Increased size to 120
         float margen = 15f; // Increased margin slightly
 
         for (int i = 0; i < 6; i++) {
-            float x = 400 + (i % columnas) * (size + margen);
-            float y = 350 - (i / columnas) * (size + margen);
+            float x = 700 + (i % columnas) * (size + margen);
+            float y = 300 - (i / columnas) * (size + margen);
 
             // 1. Dibujar fondo del slot
             if (textureFondoSlot != null) {
@@ -550,16 +553,28 @@ public class MochilaScreen extends BaseScreen {
             List<Pokemon> equipo = explorador.getEquipo();
             if (i < equipo.size()) {
                 Pokemon p = equipo.get(i);
-                // Draw Pokemon Name (since we only have sprites in Pokemon class which are
-                // TextureRegions, and we need Textures or complex drawing here)
-                // For now, drawing name mostly. If sprite is available as Texture we could draw
-                // it.
-                // Using a placeholder color for the pokemon slot or just name
 
-                // Draw small name
-                fontContador.setColor(Color.CYAN);
-                fontContador.getData().setScale(0.7f);
-                fontContador.draw(batch, p.getNombre(), x + 5, y + size - 5);
+                // Draw Pokemon Sprite
+                String pName = p.getNombre();
+                if (!pokemonTextureCache.containsKey(pName)) {
+                    try {
+                        String nameClean = pName.toLowerCase().replace(" h.", "").replace(" jr.", "-jr").replace(" ",
+                                "-");
+                        pokemonTextureCache.put(pName, new Texture(Gdx.files.internal(nameClean + ".png")));
+                    } catch (Exception e) {
+                        Gdx.app.error("MochilaScreen", "Could not load texture for " + pName);
+                    }
+                }
+
+                Texture tex = pokemonTextureCache.get(pName);
+                if (tex != null) {
+                    batch.draw(tex, x + 5, y + 5, size - 10, size - 10);
+                } else {
+                    // Fallback if no texture: Draw small name
+                    fontContador.setColor(Color.CYAN);
+                    fontContador.getData().setScale(0.7f);
+                    fontContador.draw(batch, p.getNombre(), x + 5, y + size - 5);
+                }
 
                 // HP Bar in grid cell
                 batch.setColor(Color.RED);
@@ -747,5 +762,11 @@ public class MochilaScreen extends BaseScreen {
             texLure.dispose();
         if (texMarcoVerde != null)
             texMarcoVerde.dispose();
+
+        for (Texture t : pokemonTextureCache.values()) {
+            if (t != null)
+                t.dispose();
+        }
+        pokemonTextureCache.clear();
     }
 }
