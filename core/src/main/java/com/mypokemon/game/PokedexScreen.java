@@ -35,7 +35,7 @@ public class PokedexScreen extends BaseScreen {
     private final Explorador explorador;
     private int selectedGridX = 0;
     private int selectedGridY = 0;
-    private final int GRID_COLS = 7;
+    private final int GRID_COLS = 6;
     private final int GRID_ROWS = 4;
 
     public PokedexScreen(PokemonMain game, com.badlogic.gdx.Screen returnScreen, Explorador explorador) {
@@ -58,7 +58,7 @@ public class PokedexScreen extends BaseScreen {
 
         // Textures
         try {
-            background = new Texture(Gdx.files.internal("fondoPokedexNew.png"));
+            background = new Texture(Gdx.files.internal("fondoPokedex.png"));
         } catch (Exception e) {
         }
 
@@ -134,9 +134,9 @@ public class PokedexScreen extends BaseScreen {
         game.batch.draw(entryBg, infoX, infoY, infoW, infoH);
         game.batch.setColor(Color.WHITE);
 
-        fontTitle.setColor(Color.YELLOW);
-        fontTitle.getData().setScale(1.8f);
-        fontTitle.draw(game.batch, "POKÉDEX", 60, VIRTUAL_HEIGHT - 60);
+        // fontTitle.setColor(Color.YELLOW);
+        // fontTitle.getData().setScale(1.8f);
+        // fontTitle.draw(game.batch, "POKÉDEX", 60, VIRTUAL_HEIGHT - 60);
 
         String currentPokemonName = (selectedIndex < capturedNames.size()) ? capturedNames.get(selectedIndex) : null;
 
@@ -164,8 +164,8 @@ public class PokedexScreen extends BaseScreen {
         }
 
         // Grid (Right side - Aligned with image boxes)
-        float gridStartX = 415;
-        float gridStartY = VIRTUAL_HEIGHT - 215; // Adjusted to match boxes
+        float gridStartX = 470;
+        float gridStartY = VIRTUAL_HEIGHT - 275; // Adjusted to match boxes
         float boxSize = 108; // Roughly the size of slots in image
         float spacing = 14;
 
@@ -174,6 +174,11 @@ public class PokedexScreen extends BaseScreen {
                 int index = row * GRID_COLS + col;
                 float bx = gridStartX + col * (boxSize + spacing);
                 float by = gridStartY - row * (boxSize + spacing);
+
+                // Draw Grid Box Background (Darker than background)
+                game.batch.setColor(0, 0, 0, 0.4f); // Semi-transparent black
+                game.batch.draw(whitePixel, bx, by, boxSize, boxSize);
+                game.batch.setColor(Color.WHITE);
 
                 // Selection Highlight
                 if (row == selectedGridY && col == selectedGridX) {

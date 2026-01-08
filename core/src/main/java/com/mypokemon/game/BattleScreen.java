@@ -468,10 +468,27 @@ public class BattleScreen extends ScreenAdapter {
     private void checkBattleStatus() {
         if (pokemonEnemigo.getHpActual() <= 0) {
             updateInfo("¡" + pokemonEnemigo.getNombre() + " se debilitó!");
+
+            // Victoria: +1 Punto Investigación
             explorador.getRegistro().registrarAccion(pokemonEnemigo.getNombre(), false);
+
+            // Recompensa de recursos
+            String recurso = Math.random() < 0.5 ? "planta" : "guijarro";
+            explorador.getMochila().recolectarRecurso(recurso, 1);
+            updateInfo("Ganaste +1 Inv. y encontraste 1 " + recurso + ".");
+
             endBattle(true);
         } else if (pokemonJugador.getHpActual() <= 0) {
             updateInfo("¡Tu Pokémon se debilitó!");
+
+            // Derrota: Penalización
+            String perdido = explorador.getMochila().perderObjetoCrafteado();
+            if (perdido != null) {
+                updateInfo("Perdiste 1 " + perdido + " en la huida.");
+            } else {
+                updateInfo("No tenías objetos para perder.");
+            }
+
             endBattle(false);
         }
     }

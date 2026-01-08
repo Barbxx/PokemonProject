@@ -19,7 +19,7 @@ public class Inventario implements Serializable {
         this.guijarros = 0;
         this.plantas = 0;
         this.bayas = 0;
-        this.pokeBalls = 2; // Iniciar con 2 Poké Balls para pruebas
+        this.pokeBalls = 0; // Iniciar con 0 Poké Balls
         this.pociones = 0;
 
         // Initialize new items
@@ -132,19 +132,54 @@ public class Inventario implements Serializable {
     }
 
     public void aplicarCastigo() {
-        // Lógica del Dr. Brenner (Hito Final)
-        int eliminados = 0;
-        while (eliminados < 2 && pokeBalls > 0) {
+        // Lógica anterior (obsoleta)
+    }
+
+    public String perderObjetoCrafteado() {
+        // Intenta eliminar 1 objeto crafteado en orden de prioridad o aleatorio
+        // Crafteables: PokeBalls, HeavyBalls, Lures, Pociones/Unguentos, Elixires,
+        // Revivires, Repelentes, Amuletos
+
+        if (heavyBalls > 0) {
+            heavyBalls--;
+            return "Heavy Ball";
+        }
+        if (lures > 0) {
+            lures--;
+            return "Lure";
+        }
+        if (unguentos > 0) {
+            unguentos--;
+            return "Ungüento Herbal";
+        }
+        if (elixires > 0) {
+            elixires--;
+            return "Elixir";
+        }
+        if (revivires > 0) {
+            revivires--;
+            return "Revivir";
+        }
+        if (repelentes > 0) {
+            repelentes--;
+            return "Repelente";
+        }
+        if (amuletos > 0) {
+            amuletos--;
+            return "Amuleto";
+        }
+        // PokeBalls y Pociones base también se pueden considerar crafteables en este
+        // contexto
+        if (pokeBalls > 0) {
             pokeBalls--;
-            eliminados++;
+            return "Poké Ball";
         }
-        while (eliminados < 2 && pociones > 0) {
+        if (pociones > 0) {
             pociones--;
-            eliminados++;
+            return "Poción";
         }
-        if (eliminados > 0) {
-            System.out.println("El Upside Down ha reclamado tus pertenencias...");
-        }
+
+        return null; // No tenía nada para perder
     }
 
     // Getters

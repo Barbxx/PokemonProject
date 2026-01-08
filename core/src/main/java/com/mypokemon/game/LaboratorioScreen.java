@@ -213,12 +213,20 @@ public class LaboratorioScreen extends BaseScreen {
                         // Register Pokemon and add to team
                         if (!selectedName.isEmpty()) {
                             Explorador exp = gameScreen.getExplorador();
-                            // Level 10 means fully researched data unlocked
-                            Pokemon p = new Pokemon(selectedName, 10, 0, false, "");
+                            // Level 5 for starter (standard)
+                            Pokemon p = new Pokemon(selectedName, 5, 0, false, "");
 
                             exp.agregarAlEquipo(p);
-                            exp.getRegistro().completarInstantaneamente(selectedName);
-                            exp.getRegistro().getRegistro().get(selectedName).setCapturado(true);
+
+                            // Manually register as captured but with 0 research points
+                            exp.getRegistro().getRegistro().putIfAbsent(selectedName, new EspeciePokemon(selectedName));
+                            EspeciePokemon especie = exp.getRegistro().getRegistro().get(selectedName);
+                            if (!especie.isCapturado()) {
+                                exp.getRegistro().getCapturedOrder().add(selectedName);
+                                especie.setCapturado(true);
+                            }
+                            // No points added, stays at 0
+                            // exp.getRegistro().completarInstantaneamente(selectedName); REMOVED
                         }
 
                         currentDialogPage = 0; // Show success message

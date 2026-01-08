@@ -213,6 +213,11 @@ public class MochilaScreen extends BaseScreen {
     }
 
     @Override
+    public void show() {
+        Gdx.input.setInputProcessor(null); // Clear input processor to avoid previous screen interference
+    }
+
+    @Override
     public void render(float delta) {
         // Handle input to return
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE) || Gdx.input.isKeyJustPressed(Input.Keys.I)) {
