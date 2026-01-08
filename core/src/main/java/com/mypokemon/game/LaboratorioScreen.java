@@ -37,25 +37,25 @@ public class LaboratorioScreen extends BaseScreen {
             "Pero ya hoy solo me quedan estos tres... se los presento pa' que escoja uno."
     };
 
-    private final String[] TURTWIG_TEXT = {
-            "Este es el Turtwig. Es tipo Planta. Tiene una concha de tierra endurecida muy resistente. Es muy calmado.",
-            "Entonces, ¿qué dice, mor? ¿Se va a llevar al tipo Planta Turtwig?"
+    private final String[] ROWLET_TEXT = {
+            "Este es el Rowlet. Es tipo Planta y Volador. Este bicho es bien silencioso, le llega a los otros por la espalda y ¡pum!, los deja sanos.",
+            "Entonces, ¿qué dice, mor? ¿Se va a llevar al tipo Planta y Volador Rowlet?"
     };
 
-    private final String[] CHIMCHAR_TEXT = {
-            "Este es el Chimchar. Es tipo Fuego. Es un bicho muy ágil y rumbero, le gusta escalar por todos lados.",
-            "¿Cómo fue entonces? ¿Se queda con el tipo Fuego Chimchar?"
+    private final String[] CYNDAQUIL_TEXT = {
+            "Este es el Cyndaquil. Es tipo Fuego. Se ve todo calmado y chill, pero donde se moleste... le sale candela por el lomo y eso quema hasta el alma, mor.",
+            "¿Cómo fue entonces? ¿Se queda con el tipo Fuego Cyndaquil?"
     };
 
-    private final String[] PIPLUP_TEXT = {
-            "Este es el Piplup. Es tipo Agua. Se ve muy tierno pero es bien orgulloso, no le gusta que le den comida extraños.",
-            "Entonces, ¿cómo es la vuelta? ¿Se va a montar con el tipo Agua Piplup?"
+    private final String[] OSHAWOTT_TEXT = {
+            "Este es el Oshawott. Es tipo Agua. El parcero se ve muy tierno, pero no se confunda, que esa conchita que trae en el pecho la usa como un sable y ¡tome!, no copia de nada.",
+            "Entonces, ¿cómo es la vuelta? ¿Se va a montar con el tipo Agua Oshawott?"
     };
 
     // Success Texts
-    private final String[] TURTWIG_SUCCESS = { "¡Recibiste el Pokemón Turtwig de manos del Profesor Ferxxo!" };
-    private final String[] CHIMCHAR_SUCCESS = { "¡Recibiste el Pokemón Chimchar de manos del Profesor Ferxxo!" };
-    private final String[] PIPLUP_SUCCESS = { "¡Recibiste el Pokemón Piplup de manos del Profesor Ferxxo!" };
+    private final String[] ROWLET_SUCCESS = { "¡Recibiste el Pokemón Rowlet de manos del Profesor Ferxxo!" };
+    private final String[] CYNDAQUIL_SUCCESS = { "¡Recibiste el Pokemón Cyndaquil de manos del Profesor Ferxxo!" };
+    private final String[] OSHAWOTT_SUCCESS = { "¡Recibiste el Pokemón Oshawott de manos del Profesor Ferxxo!" };
 
     // Fade State
     private float fadeAlpha = 1f;
@@ -115,9 +115,9 @@ public class LaboratorioScreen extends BaseScreen {
             feidSprite = new com.badlogic.gdx.graphics.Texture(Gdx.files.internal("feidSprite.png"));
 
             // Starter Textures
-            rowletTexture = new com.badlogic.gdx.graphics.Texture(Gdx.files.internal("turtwig.png"));
-            cyndaquilTexture = new com.badlogic.gdx.graphics.Texture(Gdx.files.internal("chimchar.png"));
-            oshawottTexture = new com.badlogic.gdx.graphics.Texture(Gdx.files.internal("piplup.png"));
+            rowletTexture = new com.badlogic.gdx.graphics.Texture(Gdx.files.internal("rowletLab.png"));
+            cyndaquilTexture = new com.badlogic.gdx.graphics.Texture(Gdx.files.internal("cyndaquilLab.png"));
+            oshawottTexture = new com.badlogic.gdx.graphics.Texture(Gdx.files.internal("oshawottLab.png"));
 
             // Dialog Assets
             ferxxoCientifico = new com.badlogic.gdx.graphics.Texture(Gdx.files.internal("ferxxoCientifico.png"));
@@ -159,8 +159,8 @@ public class LaboratorioScreen extends BaseScreen {
 
         // Check if on selection page (Index 1 of starter texts)
         selectionActive = !isTransitioning && currentDialogPage == 1 &&
-                (currentDialogText == TURTWIG_TEXT || currentDialogText == CHIMCHAR_TEXT
-                        || currentDialogText == PIPLUP_TEXT);
+                (currentDialogText == ROWLET_TEXT || currentDialogText == CYNDAQUIL_TEXT
+                        || currentDialogText == OSHAWOTT_TEXT);
 
         // FADE IN LOGIC
         if (fadingIn) {
@@ -199,15 +199,15 @@ public class LaboratorioScreen extends BaseScreen {
                         // YES selected
                         isTransitioning = true;
                         String selectedName = "";
-                        if (currentDialogText == TURTWIG_TEXT) {
-                            currentDialogText = TURTWIG_SUCCESS;
-                            selectedName = "Turtwig";
-                        } else if (currentDialogText == CHIMCHAR_TEXT) {
-                            currentDialogText = CHIMCHAR_SUCCESS;
-                            selectedName = "Chimchar";
-                        } else if (currentDialogText == PIPLUP_TEXT) {
-                            currentDialogText = PIPLUP_SUCCESS;
-                            selectedName = "Piplup";
+                        if (currentDialogText == ROWLET_TEXT) {
+                            currentDialogText = ROWLET_SUCCESS;
+                            selectedName = "Rowlet";
+                        } else if (currentDialogText == CYNDAQUIL_TEXT) {
+                            currentDialogText = CYNDAQUIL_SUCCESS;
+                            selectedName = "Cyndaquil";
+                        } else if (currentDialogText == OSHAWOTT_TEXT) {
+                            currentDialogText = OSHAWOTT_SUCCESS;
+                            selectedName = "Oshawott";
                         }
 
                         // Register Pokemon and add to team
@@ -261,28 +261,28 @@ public class LaboratorioScreen extends BaseScreen {
                     currentDialogPage = 0;
                     dialogIconTexture = ferxxoCientifico; // Default icon
                 }
-                // Check Rowlet click (Turtwig)
+                // Check Rowlet click
                 else if (mousePos.x >= rowletX && mousePos.x <= rowletX + starterW &&
                         mousePos.y >= rowletY && mousePos.y <= rowletY + starterH) {
-                    currentDialogText = TURTWIG_TEXT;
+                    currentDialogText = ROWLET_TEXT;
                     showDialog = true;
                     currentDialogPage = 0;
                     selectionIndex = 0; // Default to Yes
                     dialogIconTexture = ferxxoRowlet; // Specific icon (kept name)
                 }
-                // Check Cyndaquil click (Chimchar)
+                // Check Cyndaquil click
                 else if (mousePos.x >= cyndaquilX && mousePos.x <= cyndaquilX + starterW + 10 &&
                         mousePos.y >= cyndaquilY && mousePos.y <= cyndaquilY + starterH + 10) {
-                    currentDialogText = CHIMCHAR_TEXT;
+                    currentDialogText = CYNDAQUIL_TEXT;
                     showDialog = true;
                     currentDialogPage = 0;
                     selectionIndex = 0;
                     dialogIconTexture = ferxxoCyndaquil; // Specific icon (kept name)
                 }
-                // Check Oshawott click (Piplup)
+                // Check Oshawott click
                 else if (mousePos.x >= oshawottX && mousePos.x <= oshawottX + starterW + 10 &&
                         mousePos.y >= oshawottY && mousePos.y <= oshawottY + starterH + 10) {
-                    currentDialogText = PIPLUP_TEXT;
+                    currentDialogText = OSHAWOTT_TEXT;
                     showDialog = true;
                     currentDialogPage = 0;
                     selectionIndex = 0;
@@ -375,8 +375,9 @@ public class LaboratorioScreen extends BaseScreen {
         float portraitSize = 250;
 
         // Check if it is a success message
-        boolean isSuccessMessage = (currentDialogText == TURTWIG_SUCCESS || currentDialogText == CHIMCHAR_SUCCESS
-                || currentDialogText == PIPLUP_SUCCESS);
+        // Check if it is a success message
+        boolean isSuccessMessage = (currentDialogText == ROWLET_SUCCESS || currentDialogText == CYNDAQUIL_SUCCESS
+                || currentDialogText == OSHAWOTT_SUCCESS);
 
         // Draw Portrait (Right side) - Only if NOT a success message
         if (!isSuccessMessage && dialogIconTexture != null) {
@@ -384,8 +385,8 @@ public class LaboratorioScreen extends BaseScreen {
                     portraitSize);
         }
 
-        boolean isSuccessMessageSpecial = (currentDialogText == TURTWIG_SUCCESS || currentDialogText == CHIMCHAR_SUCCESS
-                || currentDialogText == PIPLUP_SUCCESS);
+        boolean isSuccessMessageSpecial = (currentDialogText == ROWLET_SUCCESS || currentDialogText == CYNDAQUIL_SUCCESS
+                || currentDialogText == OSHAWOTT_SUCCESS);
 
         // Draw Main Dialog Box
         // Border (Dark Gray)

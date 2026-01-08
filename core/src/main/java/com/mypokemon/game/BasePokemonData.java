@@ -277,12 +277,12 @@ public class BasePokemonData {
                 // STARTERS (Adicionales si no están en la lista)
                 DATABASE.put("Rowlet",
                                 new BasePokemonData("Rowlet", "Lanza plumas afiladas.", 68, 55, 55, 50, 50, 42, 5, 5, 0,
-                                                0, 0, 5, "Planta / Volador", new String[] { "Tackle" }, "Leafage",
+                                                0, 0, 5, "Planta / Volador", new String[] { "Placaje" }, "H. Afilada",
                                                 new String[] {}));
                 DATABASE.put("Cyndaquil", new BasePokemonData("Cyndaquil", "Tímido pero fogoso.", 39, 52, 43, 60, 50,
-                                65, 5, 5, 0, 0, 0, 5, "Fuego", new String[] { "Tackle" }, "Ember", new String[] {}));
+                                65, 5, 5, 0, 0, 0, 5, "Fuego", new String[] { "Placaje" }, "Ascuas", new String[] {}));
                 DATABASE.put("Oshawott", new BasePokemonData("Oshawott", "Lucha con su concha.", 55, 55, 45, 63, 45, 45,
-                                5, 5, 0, 0, 0, 5, "Agua", new String[] { "Tackle" }, "Water Gun", new String[] {}));
+                                5, 5, 0, 0, 0, 5, "Agua", new String[] { "Placaje" }, "Burbuja", new String[] {}));
         }
 
         public static BasePokemonData get(String nombre) {

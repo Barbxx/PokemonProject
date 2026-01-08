@@ -495,6 +495,12 @@ public class BattleScreen extends ScreenAdapter {
         btnMochilaRect = new Rectangle(startX + btnWidth + spacing, startY + btnHeight + spacing, btnWidth, btnHeight);
         btnPokemonRect = new Rectangle(startX, startY, btnWidth, btnHeight);
         btnHuirRect = new Rectangle(startX + btnWidth + spacing, startY, btnWidth, btnHeight);
+
+        // Restore Move Menu Rectangles (Same layout as main menu)
+        btnMove0Rect = new Rectangle(startX, startY + btnHeight + spacing, btnWidth, btnHeight);
+        btnMove1Rect = new Rectangle(startX + btnWidth + spacing, startY + btnHeight + spacing, btnWidth, btnHeight);
+        btnMove2Rect = new Rectangle(startX, startY, btnWidth, btnHeight);
+        btnMove3Rect = new Rectangle(startX + btnWidth + spacing, startY, btnWidth, btnHeight);
     }
 
     private void endBattle(final boolean victory) {
@@ -634,34 +640,50 @@ public class BattleScreen extends ScreenAdapter {
     private void drawEnemyInfo() {
         float infoX = 50;
         // Posicionar relativo al borde superior del mundo virtual
-        float infoY = viewport.getWorldHeight() - 100;
-        float infoW = 280;
-        float infoH = 60;
+        float infoY = viewport.getWorldHeight() - 110;
+        float infoW = 300;
+        float infoH = 80; // Increased height for better spacing
+
         game.batch.draw(borderBg, infoX - 2, infoY - 2, infoW + 4, infoH + 4);
         game.batch.draw(buttonBg, infoX, infoY, infoW, infoH);
-        font.getData().setScale(1.0f);
+
+        font.getData().setScale(1.1f);
         font.setColor(Color.BLACK);
-        font.draw(game.batch, pokemonEnemigo.getNombre().toUpperCase(), infoX + 15, infoY + infoH - 12);
-        font.draw(game.batch, "Nv" + pokemonEnemigo.getNivel(), infoX + infoW - 70, infoY + infoH - 12);
+        // Name at top left
+        font.draw(game.batch, pokemonEnemigo.getNombre().toUpperCase(), infoX + 15, infoY + infoH - 15);
+        // Level at top right
+        font.draw(game.batch, "Nv" + pokemonEnemigo.getNivel(), infoX + infoW - 80, infoY + infoH - 15);
 
+        // HP Text in middle
+        font.getData().setScale(1.0f);
         font.draw(game.batch, "PS: " + (int) pokemonEnemigo.getHpActual() + "/" + (int) pokemonEnemigo.getHpMaximo(),
-                infoX + 50, infoY + 40);
+                infoX + 15, infoY + 45);
 
-        game.batch.draw(hpBarBg, infoX + 50, infoY + 15, 200, 12);
+        // HP Bar at bottom
+        game.batch.draw(hpBarBg, infoX + 15, infoY + 15, infoW - 30, 18); // Thicker bar
         float hpPercent = pokemonEnemigo.getHpActual() / pokemonEnemigo.getHpMaximo();
-        game.batch.draw(hpBarFill, infoX + 50, infoY + 15, 200 * hpPercent, 12);
+        game.batch.draw(hpBarFill, infoX + 15, infoY + 15, (infoW - 30) * hpPercent, 18);
 
-        // Draw Player Info as well (Required by Goal 6)
+        // Draw Player Info as well
         float pInfoX = viewport.getWorldWidth() - infoX - infoW;
-        float pInfoY = 180;
+        float pInfoY = 240; // Raised from 180
+
         game.batch.draw(borderBg, pInfoX - 2, pInfoY - 2, infoW + 4, infoH + 4);
         game.batch.draw(buttonBg, pInfoX, pInfoY, infoW, infoH);
-        font.draw(game.batch, pokemonJugador.getNombre().toUpperCase(), pInfoX + 15, pInfoY + infoH - 12);
+
+        font.getData().setScale(1.1f);
+        font.setColor(Color.BLACK);
+        font.draw(game.batch, pokemonJugador.getNombre().toUpperCase(), pInfoX + 15, pInfoY + infoH - 15);
+
+        font.getData().setScale(1.0f);
         font.draw(game.batch, "PS: " + (int) pokemonJugador.getHpActual() + "/" + (int) pokemonJugador.getHpMaximo(),
-                pInfoX + 50, pInfoY + 40);
-        game.batch.draw(hpBarBg, pInfoX + 50, pInfoY + 15, 200, 12);
+                pInfoX + 15, pInfoY + 45);
+
+        game.batch.draw(hpBarBg, pInfoX + 15, pInfoY + 15, infoW - 30, 18);
         float pHPPercent = pokemonJugador.getHpActual() / pokemonJugador.getHpMaximo();
-        game.batch.draw(hpBarFill, pInfoX + 50, pInfoY + 15, 200 * pHPPercent, 12);
+        game.batch.draw(hpBarFill, pInfoX + 15, pInfoY + 15, (infoW - 30) * pHPPercent, 18);
+
+        font.getData().setScale(1.0f); // Reset scale
     }
 
     private void drawButton(Rectangle rect, String text, boolean selected) {
