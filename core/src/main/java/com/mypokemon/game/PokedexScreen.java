@@ -148,9 +148,9 @@ public class PokedexScreen extends BaseScreen {
             }
             Texture bigTex = textureCache.get(pName);
             if (bigTex != null) {
-                float bigSize = 300;
+                float bigSize = 450;
                 float bigX = infoX + (infoW - bigSize) / 2;
-                float bigY = infoY + infoH - 25; // Position above the text box
+                float bigY = infoY + infoH - 130; // Position above the text box
                 game.batch.draw(bigTex, bigX, bigY, bigSize, bigSize);
             }
 
@@ -177,7 +177,7 @@ public class PokedexScreen extends BaseScreen {
         // Grid (Right side - Aligned with image boxes)
         float gridStartX = 520;
         float gridStartY = VIRTUAL_HEIGHT - 300; // Adjusted to match boxes
-        float boxSize = 100; // Roughly the size of slots in image
+        float boxSize = 130; // Increased size
         float spacing = 18;
 
         for (int row = 0; row < GRID_ROWS; row++) {

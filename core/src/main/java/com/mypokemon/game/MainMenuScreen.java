@@ -18,13 +18,13 @@ public class MainMenuScreen extends BaseScreen {
 
     // Menu Options (Keep strings for fallback or logic, though rendering uses
     // images now)
-    String[] options = { "PLAY", "PROFILE", "HELP", "ABOUT" };
-    String[] filePrefixes = { "boton_jugar", "boton_perfil", "boton_ayuda", "boton_acercade" };
+    String[] options = { "PLAY", "PARTIDA", "HELP", "ABOUT" };
+    String[] filePrefixes = { "boton_jugar", "boton_partida", "boton_ayuda", "boton_acercade" };
 
     int currentOption = -1;
     float fadeAlpha = 0f;
     boolean isStarting = false;
-    String currentSubScreen = null; // null, "PROFILE", "HELP", "ABOUT"
+    String currentSubScreen = null; // null, "PARTIDA", "HELP", "ABOUT"
 
     // Layout constants
     float menuBoxWidth = 370;
@@ -81,11 +81,10 @@ public class MainMenuScreen extends BaseScreen {
             }
         }
 
-        // Mouse Selection Logic: Only update if mouse moved
-        // This allows keyboard to work without being overridden by a stationary mouse
-        if (Gdx.input.getDeltaX() != 0 || Gdx.input.getDeltaY() != 0) {
-            currentOption = hoveredOption;
-        }
+        // Mouse Selection Logic: Removed to prevent hover from changing selection
+        // if (Gdx.input.getDeltaX() != 0 || Gdx.input.getDeltaY() != 0) {
+        // currentOption = hoveredOption;
+        // }
 
         // Keyboard Selection Logic
         if (Gdx.input.isKeyJustPressed(Input.Keys.UP) || Gdx.input.isKeyJustPressed(Input.Keys.W)) {
@@ -118,7 +117,7 @@ public class MainMenuScreen extends BaseScreen {
             if (target == 0) { // PLAY
                 isStarting = true;
             } else if (target == 1) {
-                currentSubScreen = "PROFILE";
+                currentSubScreen = "PARTIDA";
             } else if (target == 2) {
                 currentSubScreen = "HELP";
             } else if (target == 3) {
@@ -153,8 +152,17 @@ public class MainMenuScreen extends BaseScreen {
             float buttonX = (screenWidth - buttonWidth) / 2;
 
             Texture textureToDraw = null;
+            boolean showSelected = false;
 
-            if (i == currentOption) {
+            boolean isHovered = (hoveredOption == i);
+            boolean isPressed = Gdx.input.isButtonPressed(Input.Buttons.LEFT);
+
+            // Show selected if it is the current keyboard option OR if it's being clicked
+            if (i == currentOption || (isHovered && isPressed)) {
+                showSelected = true;
+            }
+
+            if (showSelected) {
                 if (selectedTextures[i] != null)
                     textureToDraw = selectedTextures[i];
             } else {

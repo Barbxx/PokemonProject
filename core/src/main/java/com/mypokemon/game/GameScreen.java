@@ -61,6 +61,7 @@ public class GameScreen extends BaseScreen {
 
     private Texture feidSprite;
     private Texture harrySprite;
+    private Texture harryStylesSprite; // New Harry Styles Sprite
     private Texture brennerSprite; // New Brenner Sprite
     private Texture labSignTexture; // Lab Sign
     private Texture dialogIconTexture; // Feid default
@@ -71,10 +72,12 @@ public class GameScreen extends BaseScreen {
     private Texture uiWhitePixel;
     private float feidX, feidY;
     private float harryX, harryY;
+    private float harryStylesX, harryStylesY; // Coordinates for Harry Styles
     private float brennerX, brennerY; // New Brenner coords
     private boolean showDialog = false;
     private boolean isNearFeid = false;
     private boolean isNearHarry = false;
+    private boolean isNearHarryStyles = false; // New Harry Styles flag
     private boolean isNearBrenner = false; // New Brenner flag
     private boolean isNearLab = false; // New Lab flag
 
@@ -113,6 +116,13 @@ public class GameScreen extends BaseScreen {
             "El sujeto Arceus te espera en esta cavidad que me recuerda a la Cueva de Vecna; siento la misma oscuridad y el tic-tac de un reloj.",
             "Si logras vencerlo, tu investigación será completada instantáneamente.",
             "Recuerda: los errores tienen consecuencias, y si pierdes, el 'Upside Down' reclamará tus pertenencias."
+    };
+
+    private String[] harryStylesDialogPages = {
+            "¡Hola, cariño! Bienvenido a la región de Hisui. Es un lugar verdaderamente maravilloso, ¿no te parece? Pero también tiene su lado salvaje, y me gustaría que te sientas seguro y con mucha confianza allá afuera.",
+            "Me encantaría que trabajaras en tu propia autonomía. Tu inventario es donde sucede la magia, pero por favor, sé cuidadoso con el espacio; queremos que todo fluya con orden.",
+            "¿Por qué no vas a buscar algunos Guijarros y Plantas? Podrás crear unas Poké Balls realmente encantadoras.\n¡Vamos, adelante!",
+            "Trata a todos con amabilidad... ¡ese Pokédex no se va a completar solo! Con amor, H."
     };
 
     // Menu State
@@ -387,6 +397,7 @@ public class GameScreen extends BaseScreen {
         try {
             feidSprite = new Texture(Gdx.files.internal("feidSprite.png"));
             harrySprite = new Texture(Gdx.files.internal("harryPotterSprite.png"));
+            harryStylesSprite = new Texture(Gdx.files.internal("harryStylesSprite.png")); // Load Harry Styles
             brennerSprite = new Texture(Gdx.files.internal("drBrennerSprite.png")); // Load Brenner sprite for map
             labSignTexture = new Texture(Gdx.files.internal("letreroLaboratorio.png")); // Load Lab Sign
             dialogIconTexture = new Texture(Gdx.files.internal("ferxxoCientifico.png"));
@@ -409,6 +420,10 @@ public class GameScreen extends BaseScreen {
         // Place Harry much further to the right and up
         harryX = posX + 1600;
         harryY = posY + 250;
+
+        // Place Harry Styles (distinct location, maybe near Feid for visibility)
+        harryStylesX = posX + 1110;
+        harryStylesY = posY - 320;
 
         // Place Brenner (distinct location)
         brennerX = posX + 480; // Somewhere in between
@@ -650,6 +665,16 @@ public class GameScreen extends BaseScreen {
                     } else {
                         showDialog = false;
                     }
+                } else if (isNearHarryStyles) {
+                    if (!showDialog) {
+                        showDialog = true;
+                        currentDialogPage = 0;
+                        activeNpcName = "Harry Styles";
+                        activeDialogPages = harryStylesDialogPages;
+                        currentPortrait = harryStylesSprite;
+                    } else {
+                        showDialog = false;
+                    }
                 }
             }
 
@@ -817,8 +842,10 @@ public class GameScreen extends BaseScreen {
         isNearHarry = distHarry < 80;
         float distBrenner = com.badlogic.gdx.math.Vector2.dst(posX, posY, brennerX, brennerY);
         isNearBrenner = distBrenner < 80;
+        float distHarryStyles = com.badlogic.gdx.math.Vector2.dst(posX, posY, harryStylesX, harryStylesY);
+        isNearHarryStyles = distHarryStyles < 80;
 
-        if (!isNearFeid && !isNearHarry && !isNearBrenner) {
+        if (!isNearFeid && !isNearHarry && !isNearBrenner && !isNearHarryStyles) {
             showDialog = false;
         }
 
@@ -906,19 +933,27 @@ public class GameScreen extends BaseScreen {
         if (explorador != null) {
             game.font.setColor(Color.WHITE);
             float hudX = 780;
-            game.font.draw(game.batch, "EXPLORADOR: " + explorador.getNombre(), hudX, 460, 0,
-                    com.badlogic.gdx.utils.Align.right, false);
-            game.font.draw(game.batch, "--- INVENTARIO ---", hudX, 430, 0, com.badlogic.gdx.utils.Align.right, false);
-            game.font.draw(game.batch, "Plantas: " + explorador.getMochila().getPlantas(), hudX, 410, 0,
-                    com.badlogic.gdx.utils.Align.right, false);
-            game.font.draw(game.batch, "Guijarros: " + explorador.getMochila().getGuijarros(), hudX, 390, 0,
-                    com.badlogic.gdx.utils.Align.right, false);
-            game.font.draw(game.batch, "Poké Balls: " + explorador.getMochila().getPokeBalls(), hudX, 370, 0,
-                    com.badlogic.gdx.utils.Align.right, false);
-            game.font.draw(game.batch,
-                    "Carga: " + explorador.getMochila().getEspacioOcupado() + "/"
-                            + explorador.getMochila().getCapacidadMaxima(),
-                    hudX, 340, 0, com.badlogic.gdx.utils.Align.right, false);
+            // Removed Inventory HUD text as requested
+            /*
+             * game.font.draw(game.batch, "EXPLORADOR: " + explorador.getNombre(), hudX,
+             * 460, 0,
+             * com.badlogic.gdx.utils.Align.right, false);
+             * game.font.draw(game.batch, "--- INVENTARIO ---", hudX, 430, 0,
+             * com.badlogic.gdx.utils.Align.right, false);
+             * game.font.draw(game.batch, "Plantas: " +
+             * explorador.getMochila().getPlantas(), hudX, 410, 0,
+             * com.badlogic.gdx.utils.Align.right, false);
+             * game.font.draw(game.batch, "Guijarros: " +
+             * explorador.getMochila().getGuijarros(), hudX, 390, 0,
+             * com.badlogic.gdx.utils.Align.right, false);
+             * game.font.draw(game.batch, "Poké Balls: " +
+             * explorador.getMochila().getPokeBalls(), hudX, 370, 0,
+             * com.badlogic.gdx.utils.Align.right, false);
+             * game.font.draw(game.batch,
+             * "Carga: " + explorador.getMochila().getEspacioOcupado() + "/"
+             * + explorador.getMochila().getCapacidadMaxima(),
+             * hudX, 340, 0, com.badlogic.gdx.utils.Align.right, false);
+             */
             game.font.draw(game.batch, "[I] MENU   [CLICK]   [ESC] SALIR", hudX, 40, 0,
                     com.badlogic.gdx.utils.Align.right, false);
         }
@@ -956,13 +991,19 @@ public class GameScreen extends BaseScreen {
         } else if (isNearHarry && !showDialog) {
             game.font.getData().setScale(0.8f);
             game.font.setColor(Color.YELLOW);
-            game.font.draw(game.batch, "Presiona [E] para hablar con Harry", 300, 100);
+            game.font.draw(game.batch, "Presiona [E] para hablar con Harry Potter", 300, 100);
             game.font.getData().setScale(1.0f);
             game.font.setColor(Color.WHITE);
         } else if (isNearBrenner && !showDialog) {
             game.font.getData().setScale(0.8f);
             game.font.setColor(Color.YELLOW);
             game.font.draw(game.batch, "Presiona [E] para hablar con Dr. Brenner", 300, 100);
+            game.font.getData().setScale(1.0f);
+            game.font.setColor(Color.WHITE);
+        } else if (isNearHarryStyles && !showDialog) {
+            game.font.getData().setScale(0.8f);
+            game.font.setColor(Color.YELLOW);
+            game.font.draw(game.batch, "Presiona [E] para hablar con Harry Styles", 300, 100);
             game.font.getData().setScale(1.0f);
             game.font.setColor(Color.WHITE);
         } else if (isNearLab && !showDialog) {
@@ -1109,6 +1150,10 @@ public class GameScreen extends BaseScreen {
         if (harrySprite != null) {
             game.batch.draw(harrySprite, harryX, harryY, 25, 35);
         }
+        if (harryStylesSprite != null) {
+            // Draw Harry Styles small (25x35)
+            game.batch.draw(harryStylesSprite, harryStylesX, harryStylesY, 25, 35);
+        }
     }
 
     private void drawBrenner() {
@@ -1225,6 +1270,8 @@ public class GameScreen extends BaseScreen {
             feidSprite.dispose();
         if (harrySprite != null)
             harrySprite.dispose();
+        if (harryStylesSprite != null)
+            harryStylesSprite.dispose();
         if (brennerSprite != null)
             brennerSprite.dispose();
         if (labSignTexture != null)
