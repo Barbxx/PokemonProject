@@ -112,9 +112,7 @@ public class PokedexScreen extends BaseScreen {
             game.batch.draw(background, 0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
         }
 
-        // Overlay darkening (Softer to see background details)
-        game.batch.setColor(0, 0, 0, 0.3f);
-        game.batch.draw(whitePixel, 0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
+        // Overlay darkening REMOVED
         game.batch.setColor(Color.WHITE);
 
         // Sin registros text position

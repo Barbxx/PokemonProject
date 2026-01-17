@@ -89,30 +89,59 @@ public class Inventario implements Serializable {
     }
 
     public void añadirObjetoCrafteado(String nombre) {
-        switch (nombre) {
-            case "Heavy Ball":
-                heavyBalls++;
+        agregarItem(nombre, 1);
+    }
+
+    public void agregarItem(String nombre, int cantidad) {
+        if (!puedeAgregar(cantidad)) {
+            System.err.println("Inventario lleno."); // Simple check
+            // For now we proceed as crafting logic often assumes space, or we can just
+            // clamp.
+            // But let's assume if it's crafting result, we ignore strict capacity for now
+            // or clamp.
+        }
+
+        switch (nombre.toLowerCase()) {
+            case "heavy ball":
+            case "heavyball":
+                heavyBalls += cantidad;
                 break;
-            case "Lure":
-                lures++;
+            case "lure":
+                lures += cantidad;
                 break;
-            case "Ungüento Herbal":
-                unguentos++;
+            case "ungüento herbal":
+            case "unguento":
+                unguentos += cantidad;
                 break;
-            case "Elixir":
-                elixires++;
+            case "elixir":
+                elixires += cantidad;
                 break;
-            case "Revivir":
-                revivires++;
+            case "revivir":
+                revivires += cantidad;
                 break;
-            case "Repelente":
-                repelentes++;
+            case "repelente":
+                repelentes += cantidad;
                 break;
-            case "Amuleto":
-                amuletos++;
+            case "amuleto":
+                amuletos += cantidad;
+                break;
+            case "pokeball":
+                pokeBalls += cantidad;
+                break;
+            case "pocion":
+                pociones += cantidad;
+                break;
+            case "guijarro":
+                guijarros += cantidad;
+                break;
+            case "planta":
+                plantas += cantidad;
+                break;
+            case "baya":
+                bayas += cantidad;
                 break;
             default:
-                System.out.println("Item desconocido: " + nombre);
+                System.out.println("Item desconocido para agregar: " + nombre);
                 break;
         }
     }

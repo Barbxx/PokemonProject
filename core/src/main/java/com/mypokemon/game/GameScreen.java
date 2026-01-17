@@ -59,7 +59,6 @@ public class GameScreen extends BaseScreen {
 
     private Explorador explorador;
 
-    // NPC State
     private Texture feidSprite;
     private Texture harrySprite;
     private Texture brennerSprite; // New Brenner Sprite
@@ -387,7 +386,7 @@ public class GameScreen extends BaseScreen {
         // Initialize NPC and UI Assets
         try {
             feidSprite = new Texture(Gdx.files.internal("feidSprite.png"));
-            harrySprite = new Texture(Gdx.files.internal("harrySprite.png"));
+            harrySprite = new Texture(Gdx.files.internal("harryPotterSprite.png"));
             brennerSprite = new Texture(Gdx.files.internal("drBrennerSprite.png")); // Load Brenner sprite for map
             labSignTexture = new Texture(Gdx.files.internal("letreroLaboratorio.png")); // Load Lab Sign
             dialogIconTexture = new Texture(Gdx.files.internal("ferxxoCientifico.png"));
