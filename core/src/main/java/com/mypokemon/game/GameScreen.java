@@ -66,6 +66,7 @@ public class GameScreen extends BaseScreen {
     private Texture labSignTexture; // Lab Sign
     private Texture dialogIconTexture; // Feid default
     private Texture harryPortraitTexture; // Harry default
+    private Texture harryStylesPortraitTexture; // Harry Styles Portrait
     private Texture brennerPortraitTexture; // New Brenner Portrait
     private Texture currentPortrait; // Active portrait
     private Texture dialogFrameTexture;
@@ -402,8 +403,8 @@ public class GameScreen extends BaseScreen {
             labSignTexture = new Texture(Gdx.files.internal("letreroLaboratorio.png")); // Load Lab Sign
             dialogIconTexture = new Texture(Gdx.files.internal("ferxxoCientifico.png"));
             harryPortraitTexture = new Texture(Gdx.files.internal("harry.png"));
+            harryStylesPortraitTexture = new Texture(Gdx.files.internal("harrystyles.png")); // Load specific portrait
             brennerPortraitTexture = new Texture(Gdx.files.internal("drBrenner.png")); // Load Brenner portrait for
-                                                                                       // dialog
                                                                                        // dialog
             dialogFrameTexture = new Texture(Gdx.files.internal("marcoDialogo.png"));
         } catch (Exception e) {
@@ -671,7 +672,7 @@ public class GameScreen extends BaseScreen {
                         currentDialogPage = 0;
                         activeNpcName = "Harry Styles";
                         activeDialogPages = harryStylesDialogPages;
-                        currentPortrait = harryStylesSprite;
+                        currentPortrait = harryStylesPortraitTexture;
                     } else {
                         showDialog = false;
                     }
@@ -1280,6 +1281,8 @@ public class GameScreen extends BaseScreen {
             dialogIconTexture.dispose();
         if (harryPortraitTexture != null)
             harryPortraitTexture.dispose();
+        if (harryStylesPortraitTexture != null)
+            harryStylesPortraitTexture.dispose();
         if (brennerPortraitTexture != null)
             brennerPortraitTexture.dispose();
         if (dialogFrameTexture != null)
