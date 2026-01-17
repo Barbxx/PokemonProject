@@ -213,8 +213,8 @@ public class LaboratorioScreen extends BaseScreen {
                         // Register Pokemon and add to team
                         if (!selectedName.isEmpty()) {
                             Explorador exp = gameScreen.getExplorador();
-                            // Level 5 for starter (standard)
-                            Pokemon p = new Pokemon(selectedName, 5, 0, false, "");
+                            // Level 0 for starter (initial stats and moves only)
+                            Pokemon p = new Pokemon(selectedName, 0, 0, false, "");
 
                             exp.agregarAlEquipo(p);
 

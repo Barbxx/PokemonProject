@@ -767,7 +767,49 @@ public class GameScreen extends BaseScreen {
                                 }
                             }
                         }
-                        if (foundGrass && nivelDificultad >= 1 && nivelDificultad <= 5) {
+
+                        // Check for Boss Encounter
+                        boolean isBoss = false;
+                        String bossName = "";
+
+                        // We need to re-check the current tile for boss properties since the previous
+                        // loop breaks on any 'ZonaEncuentro'
+                        // Actually, let's just use the logic if 'foundGrass' is true, assuming boss
+                        // tiles also have 'ZonaEncuentro' property.
+                        // Or better, let's just check the specific layer/tile properties for the boss
+                        // condition regardless of grass loop structure if needed,
+                        // but sticking to the current structure:
+
+                        if (foundGrass) {
+                            // Check for specific BOSS properties
+                            for (com.badlogic.gdx.maps.MapLayer layer : map.getLayers()) {
+                                if (layer instanceof TiledMapTileLayer) {
+                                    TiledMapTileLayer.Cell cell = ((TiledMapTileLayer) layer).getCell(playerTileX,
+                                            playerTileY);
+                                    if (cell != null && cell.getTile() != null) {
+                                        Object enemigoProp = cell.getTile().getProperties().get("Enemigo");
+                                        Object nivelProp = cell.getTile().getProperties().get("NivelDificultad");
+
+                                        if (enemigoProp != null && "JefeFinal".equals(enemigoProp.toString())) {
+                                            isBoss = true;
+                                            bossName = "Arceus";
+                                        } else if (nivelProp != null && "HitoFinal".equals(nivelProp.toString())) {
+                                            isBoss = true;
+                                            bossName = "Arceus";
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        if (isBoss) {
+                            // Force Encounter with Arceus (100% probability)
+                            inEncounter = true;
+                            Gdx.app.log("GameScreen", "Boss Encounter: " + bossName);
+                            // Arceus created with stats from BasePokemonData (130 HP, moves included)
+                            Pokemon jefe = new Pokemon(bossName, 10, 130, true, "Normal");
+                            game.setScreen(new BattleScreen(game, this, explorador, jefe));
+                        } else if (foundGrass && nivelDificultad >= 1 && nivelDificultad <= 5) {
                             // Check if an encounter happens based on probability
                             if (GestorEncuentros.verificarEncuentro(nivelDificultad)) {
                                 // Check if player has a starter Pokemon

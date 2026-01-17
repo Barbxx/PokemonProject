@@ -17,6 +17,13 @@ public class Movimiento implements Serializable {
     }
 
     public int ejecutar(Pokemon atacante, Pokemon defensor) {
+        // Lógica especial para Recuperación (cura al atacante)
+        if (this.nombre.equals("Recuperación")) {
+            atacante.recuperarSalud(Math.abs(this.poder));
+            // No hace daño al oponente
+            return 0;
+        }
+
         // Verificar si el ataque acierta según la precisión
         if (new Random().nextInt(100) < this.precision) {
             // Verificar inmunidades primero
@@ -25,7 +32,6 @@ public class Movimiento implements Serializable {
             }
 
             // El daño es directamente el poder del ataque
-            // No hay cálculos complejos, solo resta directa de HP
             int daño = this.poder;
 
             // Asegurar que el daño sea al menos 1 si el ataque conecta

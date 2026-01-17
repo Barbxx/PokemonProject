@@ -54,12 +54,15 @@ public class Pokemon implements Serializable {
                 }
             }
 
-            // Si el nivel de investigación es 5 o mayor, desbloquear el movimiento especial
-            if (nivelInvestigacion >= 5 && data.movimientoNivel5 != null && !data.movimientoNivel5.isEmpty()) {
-                AtaqueData ataqueData = AtaqueData.get(data.movimientoNivel5);
-                if (ataqueData != null) {
-                    this.agregarMovimiento(new Movimiento(data.movimientoNivel5, ataqueData.poder, ataqueData.tipo,
-                            ataqueData.precision));
+            // Si el nivel de investigación es 5 o mayor, desbloquear los movimientos
+            // especiales
+            if (nivelInvestigacion >= 5 && data.movimientosNivel5 != null) {
+                for (String movExtra : data.movimientosNivel5) {
+                    AtaqueData ataqueData = AtaqueData.get(movExtra);
+                    if (ataqueData != null) {
+                        this.agregarMovimiento(new Movimiento(movExtra, ataqueData.poder, ataqueData.tipo,
+                                ataqueData.precision));
+                    }
                 }
             }
         }

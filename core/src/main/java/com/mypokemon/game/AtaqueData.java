@@ -28,13 +28,17 @@ public class AtaqueData {
 
     static {
         // Ataques Normales
-        DATABASE.put("Placaje", new AtaqueData("Placaje", 15, "Normal", 100, false, ""));
+        DATABASE.put("Placaje", new AtaqueData("Placaje", 11, "Normal", 100, false, ""));
         DATABASE.put("Arañazo", new AtaqueData("Arañazo", 12, "Normal", 100, false, ""));
         DATABASE.put("Latigazo", new AtaqueData("Latigazo", 10, "Normal", 100, false, ""));
         DATABASE.put("Destructor", new AtaqueData("Destructor", 10, "Normal", 100, false, ""));
-        DATABASE.put("Picotazo", new AtaqueData("Picotazo", 10, "Normal", 100, false, ""));
+        DATABASE.put("Picotazo", new AtaqueData("Picotazo", 11, "Normal", 100, false, ""));
         DATABASE.put("At. Rápido", new AtaqueData("At. Rápido", 16, "Normal", 100, false, ""));
-        DATABASE.put("Falsotortazo", new AtaqueData("Falsotortazo", 14, "Normal", 100, false, ""));
+        DATABASE.put("Falsotortazo", new AtaqueData("Falsotortazo", 12, "Normal", 100, false, ""));
+        DATABASE.put("Sentencia", new AtaqueData("Sentencia", 17, "Normal", 100, false, ""));
+        DATABASE.put("Paz Mental", new AtaqueData("Paz Mental", 14, "Normal", 100, false, ""));
+        DATABASE.put("Recuperación", new AtaqueData("Recuperación", 15, "Normal", 100, true, "Recupera HP"));
+        DATABASE.put("Hiperrayo", new AtaqueData("Hiperrayo", 13, "Normal", 90, false, ""));
 
         // Ataques Psíquicos
         DATABASE.put("Confusión", new AtaqueData("Confusión", 18, "Psíquico", 100, false, ""));
@@ -47,21 +51,22 @@ public class AtaqueData {
 
         // Ataques de Fuego
         DATABASE.put("Ascuas", new AtaqueData("Ascuas", 15, "Fuego", 100, false, ""));
-        DATABASE.put("Rueda Fuego", new AtaqueData("Rueda Fuego", 22, "Fuego", 100, false, ""));
+        DATABASE.put("Rueda Fuego", new AtaqueData("Rueda Fuego", 13, "Fuego", 100, false, ""));
+        DATABASE.put("Humareda", new AtaqueData("Humareda", 17, "Fuego", 100, false, ""));
 
         // Ataques de Bicho
         DATABASE.put("Aire Afilado", new AtaqueData("Aire Afilado", 20, "Volador", 95, false, ""));
 
         // Ataques de Fantasma
-        DATABASE.put("Impresionar", new AtaqueData("Impresionar", 12, "Fantasma", 100, false, ""));
+        DATABASE.put("Impresionar", new AtaqueData("Impresionar", 10, "Fantasma", 100, false, ""));
         DATABASE.put("Polución", new AtaqueData("Polución", 15, "Veneno", 100, false, ""));
         DATABASE.put("Infortunio", new AtaqueData("Infortunio", 25, "Fantasma", 100, false, ""));
         DATABASE.put("Rencor", new AtaqueData("Rencor", 18, "Fantasma", 100, false, ""));
         DATABASE.put("Sombra Vil", new AtaqueData("Sombra Vil", 16, "Fantasma", 100, false, ""));
 
         // Ataques de Agua
-        DATABASE.put("Burbuja", new AtaqueData("Burbuja", 12, "Agua", 100, false, ""));
-        DATABASE.put("Aqua Jet", new AtaqueData("Aqua Jet", 18, "Agua", 100, false, ""));
+        DATABASE.put("Burbuja", new AtaqueData("Burbuja", 10, "Agua", 100, false, ""));
+        DATABASE.put("Aqua Jet", new AtaqueData("Aqua Jet", 16, "Agua", 100, false, ""));
 
         // Ataques de Dragón
         DATABASE.put("Ácido", new AtaqueData("Ácido", 12, "Veneno", 100, false, ""));
@@ -74,6 +79,8 @@ public class AtaqueData {
 
         // Ataques de Planta
         DATABASE.put("H. Afilada", new AtaqueData("H. Afilada", 18, "Planta", 100, false, ""));
+        DATABASE.put("Hoja Afilada", new AtaqueData("Hoja Afilada", 16, "Planta", 100, false, ""));
+        DATABASE.put("Follaje", new AtaqueData("Follaje", 14, "Planta", 100, false, ""));
 
         // Ataques de Veneno/Siniestro
         DATABASE.put("Púas Tóxicas", new AtaqueData("Púas Tóxicas", 0, "Veneno", 100, true, "Envenena al objetivo"));

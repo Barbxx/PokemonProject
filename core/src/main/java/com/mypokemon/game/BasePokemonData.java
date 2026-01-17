@@ -31,7 +31,7 @@ public class BasePokemonData {
 
         public String tipo;
         public String[] movimientosIniciales; // Movimientos disponibles desde Nivel 0
-        public String movimientoNivel5; // Movimiento desbloqueado en Nivel 5
+        public String[] movimientosNivel5; // Movimientos desbloqueados en Nivel 5+
         public String[] inmunidades;
 
         // Para el sistema de investigación
@@ -40,7 +40,7 @@ public class BasePokemonData {
         public BasePokemonData(String nombre, String descripcion,
                         int ps0, int atq0, int def0, int ate0, int dfe0, int vel0,
                         int psB, int atqB, int defB, int ateB, int dfeB, int velB,
-                        String tipo, String[] movIniciales, String movNivel5, String[] inmunidades) {
+                        String tipo, String[] movIniciales, String[] movNivel5, String[] inmunidades) {
                 this.nombre = nombre;
                 this.descripcion = descripcion;
                 this.psNivel0 = ps0;
@@ -57,7 +57,7 @@ public class BasePokemonData {
                 this.velBonus = velB;
                 this.tipo = tipo;
                 this.movimientosIniciales = movIniciales;
-                this.movimientoNivel5 = movNivel5;
+                this.movimientosNivel5 = movNivel5;
                 this.inmunidades = inmunidades;
         }
 
@@ -73,7 +73,7 @@ public class BasePokemonData {
                                 9, 9, 0, 0, 0, 9,
                                 "Normal / Psíquico",
                                 new String[] { "Placaje", "Confusión" },
-                                "Hipnosis",
+                                new String[] { "Hipnosis" },
                                 new String[] { "Fantasma" }));
 
                 DATABASE.put("Pichu", new BasePokemonData(
@@ -83,7 +83,7 @@ public class BasePokemonData {
                                 5, 5, 0, 0, 0, 5,
                                 "Eléctrico",
                                 new String[] { "Impactrueno", "Latigazo" },
-                                "Onda Trueno",
+                                new String[] { "Onda Trueno" },
                                 new String[] {}));
 
                 DATABASE.put("Mime Jr.", new BasePokemonData(
@@ -93,7 +93,7 @@ public class BasePokemonData {
                                 5, 0, 5, 0, 0, 5,
                                 "Psíquico / Hada",
                                 new String[] { "Confusión", "Copión" },
-                                "Hipnosis",
+                                new String[] { "Hipnosis" },
                                 new String[] {}));
 
                 DATABASE.put("Chimchar", new BasePokemonData(
@@ -103,7 +103,7 @@ public class BasePokemonData {
                                 5, 5, 0, 0, 0, 5,
                                 "Fuego",
                                 new String[] { "Arañazo", "Ascuas" },
-                                "Rueda Fuego",
+                                new String[] { "Rueda Fuego" },
                                 new String[] {}));
 
                 DATABASE.put("Scyther", new BasePokemonData(
@@ -113,7 +113,7 @@ public class BasePokemonData {
                                 9, 9, 0, 0, 0, 9,
                                 "Bicho / Volador",
                                 new String[] { "At. Rápido", "Falsotortazo" },
-                                "Aire Afilado",
+                                new String[] { "Aire Afilado" },
                                 new String[] { "Tierra" }));
 
                 // ZONA 2 (Nivel de Dificultad 2)
@@ -125,7 +125,7 @@ public class BasePokemonData {
                                 5, 0, 0, 9, 0, 9,
                                 "Fantasma / Veneno",
                                 new String[] { "Impresionar", "Polución" },
-                                "Infortunio",
+                                new String[] { "Infortunio" },
                                 new String[] { "Normal", "Lucha" }));
 
                 DATABASE.put("Goomy", new BasePokemonData(
@@ -135,7 +135,7 @@ public class BasePokemonData {
                                 5, 0, 0, 0, 9, 5,
                                 "Dragón",
                                 new String[] { "Burbuja", "Ácido" },
-                                "Absorber",
+                                new String[] { "Absorber" },
                                 new String[] {}));
 
                 DATABASE.put("Togepi", new BasePokemonData(
@@ -145,7 +145,7 @@ public class BasePokemonData {
                                 5, 0, 5, 0, 0, 5,
                                 "Hada",
                                 new String[] { "Picotazo", "Beso Drenaje" },
-                                "Dulce Aroma",
+                                new String[] { "Dulce Aroma" },
                                 new String[] { "Dragón" }));
 
                 DATABASE.put("Turtwig", new BasePokemonData(
@@ -155,7 +155,7 @@ public class BasePokemonData {
                                 5, 5, 5, 0, 0, 0,
                                 "Planta",
                                 new String[] { "Placaje", "H. Afilada" },
-                                "Refugio",
+                                new String[] { "Refugio" },
                                 new String[] {}));
 
                 // ZONA 3 (Nivel de Dificultad 3)
@@ -167,7 +167,7 @@ public class BasePokemonData {
                                 5, 9, 0, 0, 0, 5,
                                 "Fuego / Roca",
                                 new String[] { "Placaje", "Ascuas" },
-                                "Mordisco",
+                                new String[] { "Mordisco" },
                                 new String[] {}));
 
                 DATABASE.put("Qwilfish H.", new BasePokemonData(
@@ -177,7 +177,7 @@ public class BasePokemonData {
                                 5, 9, 9, 0, 0, 0,
                                 "Siniestro / Veneno",
                                 new String[] { "Picotazo", "P. Tóxicas" },
-                                "Pin Misil",
+                                new String[] { "Pin Misil" },
                                 new String[] { "Psíquico" }));
 
                 DATABASE.put("Piplup", new BasePokemonData(
@@ -187,7 +187,7 @@ public class BasePokemonData {
                                 5, 0, 0, 9, 0, 5,
                                 "Agua",
                                 new String[] { "Burbuja", "Destructor" },
-                                "Gruñido",
+                                new String[] { "Gruñido" },
                                 new String[] {}));
 
                 DATABASE.put("Basculin Red-Striped", new BasePokemonData(
@@ -197,7 +197,7 @@ public class BasePokemonData {
                                 9, 9, 0, 0, 0, 9,
                                 "Agua",
                                 new String[] { "Placaje", "Aqua Jet" },
-                                "Burbuja",
+                                new String[] { "Burbuja" },
                                 new String[] {}));
 
                 // ZONA 4 (Nivel de Dificultad 4)
@@ -209,7 +209,7 @@ public class BasePokemonData {
                                 5, 9, 0, 0, 0, 9,
                                 "Lucha / Veneno",
                                 new String[] { "Arañazo", "Gas Venenoso" },
-                                "Mofa",
+                                new String[] { "Mofa" },
                                 new String[] {}));
 
                 DATABASE.put("Gible", new BasePokemonData(
@@ -219,7 +219,7 @@ public class BasePokemonData {
                                 5, 9, 0, 0, 0, 5,
                                 "Dragón / Tierra",
                                 new String[] { "Placaje", "Dragoaliento" },
-                                "Arena Arena",
+                                new String[] { "Arena Arena" },
                                 new String[] { "Eléctrico" }));
 
                 DATABASE.put("Voltorb H.", new BasePokemonData(
@@ -229,7 +229,7 @@ public class BasePokemonData {
                                 5, 0, 0, 5, 0, 9,
                                 "Eléctrico / Planta",
                                 new String[] { "Trueno", "Carga" },
-                                "Chispa",
+                                new String[] { "Chispa" },
                                 new String[] {}));
 
                 DATABASE.put("Cleffa", new BasePokemonData(
@@ -239,7 +239,7 @@ public class BasePokemonData {
                                 5, 0, 0, 0, 5, 5,
                                 "Hada",
                                 new String[] { "Destructor", "B. Drenaje" },
-                                "Encanto",
+                                new String[] { "Encanto" },
                                 new String[] { "Dragón" }));
 
                 // ZONA 5 (Nivel de Dificultad 5)
@@ -251,7 +251,7 @@ public class BasePokemonData {
                                 5, 5, 9, 0, 0, 0,
                                 "Hielo",
                                 new String[] { "Placaje", "Polvo Nieve" },
-                                "Fortaleza",
+                                new String[] { "Fortaleza" },
                                 new String[] {}));
 
                 DATABASE.put("Snorunt", new BasePokemonData(
@@ -261,7 +261,7 @@ public class BasePokemonData {
                                 5, 5, 0, 0, 0, 5,
                                 "Hielo",
                                 new String[] { "Polvo Nieve", "Impresionar" },
-                                "Mordisco",
+                                new String[] { "Mordisco" },
                                 new String[] {}));
 
                 DATABASE.put("Zorua H.", new BasePokemonData(
@@ -271,18 +271,35 @@ public class BasePokemonData {
                                 5, 0, 0, 9, 0, 9,
                                 "Normal / Fantasma",
                                 new String[] { "Arañazo", "Rencor" },
-                                "Sombra Vil",
+                                new String[] { "Sombra Vil" },
                                 new String[] { "Normal", "Lucha" }));
 
                 // STARTERS (Adicionales si no están en la lista)
                 DATABASE.put("Rowlet",
-                                new BasePokemonData("Rowlet", "Lanza plumas afiladas.", 68, 55, 55, 50, 50, 42, 5, 5, 0,
-                                                0, 0, 5, "Planta / Volador", new String[] { "Placaje" }, "H. Afilada",
-                                                new String[] {}));
-                DATABASE.put("Cyndaquil", new BasePokemonData("Cyndaquil", "Tímido pero fogoso.", 39, 52, 43, 60, 50,
-                                65, 5, 5, 0, 0, 0, 5, "Fuego", new String[] { "Placaje" }, "Ascuas", new String[] {}));
-                DATABASE.put("Oshawott", new BasePokemonData("Oshawott", "Lucha con su concha.", 55, 55, 45, 63, 45, 45,
-                                5, 5, 0, 0, 0, 5, "Agua", new String[] { "Placaje" }, "Burbuja", new String[] {}));
+                                new BasePokemonData("Rowlet", "Lanza plumas afiladas.", 45, 55, 55, 50, 50, 42, 15, 5,
+                                                0,
+                                                0, 0, 5, "Planta / Volador",
+                                                new String[] { "Picotazo", "Follaje" },
+                                                new String[] { "Impresionar", "Hoja Afilada" },
+                                                new String[] { "Fuego", "Hielo", "Roca" }));
+
+                DATABASE.put("Cyndaquil", new BasePokemonData("Cyndaquil", "Tímido pero fogoso.", 40, 52, 43, 60, 50,
+                                65, 20, 5, 0, 0, 0, 5, "Fuego",
+                                new String[] { "Placaje", "Ascuas" },
+                                new String[] { "Humareda", "Rueda Fuego" },
+                                new String[] { "Agua", "Tierra", "Roca" }));
+
+                DATABASE.put("Oshawott", new BasePokemonData("Oshawott", "Lucha con su concha.", 45, 55, 45, 63, 45, 45,
+                                22, 5, 0, 0, 0, 5, "Agua",
+                                new String[] { "Placaje", "Burbuja" },
+                                new String[] { "Aqua Jet", "Falsotortazo" },
+                                new String[] { "Planta", "Eléctrico" }));
+
+                DATABASE.put("Arceus", new BasePokemonData("Arceus", "El Pokémon Alfa.", 130, 120, 120, 120, 120, 120,
+                                0, 0, 0, 0, 0, 0, "Normal",
+                                new String[] { "Sentencia", "Paz Mental" },
+                                new String[] { "Recuperación", "Hiperrayo" },
+                                new String[] { "Lucha" }));
         }
 
         public static BasePokemonData get(String nombre) {
