@@ -402,8 +402,8 @@ public class GameScreen extends BaseScreen {
             brennerSprite = new Texture(Gdx.files.internal("drBrennerSprite.png")); // Load Brenner sprite for map
             labSignTexture = new Texture(Gdx.files.internal("letreroLaboratorio.png")); // Load Lab Sign
             dialogIconTexture = new Texture(Gdx.files.internal("ferxxoCientifico.png"));
-            harryPortraitTexture = new Texture(Gdx.files.internal("harry.png"));
-            harryStylesPortraitTexture = new Texture(Gdx.files.internal("harrystyles.png")); // Load specific portrait
+            harryPortraitTexture = new Texture(Gdx.files.internal("harryPotter.png"));
+            harryStylesPortraitTexture = new Texture(Gdx.files.internal("harryStyles.png")); // Load specific portrait
             brennerPortraitTexture = new Texture(Gdx.files.internal("drBrenner.png")); // Load Brenner portrait for
                                                                                        // dialog
             dialogFrameTexture = new Texture(Gdx.files.internal("marcoDialogo.png"));
@@ -419,8 +419,8 @@ public class GameScreen extends BaseScreen {
         feidY = posY - 20;
 
         // Place Harry much further to the right and up
-        harryX = posX + 1600;
-        harryY = posY + 250;
+        harryX = posX + 2100;
+        harryY = posY + 900;
 
         // Place Harry Styles (distinct location, maybe near Feid for visibility)
         harryStylesX = posX + 1110;
