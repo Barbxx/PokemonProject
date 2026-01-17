@@ -742,13 +742,20 @@ public class GameScreen extends BaseScreen {
                             }
                         }
                         if (foundGrass && nivelDificultad >= 1 && nivelDificultad <= 5) {
+                            // Check if an encounter happens based on probability
                             if (GestorEncuentros.verificarEncuentro(nivelDificultad)) {
-                                inEncounter = true;
-                                String pName = GestorEncuentros.obtenerPokemonAleatorio(nivelDificultad);
-                                Gdx.app.log("GameScreen", "Encounter: " + pName);
-                                Pokemon salvaje = new Pokemon(pName, 0, 0, false, "Normal");
-                                salvaje.agregarMovimiento(new Movimiento("Tackle", 0, "Normal", 40));
-                                game.setScreen(new BattleScreen(game, this, explorador, salvaje));
+                                // Check if player has a starter Pokemon
+                                if (explorador.getEquipo().isEmpty()) {
+                                    notificationMessage = "Debes pasar por el laboratorio primero";
+                                    notificationTimer = NOTIFICATION_DURATION;
+                                } else {
+                                    inEncounter = true;
+                                    String pName = GestorEncuentros.obtenerPokemonAleatorio(nivelDificultad);
+                                    Gdx.app.log("GameScreen", "Encounter: " + pName);
+                                    Pokemon salvaje = new Pokemon(pName, 0, 0, false, "Normal");
+                                    salvaje.agregarMovimiento(new Movimiento("Tackle", 0, "Normal", 40));
+                                    game.setScreen(new BattleScreen(game, this, explorador, salvaje));
+                                }
                             }
                         }
                         if (!foundGrass) {
