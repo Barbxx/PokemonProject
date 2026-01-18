@@ -43,12 +43,32 @@ public class PartidasScreen extends BaseScreen {
         float screenWidth = Gdx.graphics.getWidth();
         float screenHeight = Gdx.graphics.getHeight();
 
+        // Geometry Calculations
+        float panelW = 600;
+        float panelH = 350;
+        float panelX = (screenWidth - panelW) / 2;
+        float panelY = (screenHeight - panelH) / 2 - 50;
+
+        float btnW = 120;
+        float btnH = 40;
+        float btnY = panelY + 20;
+        float btnPlayX = panelX + (panelW / 2) - btnW - 20;
+        float btnDelX = panelX + (panelW / 2) + 20;
+
+        float listStartY = panelY + panelH - 100;
+        float spacing = 35;
+
+        // Mouse Input
+        float mouseX = Gdx.input.getX();
+        float mouseY = screenHeight - Gdx.input.getY(); // World Y
+        boolean clicked = Gdx.input.isButtonJustPressed(Input.Buttons.LEFT);
+
         // Input Handling
         if (saveFiles.length > 0) {
             String gameNameForLogic = saveFiles[selectedIndex].name().replace("_save.dat", "");
 
             if (!selectingAction) {
-                // FILE SELECTION PHASE
+                // FILE SELECTION PHASE (Keyboard)
                 if (Gdx.input.isKeyJustPressed(Input.Keys.UP) || Gdx.input.isKeyJustPressed(Input.Keys.W)) {
                     selectedIndex--;
                     if (selectedIndex < 0)
@@ -58,6 +78,25 @@ public class PartidasScreen extends BaseScreen {
                     selectedIndex++;
                     if (selectedIndex >= saveFiles.length)
                         selectedIndex = 0;
+                }
+
+                // MOUSE SELECTION PHASE (List Items)
+                int maxItems = 7;
+                int startIdx = Math.max(0, Math.min(selectedIndex - 3, saveFiles.length - maxItems));
+                int endIdx = Math.min(saveFiles.length, startIdx + maxItems);
+
+                for (int i = startIdx; i < endIdx; i++) {
+                    float itemY = listStartY - ((i - startIdx) * spacing);
+                    // Check bounds (approx width for text)
+                    if (mouseX >= panelX && mouseX <= panelX + panelW &&
+                            mouseY >= itemY - spacing / 2 && mouseY <= itemY + spacing / 2) {
+
+                        if (clicked) {
+                            selectedIndex = i;
+                            selectingAction = true;
+                            actionIndex = 0; // Default to Play
+                        }
+                    }
                 }
 
                 if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
@@ -73,11 +112,47 @@ public class PartidasScreen extends BaseScreen {
                     actionIndex = 1; // Delete
                 }
 
+                // Mouse over Left Button (JUGAR)
+                if (mouseX >= btnPlayX && mouseX <= btnPlayX + btnW &&
+                        mouseY >= btnY && mouseY <= btnY + btnH) {
+                    if (clicked) {
+                        actionIndex = 0;
+                        // Execute immediately
+                    } else {
+                        // Optional: Hover effect logic just by setting actionIndex?
+                        // Ideally we want to just select it if the user moves mouse there.
+                        // But for now let's just create a click trigger below.
+                    }
+                }
+
+                // Mouse over Right Button (BORRAR)
+                if (mouseX >= btnDelX && mouseX <= btnDelX + btnW &&
+                        mouseY >= btnY && mouseY <= btnY + btnH) {
+                    if (clicked) {
+                        actionIndex = 1;
+                    }
+                }
+
                 if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
                     selectingAction = false;
                 }
 
-                if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
+                // Execute Logic (Join Key Enter and Mouse Click)
+                boolean actionTriggered = Gdx.input.isKeyJustPressed(Input.Keys.ENTER);
+
+                // Check clicks on buttons again for Trigger
+                if (clicked) {
+                    if (mouseX >= btnPlayX && mouseX <= btnPlayX + btnW && mouseY >= btnY && mouseY <= btnY + btnH) {
+                        actionIndex = 0;
+                        actionTriggered = true;
+                    }
+                    if (mouseX >= btnDelX && mouseX <= btnDelX + btnW && mouseY >= btnY && mouseY <= btnY + btnH) {
+                        actionIndex = 1;
+                        actionTriggered = true;
+                    }
+                }
+
+                if (actionTriggered) {
                     if (actionIndex == 0) {
                         // PLAY
                         FileHandle selectedFile = saveFiles[selectedIndex];
@@ -132,17 +207,12 @@ public class PartidasScreen extends BaseScreen {
         game.batch.end();
 
         // Draw UI Panel (Glassmorphism / Dark Box)
-        Gdx.gl.glEnable(Gdx.gl.GL_BLEND);
-        Gdx.gl.glBlendFunc(Gdx.gl.GL_SRC_ALPHA, Gdx.gl.GL_ONE_MINUS_SRC_ALPHA);
+        Gdx.gl.glEnable(com.badlogic.gdx.graphics.GL20.GL_BLEND);
+        Gdx.gl.glBlendFunc(com.badlogic.gdx.graphics.GL20.GL_SRC_ALPHA,
+                com.badlogic.gdx.graphics.GL20.GL_ONE_MINUS_SRC_ALPHA);
 
         shapeRenderer.setProjectionMatrix(game.batch.getProjectionMatrix());
         shapeRenderer.begin(com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType.Filled);
-
-        // Panel Dimensions
-        float panelW = 600;
-        float panelH = 350;
-        float panelX = (screenWidth - panelW) / 2;
-        float panelY = (screenHeight - panelH) / 2 - 50;
 
         // Shadow/Border
         shapeRenderer.setColor(0f, 0f, 0f, 0.5f);
@@ -158,12 +228,7 @@ public class PartidasScreen extends BaseScreen {
 
         // Action Buttons Backgrounds (Visual cues)
         if (saveFiles.length > 0) {
-            float btnW = 120;
-            float btnH = 40;
-            float btnY = panelY + 20;
-
             // Jugar Btn (Left)
-            float btnPlayX = panelX + (panelW / 2) - btnW - 20;
             if (selectingAction && actionIndex == 0)
                 shapeRenderer.setColor(0.8f, 0.8f, 0.2f, 1f); // Active Yellow
             else
@@ -171,7 +236,6 @@ public class PartidasScreen extends BaseScreen {
             shapeRenderer.rect(btnPlayX, btnY, btnW, btnH);
 
             // Borrar Btn (Right)
-            float btnDelX = panelX + (panelW / 2) + 20;
             if (selectingAction && actionIndex == 1)
                 shapeRenderer.setColor(0.8f, 0.2f, 0.2f, 1f); // Active Red
             else
@@ -180,7 +244,7 @@ public class PartidasScreen extends BaseScreen {
         }
 
         shapeRenderer.end();
-        Gdx.gl.glDisable(Gdx.gl.GL_BLEND);
+        Gdx.gl.glDisable(com.badlogic.gdx.graphics.GL20.GL_BLEND);
 
         // Draw Text
         game.batch.begin();
@@ -194,8 +258,6 @@ public class PartidasScreen extends BaseScreen {
 
         // List
         game.font.getData().setScale(1.1f);
-        float listStartY = panelY + panelH - 100;
-        float spacing = 35;
 
         if (saveFiles.length == 0) {
             game.font.setColor(Color.GRAY);
@@ -238,11 +300,6 @@ public class PartidasScreen extends BaseScreen {
 
             // Draw Button Labels
             game.font.getData().setScale(1.0f);
-            float btnW = 120;
-            // Recalculate positions to match rects
-            float btnY = panelY + 20;
-            float btnPlayX = panelX + (panelW / 2) - btnW - 20;
-            float btnDelX = panelX + (panelW / 2) + 20;
 
             // JUGAR Text
             game.font.setColor(Color.WHITE);
