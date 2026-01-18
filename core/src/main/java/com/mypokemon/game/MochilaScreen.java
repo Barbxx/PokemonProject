@@ -332,15 +332,31 @@ public class MochilaScreen extends BaseScreen {
         handleGridNavigation();
 
         // Select Item to Open Menu
-        if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER) || Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
-            // Check if clicked ON a valid item
+        if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
+            // Keep ENTER shortcut
             if (indexSeleccionado < visibleItems.size() && selectedIndex < 3) {
-                // Open Options
                 selectedItemForAction = visibleItems.get(indexSeleccionado);
                 openOptionsMenu(selectedItemForAction);
-            } else if (selectedIndex == 3) {
-                // Pokemon Tab - Maybe show details? For now nothing specific requested for
-                // clicking Pokemon directly
+            }
+        }
+
+        // Mouse Check for "OPCIONES" button
+        // Coordinates must match dibujarExplicacion
+        float btnX = 100;
+        float btnY = 220;
+        float btnW = 150;
+        float btnH = 40;
+
+        if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
+            // Check if clicking Item Grid
+            // (Existing select logic via hover handles selection, so we just check if we
+            // clicked options)
+            if (mousePos.x >= btnX && mousePos.x <= btnX + btnW &&
+                    mousePos.y >= btnY && mousePos.y <= btnY + btnH) {
+                if (indexSeleccionado < visibleItems.size() && selectedIndex < 3) {
+                    selectedItemForAction = visibleItems.get(indexSeleccionado);
+                    openOptionsMenu(selectedItemForAction);
+                }
             }
         }
     }
@@ -420,41 +436,33 @@ public class MochilaScreen extends BaseScreen {
         currentOptions.clear();
         String name = item.nombre;
 
-        if (name.equals("Planta Medicinal")) {
-            currentOptions.add("Ver recetas");
-            currentOptions.add("Tirar");
-        } else if (name.equals("Baya Aranja")) {
-            currentOptions.add("Curar");
-            currentOptions.add("Ver recetas");
-            currentOptions.add("Tirar");
-        } else if (name.equals("Guijarro")) {
-            currentOptions.add("Ver recetas");
-            currentOptions.add("Tirar");
-        } else if (name.equals("Poké Ball") || name.equals("Poké Ball de Peso")) {
+        if (name.equals("Poké Ball") || name.equals("Poké Ball de Peso")) {
             currentOptions.add("Lanzar");
-            currentOptions.add("Información");
             currentOptions.add("Tirar");
-        } else if (name.equals("Poción Herbal")) {
+        } else if (name.equals("Baya Aranja") || name.equals("Poción Herbal")) {
             currentOptions.add("Curar");
-            currentOptions.add("Tirar");
-        } else if (name.equals("Elíxir de Energía")) {
-            currentOptions.add("Restaurar movimiento"); // Complex
             currentOptions.add("Tirar");
         } else if (name.equals("Revivir Casero")) {
             currentOptions.add("Revivir");
             currentOptions.add("Tirar");
-        } else if (name.equals("Repelente Orgánico")) {
-            currentOptions.add("Aplicar");
+        } else if (name.equals("Elíxir de Piel de Piedra")) {
+            currentOptions.add("Usar");
             currentOptions.add("Tirar");
-        } else if (name.equals("Amuleto de la Suerte")) {
-            currentOptions.add("Activar");
-            currentOptions.add("Tirar");
-        } else if (name.equals("Cebo de Bayas (Lure)")) {
+        } else if (name.equals("Reproductor de música")) {
             currentOptions.add("Encender");
+            currentOptions.add("Tirar");
+        } else if (name.equals("Guante de reflejo cuarcítico")) {
+            currentOptions.add("Equipar");
+            currentOptions.add("Tirar");
+        } else if (name.equals("Frijol mágico")) {
+            currentOptions.add("Comer");
             currentOptions.add("Tirar");
         } else {
             currentOptions.add("Tirar");
         }
+
+        // Always add "Información" (Ver Info)
+        currentOptions.add("Información");
 
         selectedOptionIndex = 0;
         currentState = InventoryState.OPTIONS_MENU;
@@ -484,29 +492,29 @@ public class MochilaScreen extends BaseScreen {
             currentActionType = "REVIVIR";
             currentState = InventoryState.SELECT_POKEMON_TARGET;
 
-        } else if (option.equals("Restaurar movimiento")) {
-            // For now, simple consume & message as full move restore implementation reqs
-            // Move Select UI
-            // Or we just restore ALL moves PP? User said "me muestre una lista"
-            // PROVISIONAL: Restore all or simple message to satisfy "Restaurar" logic
-            // But let's try to select Pokemon first
+        } else if (option.equals("Restaurar movimiento") || option.equals("Usar")) {
             currentActionType = "RESTAURAR";
             currentState = InventoryState.SELECT_POKEMON_TARGET;
 
-        } else if (option.equals("Aplicar")) {
-            // Logic for Repelente
+        } else if (option.equals("Aplicar")
+                || (option.equals("Encender") && selectedItemForAction.nombre.contains("Reproductor"))) {
             if (explorador.getMochila().consumirItem("repelente", 1)) {
-                showFeedback("Repelente ACTIVO");
+                showFeedback("Música de fondo ACTIVADA");
                 updateVisibleItems();
                 currentState = InventoryState.BROWSING;
             }
-        } else if (option.equals("Activar")) {
+        } else if (option.equals("Activar") || option.equals("Equipar")) {
             if (explorador.getMochila().consumirItem("amuleto", 1)) {
-                showFeedback("Amuleto ACTIVO");
+                showFeedback("Guante EQUIPADO");
                 updateVisibleItems();
                 currentState = InventoryState.BROWSING;
             }
-        } else if (option.equals("Encender")) {
+        } else if (option.equals("Comer")) {
+            currentActionType = "CURAR_FULL";
+            currentState = InventoryState.SELECT_POKEMON_TARGET;
+
+        } else if (option.equals("Encender") && selectedItemForAction.nombre.contains("Cebo")) {
+            // Legacy fallback if needed, but Frijol is "Comer"
             if (explorador.getMochila().consumirItem("lure", 1)) {
                 showFeedback("Cebo ENCENDIDO");
                 updateVisibleItems();
@@ -560,16 +568,18 @@ public class MochilaScreen extends BaseScreen {
                 showFeedback("No está debilitado.");
             }
         } else if (currentActionType.equals("RESTAURAR")) {
-            // Simple implementation: Restore PP (not tracked currently?) or just show
-            // message
-            // Since Move class doesn't track PP in the provided snippet (it has power,
-            // precision),
-            // We will assume it fully restores "usage" (if there was a limit).
-            // User prompt: "Restaura el uso de un movimiento potente que se haya agotado"
-            // We'll just display success for now as we lack PP logic in Pokemon.java view
             explorador.getMochila().consumirItem("elixir", 1);
-            showFeedback("Energía restaurada a " + p.getNombre());
+            showFeedback("Ataque subió +3 (Efecto visual)");
             success = true;
+        } else if (currentActionType.equals("CURAR_FULL")) {
+            if (p.getHpActual() < p.getHpMaximo() && !p.isDebilitado()) {
+                p.recuperarSalud(p.getHpMaximo());
+                explorador.getMochila().consumirItem("lure", 1);
+                showFeedback("¡HP restaurado al 100%!");
+                success = true;
+            } else {
+                showFeedback("No tiene efecto.");
+            }
         }
 
         if (success || !currentActionType.isEmpty()) {
@@ -591,14 +601,13 @@ public class MochilaScreen extends BaseScreen {
         } else if (itemName.equals("Guijarro")) {
             currentRecipesToShow.add("Poké Ball - 3 Guijarros");
             currentRecipesToShow.add("Poké Ball de Peso - 5 Guijarros");
-            currentRecipesToShow.add("Elíxir de Energía - 2 Guijarros");
+            currentRecipesToShow.add("Elíxir de Piel de Piedra - 7 Guijarros");
             currentRecipesToShow.add("Revivir Casero - 1 Guijarro");
-            currentRecipesToShow.add("Amuleto de la Suerte - 10 Guijarros");
+            currentRecipesToShow.add("Guante de reflejo - 13 Guijarros");
         } else if (itemName.equals("Baya Aranja")) {
             currentRecipesToShow.add("Poción Herbal - 1 Baya");
-            currentRecipesToShow.add("Elíxir de Energía - 2 Bayas");
+            currentRecipesToShow.add("Reproductor de música - 1 Baya");
             currentRecipesToShow.add("Revivir Casero - 5 Bayas");
-            currentRecipesToShow.add("Cebo de Bayas - 3 Bayas");
         }
     }
 
@@ -642,15 +651,15 @@ public class MochilaScreen extends BaseScreen {
             return "heavyball";
         if (display.equals("Poción Herbal"))
             return "unguento";
-        if (display.equals("Elíxir de Energía"))
+        if (display.equals("Elíxir de Piel de Piedra"))
             return "elixir";
         if (display.equals("Revivir Casero"))
             return "revivir";
-        if (display.equals("Repelente Orgánico"))
+        if (display.equals("Reproductor de música"))
             return "repelente";
-        if (display.equals("Amuleto de la Suerte"))
+        if (display.equals("Guante de reflejo cuarcítico"))
             return "amuleto";
-        if (display.equals("Cebo de Bayas (Lure)"))
+        if (display.equals("Frijol mágico"))
             return "lure";
         return display.toLowerCase();
     }
@@ -708,10 +717,13 @@ public class MochilaScreen extends BaseScreen {
             if (textureFondoSlot != null) {
                 batch.draw(textureFondoSlot, x, y, size, size);
             }
-            // Selection Highlight
+            // Selection Highlight (Border Only)
             if (i == indexSeleccionado && whitePixel != null) {
                 batch.setColor(Color.YELLOW);
-                batch.draw(whitePixel, x - 2, y - 2, size + 4, size + 4);
+                batch.draw(whitePixel, x, y, size, 4); // Bottom
+                batch.draw(whitePixel, x, y + size - 4, size, 4); // Top
+                batch.draw(whitePixel, x, y, 4, size); // Left
+                batch.draw(whitePixel, x + size - 4, y, 4, size); // Right
                 batch.setColor(Color.WHITE);
             }
         }
@@ -775,33 +787,40 @@ public class MochilaScreen extends BaseScreen {
     }
 
     private void drawOptionsMenu(com.badlogic.gdx.graphics.g2d.SpriteBatch batch) {
-        float mx = 50;
-        float my = VIRTUAL_HEIGHT - 150;
+        // Pop-up Menu Style
+        // Position it near the Options button (approx 100, 220)
+        float mx = 100;
+        float my = 220; // Bottom of the menu
         float mw = 250;
-        float mh = 50;
+        float mh = 40;
 
-        game.font.setColor(Color.CYAN);
-        game.font.draw(batch, selectedItemForAction.nombre.toUpperCase(), mx, my + 40);
-        game.font.setColor(Color.WHITE);
+        // Draw Menu Background
+        float totalH = currentOptions.size() * mh + 10;
+        batch.setColor(Color.BLACK);
+        batch.draw(whitePixel, mx, my, mw, totalH);
+        batch.setColor(Color.WHITE);
+        // Border
+        batch.draw(whitePixel, mx, my, mw, 2);
+        batch.draw(whitePixel, mx, my + totalH, mw, 2);
+        batch.draw(whitePixel, mx, my, 2, totalH);
+        batch.draw(whitePixel, mx + mw, my, 2, totalH + 2);
 
         for (int i = 0; i < currentOptions.size(); i++) {
-            float y = my - (i * mh);
-
-            // Background
-            batch.setColor(0.1f, 0.1f, 0.1f, 0.9f);
-            batch.draw(whitePixel, mx, y - mh + 5, mw, mh - 5);
+            float y = my + totalH - 10 - (i * mh);
 
             // Highlight
             if (i == selectedOptionIndex) {
                 batch.setColor(Color.DARK_GRAY);
-                batch.draw(whitePixel, mx, y - mh + 5, mw, mh - 5);
-                batch.setColor(Color.CYAN);
-                batch.draw(whitePixel, mx, y - mh + 5, 5, mh - 5); // strip
+                batch.draw(whitePixel, mx + 2, y - mh + 5, mw - 4, mh - 5);
+                batch.setColor(Color.WHITE);
             }
-            batch.setColor(Color.WHITE);
 
-            game.font.draw(batch, currentOptions.get(i), mx + 20, y - 10);
+            game.font.setColor(Color.WHITE);
+            if (i == selectedOptionIndex)
+                game.font.setColor(Color.CYAN);
+            game.font.draw(batch, currentOptions.get(i), mx + 20, y - 5);
         }
+        game.font.setColor(Color.WHITE);
     }
 
     private void drawRecipesList(com.badlogic.gdx.graphics.g2d.SpriteBatch batch) {
@@ -881,21 +900,21 @@ public class MochilaScreen extends BaseScreen {
                 visibleItems
                         .add(new ItemData("Poción Herbal", "Cura 20 HP.", texPocionHerbal, inventory.getUnguentos()));
             if (inventory.getElixires() > 0)
-                visibleItems.add(new ItemData("Elíxir de Energía",
-                        "Restaura el uso de un movimiento potente que se haya agotado.", texElixir,
+                visibleItems.add(new ItemData("Elíxir de Piel de Piedra",
+                        "Aumenta la potencia del ataque (+3 por ataque).", texElixir,
                         inventory.getElixires()));
             if (inventory.getRevivires() > 0)
                 visibleItems.add(new ItemData("Revivir Casero", "Revive con 50% HP a un Pokémon debilitado.",
                         texRevivir, inventory.getRevivires()));
             if (inventory.getRepelentes() > 0)
-                visibleItems.add(new ItemData("Repelente Orgánico", "Evita encuentros durante 100 pasos en el mapa.",
+                visibleItems.add(new ItemData("Reproductor de música", "Permite escuchar música de fondo.",
                         texRepelente, inventory.getRepelentes()));
             if (inventory.getAmuletos() > 0)
-                visibleItems.add(new ItemData("Amuleto de la Suerte",
-                        "Al llevarlo en el inventario, aumenta la probabilidad de que los Pokémon suelten más materiales al ser derrotados.",
+                visibleItems.add(new ItemData("Guante de reflejo cuarcítico",
+                        "Utilizan guijarros brillantes para recolectar doble recurso.",
                         texAmuleto, inventory.getAmuletos()));
             if (inventory.getLures() > 0)
-                visibleItems.add(new ItemData("Cebo de Bayas (Lure)", "Atrae Pokémon raros por 2 min.", texLure,
+                visibleItems.add(new ItemData("Frijol mágico", "Restaura el 100% de HP de un Pokémon.", texLure,
                         inventory.getLures()));
 
         } else if (selectedIndex == 3) { // Brown Button
@@ -982,6 +1001,27 @@ public class MochilaScreen extends BaseScreen {
                 // Wrap text if needed, but existing logic didn't wrap much. Assuming short
                 // descriptions.
                 game.font.draw(batch, desc, 100, 310);
+            }
+
+            // Draw "OPCIONES" button
+            if (currentState == InventoryState.BROWSING && !titulo.isEmpty()) {
+                float btnX = 100;
+                float btnY = 220;
+                float btnW = 150;
+                float btnH = 40;
+
+                // Hover effect logic is in input, but we can visualize it if wanted
+                // For now just draw standard button
+                batch.setColor(Color.DARK_GRAY);
+                batch.draw(whitePixel, btnX, btnY, btnW, btnH);
+                batch.setColor(Color.WHITE);
+                batch.draw(whitePixel, btnX, btnY, btnW, 2);
+                batch.draw(whitePixel, btnX, btnY + btnH, btnW, 2);
+                batch.draw(whitePixel, btnX, btnY, 2, btnH);
+                batch.draw(whitePixel, btnX + btnW, btnY, 2, btnH);
+
+                game.font.getData().setScale(1.0f);
+                game.font.draw(batch, "OPCIONES", btnX + 30, btnY + 28);
             }
         }
 

@@ -36,7 +36,7 @@ public class PokedexScreen extends BaseScreen {
     private int selectedGridX = 0;
     private int selectedGridY = 0;
     private final int GRID_COLS = 6;
-    private final int GRID_ROWS = 4;
+    private final int GRID_ROWS = 4; // Changed to 4 rows
 
     public PokedexScreen(PokemonMain game, com.badlogic.gdx.Screen returnScreen, Explorador explorador) {
         super(game);
@@ -163,7 +163,7 @@ public class PokedexScreen extends BaseScreen {
             fontText.draw(game.batch, "TIPO: " + (data != null ? data.tipo : "???"), infoX + 20, infoY + infoH - 70);
 
             fontText.setColor(Color.ORANGE);
-            fontText.draw(game.batch, "INV: " + (registro != null ? registro.getNivelInvestigacion() : 0) + "/10",
+            fontText.draw(game.batch, "NIVEL INV: " + (registro != null ? registro.getNivelInvestigacion() : 0) + "/10",
                     infoX + 20, infoY + infoH - 100);
 
             fontText.setColor(Color.WHITE);
@@ -175,10 +175,10 @@ public class PokedexScreen extends BaseScreen {
         }
 
         // Grid (Right side - Aligned with image boxes)
-        float gridStartX = 520;
-        float gridStartY = VIRTUAL_HEIGHT - 300; // Adjusted to match boxes
-        float boxSize = 130; // Increased size
-        float spacing = 18;
+        float gridStartX = 530;
+        float gridStartY = 420; // Adjusted for 4 rows
+        float boxSize = 100; // Decreased size to fit 4 rows
+        float spacing = 15;
 
         for (int row = 0; row < GRID_ROWS; row++) {
             for (int col = 0; col < GRID_COLS; col++) {

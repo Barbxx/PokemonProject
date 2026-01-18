@@ -52,6 +52,7 @@ public class BattleScreen extends ScreenAdapter {
     // Textures
     private Texture backgroundTexture;
     private Texture enemyTexture;
+    private Texture playerBackTexture;
     private Texture buttonBg;
     private Texture boxBg;
     private Texture borderBg;
@@ -108,6 +109,21 @@ public class BattleScreen extends ScreenAdapter {
             }
         } catch (Exception e) {
             enemyTexture = createColorTexture(Color.RED);
+        }
+
+        // Load Player Back Texture
+        try {
+            String name = pokemonJugador.getNombre().toLowerCase().replace(" h.", "").replace(" jr.", "-jr")
+                    .replace(" ", "-");
+            String path = name + " atras.png";
+            if (Gdx.files.internal(path).exists()) {
+                playerBackTexture = new Texture(Gdx.files.internal(path));
+            } else {
+                // Fallback to front texture or default
+                if (Gdx.files.internal(name + ".png").exists())
+                    playerBackTexture = new Texture(Gdx.files.internal(name + ".png"));
+            }
+        } catch (Exception e) {
         }
 
         buttonBg = createColorTexture(Color.WHITE); // Botones blancos
@@ -572,10 +588,18 @@ public class BattleScreen extends ScreenAdapter {
 
         if (enemyTexture != null) {
             float enemyX = 400;
-            float enemyY = 300;
+            float enemyY = 350;
             float enemySize = 280;
             game.batch.draw(baseCircleTexture, enemyX - 20, enemyY - 40, enemySize + 40, 100);
             game.batch.draw(enemyTexture, enemyX, enemyY, enemySize, enemySize);
+        }
+
+        // Draw Player Back Sprite (Bottom Left corner area)
+        if (playerBackTexture != null) {
+            float pX = 20;
+            float pY = 190;
+            float pSize = 280;
+            game.batch.draw(playerBackTexture, pX, pY, pSize, pSize);
         }
 
         drawMessageBox();
@@ -737,5 +761,7 @@ public class BattleScreen extends ScreenAdapter {
             backgroundTexture.dispose();
         if (enemyTexture != null)
             enemyTexture.dispose();
+        if (playerBackTexture != null)
+            playerBackTexture.dispose();
     }
 }

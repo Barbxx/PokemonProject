@@ -59,73 +59,49 @@ public class GameScreen extends BaseScreen {
 
     private Explorador explorador;
 
-    private Texture feidSprite;
-    private Texture harrySprite;
-    private Texture harryStylesSprite; // New Harry Styles Sprite
-    private Texture brennerSprite; // New Brenner Sprite
-    private Texture labSignTexture; // Lab Sign
-    private Texture dialogIconTexture; // Feid default
-    private Texture harryPortraitTexture; // Harry default
-    private Texture harryStylesPortraitTexture; // Harry Styles Portrait
-    private Texture brennerPortraitTexture; // New Brenner Portrait
-    private Texture currentPortrait; // Active portrait
-    private Texture dialogFrameTexture;
-    private Texture uiWhitePixel;
-    private float feidX, feidY;
-    private float harryX, harryY;
-    private float harryStylesX, harryStylesY; // Coordinates for Harry Styles
-    private float brennerX, brennerY; // New Brenner coords
+    // NPC Management (Refactored)
+    private com.mypokemon.game.objects.NPCManager npcManager;
+
+    // UI Management (Refactored)
+    private com.mypokemon.game.ui.GameUI gameUI;
+
+    private Texture labSignTexture; // Lab Sign might belong to map objects eventually
+    // private Texture dialogIconTexture; // REMOVED
+    // private Texture harryPortraitTexture; // REMOVED
+    // private Texture harryStylesPortraitTexture; // REMOVED
+    // private Texture brennerPortraitTexture; // REMOVED
+    private Texture currentPortrait;
+    // private Texture dialogFrameTexture; // REMOVED
+    private Texture uiWhitePixel; // Keep for now if used elsewhere or move to UI
+
+    // private float feidX, feidY; // REMOVED
+    // private float harryX, harryY; // REMOVED
+    // private float harryStylesX, harryStylesY; // REMOVED
+    // private float brennerX, brennerY; // REMOVED
+
     private boolean showDialog = false;
-    private boolean isNearFeid = false;
-    private boolean isNearHarry = false;
-    private boolean isNearHarryStyles = false; // New Harry Styles flag
-    private boolean isNearBrenner = false; // New Brenner flag
-    private boolean isNearLab = false; // New Lab flag
+
+    // Proximity flags REMOVED (Handled by NPCManager)
+    // private boolean isNearFeid = false;
+    // private boolean isNearHarry = false;
+    // ...
+
+    private boolean isNearLab = false; // Keep Lab logic separate for now
 
     private float labSignX, labSignY; // Fixed Lab Sign coordinates
 
     // Laboratory Zone (Estimated relative to spawn)
-    // Feid is at (posX - 220, posY - 20)
-    // Lab appears to be to the right of Feid (near spawnX) and slightly below/level
-    // We'll define a rectangle around spawnX, spawnY - 100
     private Rectangle labZone;
     private int currentDialogPage = 0;
 
     // Dynamic Dialog State
     private String activeNpcName = "";
     private String[] activeDialogPages;
+    // actually, let's keep currentPortrait to pass to GameUI.renderDialog
 
-    private String[] feidDialogPages = {
-            "¡Epa! ¿Qué más pues, mor? Bienvenido a la región de Hisui.",
-            "Vea, Hisui está una chimba pero la vuelta está peligrosa. Usted no puede andar por ahí normal sin con qué defenderse...",
-            "¡En la hierba viven Pokémon que están es locos, mor! Usted necesita su propio Pokémon pa' que lo cuide.",
-            "¡Hágale pues, arranque para mi laboratorio que allá lo espero!"
-    };
+    // Dialog Arrays REMOVED (Moved to NPC classes)
 
-    private String[] harryDialogPages = {
-            "¡Expecto Patronum!... Rayos, aquí tampoco sale el ciervo.",
-            "Definitivamente creo que ya no estoy en Hogwarts. Este lugar es más extraño que el Departamento de Misterios.",
-            "Escucha, no sirve de nada detenerse en los sueños y olvidarse de vivir, así que ponte a trabajar.",
-            "Para registrar a estos Pokémon necesito que subas su Nivel de Investigación a 10.",
-            "Recuerda: +2 puntos si logras una captura exitosa usando una Poké Ball y +1 punto si los vences en lucha.",
-            "¡Ánimo!, que no tengo un Giratiempo para repetir el día."
-    };
-
-    private String[] brennerDialogPages = {
-            "Has llegado lejos, 'Once', o como sea que te llamen aquí.",
-            "Has recolectado datos de 5 especies diferentes, un progreso fascinante. Pero ahora debes completar una última misión.",
-            "El sujeto Arceus te espera en esta cavidad que me recuerda a la Cueva de Vecna; siento la misma oscuridad y el tic-tac de un reloj.",
-            "Si logras vencerlo, tu investigación será completada instantáneamente.",
-            "Recuerda: los errores tienen consecuencias, y si pierdes, el 'Upside Down' reclamará tus pertenencias."
-    };
-
-    private String[] harryStylesDialogPages = {
-            "¡Hola, cariño! Bienvenido a la región de Hisui. Es un lugar verdaderamente maravilloso, ¿no te parece? Pero también tiene su lado salvaje, y me gustaría que te sientas seguro y con mucha confianza allá afuera.",
-            "Me encantaría que trabajaras en tu propia autonomía. Tu inventario es donde sucede la magia, pero por favor, sé cuidadoso con el espacio; queremos que todo fluya con orden.",
-            "¿Por qué no vas a buscar algunos Guijarros y Plantas? Podrás crear unas Poké Balls realmente encantadoras.\n¡Vamos, adelante!",
-            "Trata a todos con amabilidad... ¡ese Pokédex no se va a completar solo! Con amor, H."
-    };
-
+    // Menu State
     // Menu State
     private boolean showMenu = false;
     private int menuSelectedIndex = 0;
@@ -176,6 +152,11 @@ public class GameScreen extends BaseScreen {
         this.frameCols = cols;
         this.frameRows = rows;
         this.playerName = playerName;
+
+        // Initialize Managers
+        npcManager = new com.mypokemon.game.objects.NPCManager();
+        gameUI = new com.mypokemon.game.ui.GameUI();
+
         // Check for saved progress or create new
         this.explorador = Explorador.cargarProgreso(playerName);
         if (this.explorador == null) {
@@ -394,41 +375,21 @@ public class GameScreen extends BaseScreen {
             createFallback();
         }
 
-        // Initialize NPC and UI Assets
+        // Initialize Lab Sign Texture (Map Object)
         try {
-            feidSprite = new Texture(Gdx.files.internal("feidSprite.png"));
-            harrySprite = new Texture(Gdx.files.internal("harryPotterSprite.png"));
-            harryStylesSprite = new Texture(Gdx.files.internal("harryStylesSprite.png")); // Load Harry Styles
-            brennerSprite = new Texture(Gdx.files.internal("drBrennerSprite.png")); // Load Brenner sprite for map
-            labSignTexture = new Texture(Gdx.files.internal("letreroLaboratorio.png")); // Load Lab Sign
-            dialogIconTexture = new Texture(Gdx.files.internal("ferxxoCientifico.png"));
-            harryPortraitTexture = new Texture(Gdx.files.internal("harryPotter.png"));
-            harryStylesPortraitTexture = new Texture(Gdx.files.internal("harryStyles.png")); // Load specific portrait
-            brennerPortraitTexture = new Texture(Gdx.files.internal("drBrenner.png")); // Load Brenner portrait for
-                                                                                       // dialog
-            dialogFrameTexture = new Texture(Gdx.files.internal("marcoDialogo.png"));
+            labSignTexture = new Texture(Gdx.files.internal("letreroLaboratorio.png"));
         } catch (Exception e) {
-            Gdx.app.log("GameScreen", "NPC/UI textures not found", e);
+            Gdx.app.log("GameScreen", "Lab Sign texture not found", e);
         }
 
-        // Create UI utilities
-        uiWhitePixel = TextureUtils.createSolidTexture(1, 1, Color.WHITE);
-
-        // Place NPC next to the blue house (approximate coordinates from player spawn)
-        feidX = posX - 220;
-        feidY = posY - 20;
-
-        // Place Harry much further to the right and up
-        harryX = posX + 2100;
-        harryY = posY + 900;
-
-        // Place Harry Styles (distinct location, maybe near Feid for visibility)
-        harryStylesX = posX + 1110;
-        harryStylesY = posY - 320;
-
-        // Place Brenner (distinct location)
-        brennerX = posX + 480; // Somewhere in between
-        brennerY = posY + 600; // Further down
+        // NOMENCLATURE: NPC POSITIONS
+        // Modify the coordinates (X, Y) here to change NPC locations.
+        if (npcManager != null) {
+            npcManager.addNPC(new com.mypokemon.game.objects.FeidNPC(posX - 220, posY - 20));
+            npcManager.addNPC(new com.mypokemon.game.objects.HarryPotterNPC(posX + 2100, posY + 900));
+            npcManager.addNPC(new com.mypokemon.game.objects.HarryStylesNPC(posX + 1110, posY - 320));
+            npcManager.addNPC(new com.mypokemon.game.objects.BrennerNPC(posX + 480, posY + 620));
+        }
 
         // Initialize Lab Zone
         // Assuming Lab door is roughly at spawnX, spawnY - 140
@@ -503,7 +464,7 @@ public class GameScreen extends BaseScreen {
         }
 
         // Menu Toggle
-        if (Gdx.input.isKeyJustPressed(Input.Keys.I)) {
+        if (Gdx.input.isKeyJustPressed(Input.Keys.E)) {
             showMenu = !showMenu;
             if (showMenu)
                 showDialog = false;
@@ -619,9 +580,13 @@ public class GameScreen extends BaseScreen {
 
             // Lab Entrance Check
             isNearLab = false;
-            if (labZone != null && labZone.contains(posX, posY)) {
+            isNearLab = false;
+            // Use distance check for interaction prompt so it works even if we can't walk
+            // "inside"
+            if (labZone != null && com.badlogic.gdx.math.Vector2.dst(posX, posY, labZone.x + labZone.width / 2,
+                    labZone.y + labZone.height / 2) < 60f) {
                 isNearLab = true;
-                if (!fadingOut && Gdx.input.isKeyJustPressed(Input.Keys.E)) {
+                if (!fadingOut && Gdx.input.isKeyJustPressed(Input.Keys.T)) {
                     if (explorador.getEquipo().isEmpty()) {
                         fadingOut = true;
                         // Pre-create screen
@@ -635,44 +600,17 @@ public class GameScreen extends BaseScreen {
 
             // NPC Interaction Input
             // Toggle dialog on interaction key (E)
-            if (Gdx.input.isKeyJustPressed(Input.Keys.E) && !showMenu) {
-                if (isNearFeid) {
+            // Toggle dialog on interaction key (E)
+            if (Gdx.input.isKeyJustPressed(Input.Keys.T) && !showMenu) {
+                com.mypokemon.game.objects.NPC closeNPC = (npcManager != null) ? npcManager.getCloseNPC(posX, posY)
+                        : null;
+                if (closeNPC != null) {
                     if (!showDialog) {
                         showDialog = true;
                         currentDialogPage = 0;
-                        activeNpcName = "Profesor Ferxxo";
-                        activeDialogPages = feidDialogPages;
-                        currentPortrait = dialogIconTexture;
-                    } else {
-                        showDialog = false;
-                    }
-                } else if (isNearHarry) {
-                    if (!showDialog) {
-                        showDialog = true;
-                        currentDialogPage = 0;
-                        activeNpcName = "General Harry Potter";
-                        activeDialogPages = harryDialogPages;
-                        currentPortrait = harryPortraitTexture;
-                    } else {
-                        showDialog = false;
-                    }
-                } else if (isNearBrenner) {
-                    if (!showDialog) {
-                        showDialog = true;
-                        currentDialogPage = 0;
-                        activeNpcName = "Dr. Martin Brenner";
-                        activeDialogPages = brennerDialogPages;
-                        currentPortrait = brennerPortraitTexture;
-                    } else {
-                        showDialog = false;
-                    }
-                } else if (isNearHarryStyles) {
-                    if (!showDialog) {
-                        showDialog = true;
-                        currentDialogPage = 0;
-                        activeNpcName = "Harry Styles";
-                        activeDialogPages = harryStylesDialogPages;
-                        currentPortrait = harryStylesPortraitTexture;
+                        activeNpcName = closeNPC.getName();
+                        activeDialogPages = closeNPC.getDialog();
+                        currentPortrait = closeNPC.getPortrait();
                     } else {
                         showDialog = false;
                     }
@@ -879,22 +817,19 @@ public class GameScreen extends BaseScreen {
 
         // NPC Range Check for Dialog Closing
         // ...
-        float distFeid = com.badlogic.gdx.math.Vector2.dst(posX, posY, feidX, feidY);
-        isNearFeid = distFeid < 80;
-        float distHarry = com.badlogic.gdx.math.Vector2.dst(posX, posY, harryX, harryY);
-        isNearHarry = distHarry < 80;
-        float distBrenner = com.badlogic.gdx.math.Vector2.dst(posX, posY, brennerX, brennerY);
-        isNearBrenner = distBrenner < 80;
-        float distHarryStyles = com.badlogic.gdx.math.Vector2.dst(posX, posY, harryStylesX, harryStylesY);
-        isNearHarryStyles = distHarryStyles < 80;
-
-        if (!isNearFeid && !isNearHarry && !isNearBrenner && !isNearHarryStyles) {
+        // NPC Range Check for Dialog Closing
+        com.mypokemon.game.objects.NPC closeNPC = (npcManager != null) ? npcManager.getCloseNPC(posX, posY) : null;
+        if (closeNPC == null) {
             showDialog = false;
         }
 
         // Timers
-        if (notificationTimer > 0)
+        if (notificationTimer > 0) {
             notificationTimer -= delta;
+            if (notificationTimer <= 0) {
+                notificationMessage = "";
+            }
+        }
         if (missionCompleteTimer > 0) {
             missionCompleteTimer -= delta;
             if (missionCompleteTimer <= 0)
@@ -939,9 +874,11 @@ public class GameScreen extends BaseScreen {
 
         game.batch.setProjectionMatrix(camera.combined);
         game.batch.begin();
-        drawNPC();
+        // Render NPCs
+        npcManager.render(game.batch);
+
         drawPlayer();
-        drawBrenner();
+        // remove drawBrenner() call as it's now in npcManager
         game.batch.end();
 
         if (mapRenderer != null && foregroundLayers != null)
@@ -973,39 +910,13 @@ public class GameScreen extends BaseScreen {
          */
 
         // HUD
-        if (explorador != null) {
-            game.font.setColor(Color.WHITE);
-            float hudX = 780;
-            // Removed Inventory HUD text as requested
-            /*
-             * game.font.draw(game.batch, "EXPLORADOR: " + explorador.getNombre(), hudX,
-             * 460, 0,
-             * com.badlogic.gdx.utils.Align.right, false);
-             * game.font.draw(game.batch, "--- INVENTARIO ---", hudX, 430, 0,
-             * com.badlogic.gdx.utils.Align.right, false);
-             * game.font.draw(game.batch, "Plantas: " +
-             * explorador.getMochila().getPlantas(), hudX, 410, 0,
-             * com.badlogic.gdx.utils.Align.right, false);
-             * game.font.draw(game.batch, "Guijarros: " +
-             * explorador.getMochila().getGuijarros(), hudX, 390, 0,
-             * com.badlogic.gdx.utils.Align.right, false);
-             * game.font.draw(game.batch, "Poké Balls: " +
-             * explorador.getMochila().getPokeBalls(), hudX, 370, 0,
-             * com.badlogic.gdx.utils.Align.right, false);
-             * game.font.draw(game.batch,
-             * "Carga: " + explorador.getMochila().getEspacioOcupado() + "/"
-             * + explorador.getMochila().getCapacidadMaxima(),
-             * hudX, 340, 0, com.badlogic.gdx.utils.Align.right, false);
-             */
-            game.font.draw(game.batch, "[I] MENU   [CLICK]   [ESC] SALIR", hudX, 40, 0,
-                    com.badlogic.gdx.utils.Align.right, false);
+        if (gameUI != null) {
+            gameUI.renderHUD(game.batch, explorador, showMenu);
         }
 
         // Notifications
-        if (notificationTimer > 0) {
-            game.font.setColor(Color.YELLOW);
-            game.font.draw(game.batch, notificationMessage, 400, 400, 0, com.badlogic.gdx.utils.Align.center, false);
-            game.font.setColor(Color.WHITE);
+        if (gameUI != null) {
+            gameUI.renderNotification(game.batch, notificationMessage);
         }
 
         // Mission
@@ -1025,79 +936,20 @@ public class GameScreen extends BaseScreen {
         }
 
         // NPC Hints
-        if (isNearFeid && !showDialog) {
-            game.font.getData().setScale(0.8f);
-            game.font.setColor(Color.YELLOW);
-            game.font.draw(game.batch, "Presiona [E] para hablar con Feid", 300, 100);
-            game.font.getData().setScale(1.0f);
-            game.font.setColor(Color.WHITE);
-        } else if (isNearHarry && !showDialog) {
-            game.font.getData().setScale(0.8f);
-            game.font.setColor(Color.YELLOW);
-            game.font.draw(game.batch, "Presiona [E] para hablar con Harry Potter", 300, 100);
-            game.font.getData().setScale(1.0f);
-            game.font.setColor(Color.WHITE);
-        } else if (isNearBrenner && !showDialog) {
-            game.font.getData().setScale(0.8f);
-            game.font.setColor(Color.YELLOW);
-            game.font.draw(game.batch, "Presiona [E] para hablar con Dr. Brenner", 300, 100);
-            game.font.getData().setScale(1.0f);
-            game.font.setColor(Color.WHITE);
-        } else if (isNearHarryStyles && !showDialog) {
-            game.font.getData().setScale(0.8f);
-            game.font.setColor(Color.YELLOW);
-            game.font.draw(game.batch, "Presiona [E] para hablar con Harry Styles", 300, 100);
-            game.font.getData().setScale(1.0f);
-            game.font.setColor(Color.WHITE);
-        } else if (isNearLab && !showDialog) {
-            game.font.getData().setScale(0.8f);
-            game.font.setColor(Color.YELLOW);
-            game.font.draw(game.batch, "Presiona [E] para entrar", 300, 100);
-            game.font.getData().setScale(1.0f);
-            game.font.setColor(Color.WHITE);
+        if (gameUI != null) {
+            com.mypokemon.game.objects.NPC hintNPC = (npcManager != null) ? npcManager.getCloseNPC(posX, posY) : null;
+            if (hintNPC != null && !showDialog) {
+                gameUI.renderHint(game.batch, "Presiona [T] para hablar con " + hintNPC.getName());
+            } else if (isNearLab && !showDialog) {
+                gameUI.renderHint(game.batch, "Presiona [T] para entrar");
+            }
         }
 
         // Dialog
-        if (showDialog && activeDialogPages != null && currentDialogPage < activeDialogPages.length) {
-            float screenW = 800;
-            float dialogHeight = 110;
-            float portraitSize = 250;
-            if (currentPortrait == harryPortraitTexture)
-                portraitSize = 320;
-            if (currentPortrait != null)
-                game.batch.draw(currentPortrait, screenW - portraitSize - 20, dialogHeight - 20, portraitSize,
-                        portraitSize);
-
-            // Draw Box
-            game.batch.setColor(Color.DARK_GRAY);
-            if (uiWhitePixel != null)
-                game.batch.draw(uiWhitePixel, 20, 20, screenW - 40, dialogHeight);
-            game.batch.setColor(Color.WHITE);
-            if (uiWhitePixel != null)
-                game.batch.draw(uiWhitePixel, 23, 23, screenW - 46, dialogHeight - 6);
-            // Name Tag
-            float nameTagY = dialogHeight + 10;
-            game.batch.setColor(Color.DARK_GRAY);
-            if (uiWhitePixel != null)
-                game.batch.draw(uiWhitePixel, 45, nameTagY, 200, 35);
-            game.batch.setColor(Color.WHITE);
-            if (uiWhitePixel != null)
-                game.batch.draw(uiWhitePixel, 47, nameTagY + 2, 196, 31);
-
-            game.batch.setColor(Color.WHITE);
-            game.font.setColor(Color.BLACK);
-            game.font.getData().setScale(0.9f);
-            game.font.draw(game.batch, activeNpcName, 55, nameTagY + 25);
-            game.font.setColor(Color.BLACK);
-            game.font.getData().setScale(0.85f);
-            game.font.draw(game.batch, activeDialogPages[currentDialogPage], 45, dialogHeight - 10, screenW - 90,
-                    com.badlogic.gdx.utils.Align.left, true);
-            game.font.getData().setScale(1.0f);
-            game.font.setColor(Color.WHITE);
-            String hint = (currentDialogPage < activeDialogPages.length - 1) ? "SIGUIENTE (ENTER)" : "CERRAR (ENTER)";
-            game.font.getData().setScale(0.6f);
-            game.font.draw(game.batch, hint, 45, 50);
-            game.font.getData().setScale(1.0f);
+        // Dialog
+        if (showDialog && activeDialogPages != null && currentDialogPage < activeDialogPages.length && gameUI != null) {
+            gameUI.renderDialog(game.batch, activeNpcName, activeDialogPages[currentDialogPage], currentPortrait,
+                    currentDialogPage < activeDialogPages.length - 1);
         }
 
         // CRAFTING UI
@@ -1109,8 +961,9 @@ public class GameScreen extends BaseScreen {
         }
 
         // Menu
-        if (showMenu) {
-            drawMenu();
+        // Menu
+        if (showMenu && gameUI != null) {
+            gameUI.renderMenu(game.batch, menuOptions, menuSelectedIndex);
         }
 
         // FADE OVERLAY
@@ -1128,49 +981,6 @@ public class GameScreen extends BaseScreen {
         game.batch.end();
     }
 
-    private void drawMenu() {
-        float menuW = 180;
-        float menuH = 260;
-        float menuX = 800 - menuW - 20;
-        float menuY = 480 - menuH - 20;
-        float borderSize = 4;
-
-        // Draw Menu Border (Reddish / Orange)
-        game.batch.setColor(new Color(0.8f, 0.2f, 0.1f, 1f));
-        if (uiWhitePixel != null) {
-            game.batch.draw(uiWhitePixel, menuX, menuY, menuW, menuH);
-        }
-
-        // Draw Menu Background (White)
-        game.batch.setColor(Color.WHITE);
-        if (uiWhitePixel != null) {
-            game.batch.draw(uiWhitePixel, menuX + borderSize, menuY + borderSize, menuW - borderSize * 2,
-                    menuH - borderSize * 2);
-        }
-
-        // Draw Options
-        game.font.setColor(Color.DARK_GRAY);
-        game.font.getData().setScale(0.85f);
-        float startY = menuY + menuH - 40;
-        float spacing = 35;
-
-        for (int i = 0; i < menuOptions.length; i++) {
-            float optY = startY - (i * spacing);
-            game.font.draw(game.batch, menuOptions[i], menuX + 45, optY);
-
-            // Draw Selection Arrow
-            if (i == menuSelectedIndex) {
-                // Simplified triangle using character or just a small circle/rect for now
-                // Let's use a small arrow symbol if possible or geometric shape
-                game.font.draw(game.batch, ">", menuX + 20, optY);
-            }
-        }
-
-        game.font.getData().setScale(1.0f);
-        game.font.setColor(Color.WHITE);
-        game.batch.setColor(Color.WHITE); // Reset Batch color
-    }
-
     private void drawPlayer() {
         if (currentFrame != null) {
             game.batch.draw(currentFrame, posX - playerWidth / 2, posY - playerHeight / 2, playerWidth,
@@ -1183,25 +993,6 @@ public class GameScreen extends BaseScreen {
                 game.font.draw(game.batch, playerName, posX - playerWidth / 2, posY + playerHeight * 0.8f, playerWidth,
                         com.badlogic.gdx.utils.Align.center, false);
             }
-        }
-    }
-
-    private void drawNPC() {
-        if (feidSprite != null) {
-            game.batch.draw(feidSprite, feidX, feidY, 25, 35);
-        }
-        if (harrySprite != null) {
-            game.batch.draw(harrySprite, harryX, harryY, 25, 35);
-        }
-        if (harryStylesSprite != null) {
-            // Draw Harry Styles small (25x35)
-            game.batch.draw(harryStylesSprite, harryStylesX, harryStylesY, 25, 35);
-        }
-    }
-
-    private void drawBrenner() {
-        if (brennerSprite != null) {
-            game.batch.draw(brennerSprite, brennerX, brennerY, 25, 35);
         }
     }
 
@@ -1229,67 +1020,47 @@ public class GameScreen extends BaseScreen {
     }
 
     private boolean isColliding(float x, float y) {
-        // Check collision with Feid NPC (25x35 size)
-        float feidW = 25;
-        float feidH = 35;
+        // Define collision box for player feet
+        float minX = x - playerWidth / 3;
+        float minY = y - playerHeight / 2;
+        float w = playerWidth * 2 / 3;
+        float h = playerHeight / 4;
 
-        // Define Feid's bounding box
-        float feidLeft = feidX;
-        float feidRight = feidX + feidW;
-        float feidBottom = feidY;
-        float feidTop = feidY + feidH;
+        // Lab Collision (Door/Entrance area)
+        if (labZone != null && labZone.overlaps(new Rectangle(minX, minY, w, h))) {
+            return true;
+        }
 
-        float harryLeft = harryX;
-        float harryRight = harryX + feidW; // Assuming same size
-        float harryBottom = harryY;
-        float harryTop = harryY + feidH;
-
-        float brennerLeft = brennerX;
-        float brennerRight = brennerX + feidW;
-        float brennerBottom = brennerY;
-        float brennerTop = brennerY + feidH;
+        // Check NPC Collision with a slightly larger box for better feel (Body
+        // collision)
+        if (npcManager != null && npcManager.checkCollision(x - playerWidth / 2, y - playerHeight / 2, playerWidth,
+                playerHeight / 2)) {
+            return true;
+        }
 
         if (collisionLayer == null)
             return false;
 
-        // Check bottom edge and sides of player base
         float[][] points = {
-                { x - playerWidth / 3, y - playerHeight / 2 },
-                { x + playerWidth / 3, y - playerHeight / 2 },
-                { x - playerWidth / 3, y - playerHeight / 4 },
-                { x + playerWidth / 3, y - playerHeight / 4 }
+                { minX, minY },
+                { minX + w, minY },
+                { minX, minY + h },
+                { minX + w, minY + h }
         };
 
         for (float[] p : points) {
-            // Check NPC collision
-            if (p[0] >= feidLeft && p[0] <= feidRight && p[1] >= feidBottom && p[1] <= feidTop) {
-                return true;
-            }
-            if (p[0] >= harryLeft && p[0] <= harryRight && p[1] >= harryBottom && p[1] <= harryTop) {
-                return true;
-            }
-            if (p[0] >= brennerLeft && p[0] <= brennerRight && p[1] >= brennerBottom && p[1] <= brennerTop) {
-                return true;
-            }
-
             int cellX = (int) (p[0] / collisionLayer.getTileWidth());
             int cellY = (int) (p[1] / collisionLayer.getTileHeight());
 
             TiledMapTileLayer.Cell cell = collisionLayer.getCell(cellX, cellY);
             if (cell != null && cell.getTile() != null) {
-                // Check if the tile has a "Colision" property set (as String or Boolean)
                 Object col = cell.getTile().getProperties().get("Colision");
                 if (col != null) {
-                    // Only block if Colision is explicitly true
                     if (col instanceof Boolean && (Boolean) col)
                         return true;
                     if (col instanceof String && "true".equalsIgnoreCase((String) col))
                         return true;
-                    // If Colision is false or any other value, allow movement
-                    return false;
                 }
-                // If no Colision property, don't block (allow grass with nivel to be walkable)
-                return false;
             }
         }
 
@@ -1309,32 +1080,18 @@ public class GameScreen extends BaseScreen {
             introTexture.dispose();
         if (avisoTexture != null)
             avisoTexture.dispose();
-        if (feidSprite != null)
-            feidSprite.dispose();
-        if (harrySprite != null)
-            harrySprite.dispose();
-        if (harryStylesSprite != null)
-            harryStylesSprite.dispose();
-        if (brennerSprite != null)
-            brennerSprite.dispose();
         if (labSignTexture != null)
             labSignTexture.dispose();
-        if (dialogIconTexture != null)
-            dialogIconTexture.dispose();
-        if (harryPortraitTexture != null)
-            harryPortraitTexture.dispose();
-        if (harryStylesPortraitTexture != null)
-            harryStylesPortraitTexture.dispose();
-        if (brennerPortraitTexture != null)
-            brennerPortraitTexture.dispose();
-        if (dialogFrameTexture != null)
-            dialogFrameTexture.dispose();
-        if (uiWhitePixel != null)
-            uiWhitePixel.dispose();
+
         if (mapRenderer != null)
             mapRenderer.dispose();
         if (grassSound != null)
             grassSound.dispose();
+
+        if (npcManager != null)
+            npcManager.dispose();
+        if (gameUI != null)
+            gameUI.dispose();
     }
 
     // Inner class for map resources

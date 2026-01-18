@@ -162,11 +162,11 @@ public class CrafteoScreen extends BaseScreen {
         r3.addIngredient("Baya", 1);
         recipes.add(r3);
 
-        // 4. Elíxir de Energía
-        RecipeDisplay r4 = new RecipeDisplay("Elíxir de Energía",
-                "Restaura el uso de un movimiento potente que\nse haya agotado.", texElixir);
-        r4.addIngredient("Baya", 2);
-        r4.addIngredient("Guijarro", 2);
+        // 4. Elíxir de Piel de Piedra
+        RecipeDisplay r4 = new RecipeDisplay("Elíxir de Piel de Piedra",
+                "Aumenta la potencia del ataque (+3 por ataque).", texElixir);
+        r4.addIngredient("Guijarro", 7);
+        r4.addIngredient("Planta", 1);
         recipes.add(r4);
 
         // 5. Revivir Casero
@@ -177,23 +177,28 @@ public class CrafteoScreen extends BaseScreen {
         r5.addIngredient("Guijarro", 1);
         recipes.add(r5);
 
-        // 6. Repelente Orgánico
-        RecipeDisplay r6 = new RecipeDisplay("Repelente Orgánico", "Evita encuentros durante 100 pasos en el mapa.",
+        // 6. Reproductor de música
+        RecipeDisplay r6 = new RecipeDisplay("Reproductor de música",
+                "Permite que el jugador pueda escuchar musica de\nfondo durante la partida.",
                 texRepelente);
-        r6.addIngredient("Planta", 4);
+        r6.addIngredient("Guijarro", 9);
+        r6.addIngredient("Baya", 1);
         recipes.add(r6);
 
-        // 7. Amuleto de la Suerte
-        RecipeDisplay r7 = new RecipeDisplay("Amuleto de la Suerte",
-                "Al llevarlo en el inventario, aumenta la\nprobabilidad de que los Pokémon suelten más\nmateriales al ser derrotados.",
+        // 7. Guante de reflejo cuarcítico
+        RecipeDisplay r7 = new RecipeDisplay("Guante de reflejo cuarcítico",
+                "Utilizan guijarros pulidos que brillan como\nespejos, su destello permite recolectar el doble\nde recursos.",
                 texAmuleto);
-        r7.addIngredient("Guijarro", 10);
+        r7.addIngredient("Guijarro", 13);
+        r7.addIngredient("Planta", 5);
         recipes.add(r7);
 
-        // 8. Cebo de Bayas (Lure)
-        RecipeDisplay r8 = new RecipeDisplay("Cebo de Bayas (Lure)", "Atrae Pokémon raros por 2 min.", texCebo);
-        r8.addIngredient("Baya", 3);
-        r8.addIngredient("Planta", 1);
+        // 8. Frijol mágico
+        RecipeDisplay r8 = new RecipeDisplay("Frijol mágico",
+                "Creado mediante energía vital y raíces de plantas,\nal ser ingerido por un pokemon se restaura el\n100% de su HP.",
+                texCebo);
+        r8.addIngredient("Guijarro", 20);
+        r8.addIngredient("Planta", 20);
         recipes.add(r8);
     }
 
@@ -299,12 +304,12 @@ public class CrafteoScreen extends BaseScreen {
                 itemId = "elixir";
             else if (itemId.contains("Revivir"))
                 itemId = "revivir";
-            else if (itemId.contains("Repelente"))
-                itemId = "repelente";
-            else if (itemId.contains("Amuleto"))
-                itemId = "amuleto";
-            else if (itemId.contains("Cebo"))
-                itemId = "lure";
+            else if (itemId.contains("Reproductor"))
+                itemId = "repelente"; // Maps to internal repelente slot
+            else if (itemId.contains("Guante"))
+                itemId = "amuleto"; // Maps to internal amuleto slot
+            else if (itemId.contains("Frijol"))
+                itemId = "lure"; // Maps to internal lure slot
             else if (itemId.contains("Guijarro"))
                 itemId = "guijarro"; // fallback
 
