@@ -486,8 +486,7 @@ public class BattleScreen extends ScreenAdapter {
             updateInfo("¡" + pokemonEnemigo.getNombre() + " se debilitó!");
 
             // Victoria: +1 Punto Investigación para el jugador
-            // explorador.getRegistro().registrarAccion(pokemonEnemigo.getNombre(), false);
-            // // REMOVED per user request
+            explorador.getRegistro().registrarAccion(pokemonEnemigo.getNombre(), false);
             // También investigar al propio Pokémon por la experiencia de combate
             explorador.getRegistro().registrarAccion(pokemonJugador.getNombre(), false);
 

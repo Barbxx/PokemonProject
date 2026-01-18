@@ -114,4 +114,14 @@ public class Pokedex implements Serializable {
             encounterOrder = new java.util.ArrayList<>();
         return encounterOrder;
     }
+
+    public boolean verificarRequisitosArceus() {
+        int count = 0;
+        for (EspeciePokemon esp : registro.values()) {
+            if (esp.getNivelInvestigacion() >= 10) {
+                count++;
+            }
+        }
+        return count >= 5;
+    }
 }

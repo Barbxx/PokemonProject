@@ -729,11 +729,23 @@ public class GameScreen extends BaseScreen {
                                         Object nivelProp = cell.getTile().getProperties().get("NivelDificultad");
 
                                         if (enemigoProp != null && "JefeFinal".equals(enemigoProp.toString())) {
-                                            isBoss = true;
-                                            bossName = "Arceus";
+                                            if (explorador.getRegistro().verificarRequisitosArceus()) {
+                                                isBoss = true;
+                                                bossName = "Arceus";
+                                            } else {
+                                                notificationMessage = "Sientes una presencia divina... pero te falta conocimiento.";
+                                                notificationTimer = 3.0f;
+                                                foundGrass = false; // Prevent normal encounter
+                                            }
                                         } else if (nivelProp != null && "HitoFinal".equals(nivelProp.toString())) {
-                                            isBoss = true;
-                                            bossName = "Arceus";
+                                            if (explorador.getRegistro().verificarRequisitosArceus()) {
+                                                isBoss = true;
+                                                bossName = "Arceus";
+                                            } else {
+                                                notificationMessage = "Sientes una presencia divina... pero te falta conocimiento.";
+                                                notificationTimer = 3.0f;
+                                                foundGrass = false; // Prevent normal encounter
+                                            }
                                         }
                                     }
                                 }
