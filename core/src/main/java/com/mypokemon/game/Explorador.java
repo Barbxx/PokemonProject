@@ -13,13 +13,15 @@ public class Explorador implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private String nombreUsuario;
+    private String nombrePartida; // New field for filename
     private Inventario mochila;
     private Pokedex registro;
     private List<Pokemon> equipo;
     private int misionesCompletadas;
 
-    public Explorador(String nombre, int capacidadInicial) {
-        this.nombreUsuario = nombre;
+    public Explorador(String nombreUsuario, String nombrePartida, int capacidadInicial) {
+        this.nombreUsuario = nombreUsuario;
+        this.nombrePartida = nombrePartida;
         this.mochila = new Inventario(capacidadInicial);
         this.registro = new Pokedex();
         this.equipo = new ArrayList<>();
@@ -27,8 +29,9 @@ public class Explorador implements Serializable {
     }
 
     public void guardarProgreso() {
-        // Guarda el objeto Explorador completo en un archivo .dat
-        String filename = nombreUsuario + "_save.dat";
+        // Guarda el objeto Explorador completo en un archivo .dat usa el nombre de la
+        // PARTIDA
+        String filename = nombrePartida + "_save.dat";
         try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(filename))) {
             out.writeObject(this);
             System.out.println("Progreso guardado exitosamente en " + filename);
@@ -38,13 +41,13 @@ public class Explorador implements Serializable {
         }
     }
 
-    public static Explorador cargarProgreso(String nombre) {
-        // Busca el archivo y reconstruye el objeto
-        String filename = nombre + "_save.dat";
+    public static Explorador cargarProgreso(String nombrePartida) {
+        // Busca el archivo y reconstruye el objeto usando el nombre de la PARTIDA
+        String filename = nombrePartida + "_save.dat";
         try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(filename))) {
             return (Explorador) in.readObject();
         } catch (IOException | ClassNotFoundException e) {
-            System.err.println("No se pudo cargar el progreso para " + nombre + ": " + e.getMessage());
+            System.err.println("No se pudo cargar el progreso para " + nombrePartida + ": " + e.getMessage());
             return null;
         }
     }

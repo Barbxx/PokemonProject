@@ -57,6 +57,11 @@ public class MainMenuScreen extends BaseScreen {
     }
 
     @Override
+    public void show() {
+        Gdx.input.setInputProcessor(null);
+    }
+
+    @Override
     public void render(float delta) {
         // --- 1. Update Logic ---
 

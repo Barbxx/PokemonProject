@@ -32,6 +32,7 @@ public class IntroScreen extends BaseScreen {
     private Viewport viewport;
 
     // Data
+    private String gameName;
     private String playerName = "";
     private boolean isMale = true; // Default
     private Texture feidImage;
@@ -74,8 +75,9 @@ public class IntroScreen extends BaseScreen {
     private int caretPosition = 0;
     private boolean isNameConfirmed = true; // For SÍ/NO selection
 
-    public IntroScreen(final PokemonMain game) {
+    public IntroScreen(final PokemonMain game, String gameName) {
         super(game);
+        this.gameName = gameName;
         this.shapeRenderer = new ShapeRenderer();
         this.currentState = State.INTRO_1;
 
@@ -650,7 +652,8 @@ public class IntroScreen extends BaseScreen {
                 fadeAlpha = 1f;
                 // Transition directly to GameScreen (Bypassing IntroWalkScreen as requested)
                 String texturePath = isMale ? "protagonistaMasculino1.png" : "protagonistaFemenino.png";
-                game.setScreen(new GameScreen(game, texturePath, 4, 4, playerName));
+                // Pass gameName (Partida Name) AND playerName (Explorer Name)
+                game.setScreen(new GameScreen(game, texturePath, 4, 4, playerName, gameName));
                 dispose();
                 return;
             }

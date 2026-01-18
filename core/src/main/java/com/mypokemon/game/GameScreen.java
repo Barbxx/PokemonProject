@@ -105,7 +105,7 @@ public class GameScreen extends BaseScreen {
     // Menu State
     private boolean showMenu = false;
     private int menuSelectedIndex = 0;
-    private String[] menuOptions = { "POKÉDEX", "CRAFTEO", "MOCHILA", "GUARDAR", "OPCIONES", "SALIR" };
+    private String[] menuOptions = { "POKÉDEX", "CRAFTEO", "MOCHILA", "GUARDAR", "OPCIONES", "INICIO" };
 
     // Intro Animation State
     private enum IntroState {
@@ -147,20 +147,22 @@ public class GameScreen extends BaseScreen {
     private int frameCols;
     private int frameRows;
 
-    public GameScreen(final PokemonMain game, String texturePath, int cols, int rows, String playerName) {
+    public GameScreen(final PokemonMain game, String texturePath, int cols, int rows, String playerName,
+            String gameName) {
         super(game);
         this.frameCols = cols;
         this.frameRows = rows;
-        this.playerName = playerName;
+        this.playerName = playerName; // Explorer Name
 
         // Initialize Managers
         npcManager = new com.mypokemon.game.objects.NPCManager();
         gameUI = new com.mypokemon.game.ui.GameUI();
 
-        // Check for saved progress or create new
-        this.explorador = Explorador.cargarProgreso(playerName);
+        // Check for saved progress using GAME NAME (Partida), not Player Name
+        this.explorador = Explorador.cargarProgreso(gameName);
         if (this.explorador == null) {
-            this.explorador = new Explorador(playerName, 40); // Capacidad inicial aumentada
+            // New Game: Create with Explorer Name (for display) and Game Name (for saving)
+            this.explorador = new Explorador(playerName, gameName, 40);
         }
 
         // Initialize Camera and Viewport
@@ -488,16 +490,24 @@ public class GameScreen extends BaseScreen {
 
             if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
                 String selected = menuOptions[menuSelectedIndex];
-                if (selected.equals("SALIR")) {
-                    Gdx.app.exit();
+                if (selected.equals("INICIO")) {
+                    game.setScreen(new MainMenuScreen(game));
+                    dispose();
                 } else if (selected.equals("MOCHILA")) {
                     game.setScreen(new MochilaScreen(game, this, explorador));
                 } else if (selected.equals("CRAFTEO")) {
                     game.setScreen(new CrafteoScreen(game, this));
                 } else if (selected.equals("POKÉDEX")) {
                     game.setScreen(new PokedexScreen(game, this, explorador));
+                } else if (selected.equals("GUARDAR")) {
+                    explorador.guardarProgreso();
+                    notificationMessage = "¡Partida Guardada!";
+                    notificationTimer = NOTIFICATION_DURATION;
+                    showMenu = false;
                 }
-                showMenu = false;
+                if (!selected.equals("GUARDAR")) {
+                    showMenu = false;
+                }
             }
             isMoving = false;
         } else {
