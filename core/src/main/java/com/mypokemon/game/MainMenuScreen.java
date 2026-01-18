@@ -18,13 +18,14 @@ public class MainMenuScreen extends BaseScreen {
 
     // Menu Options (Keep strings for fallback or logic, though rendering uses
     // images now)
-    String[] options = { "PLAY", "PARTIDA", "HELP", "ABOUT" };
-    String[] filePrefixes = { "boton_jugar", "boton_partida", "boton_ayuda", "boton_acercade" };
+    String[] options = { "PLAY", "CARGAR", "HELP", "ABOUT" };
+    // Changed "boton_partida" to "boton_cargar"
+    String[] filePrefixes = { "boton_jugar", "boton_cargar", "boton_ayuda", "boton_acercade" };
 
     int currentOption = -1;
     float fadeAlpha = 0f;
     boolean isStarting = false;
-    String currentSubScreen = null; // null, "PARTIDA", "HELP", "ABOUT"
+    String currentSubScreen = null; // null, "PARTIDA", "HELP", "ABOUT" (PARTIDA is now likely PartidasScreen)
 
     // Layout constants
     float menuBoxWidth = 370;
@@ -45,6 +46,8 @@ public class MainMenuScreen extends BaseScreen {
 
         for (int i = 0; i < options.length; i++) {
             try {
+                // For CARGAR, we expect boton_cargar_normal.png and
+                // boton_cargar_seleccionado.png
                 normalTextures[i] = new Texture(filePrefixes[i] + "_normal.png");
                 selectedTextures[i] = new Texture(filePrefixes[i] + "_seleccionado.png");
             } catch (Exception e) {
@@ -81,11 +84,6 @@ public class MainMenuScreen extends BaseScreen {
             }
         }
 
-        // Mouse Selection Logic: Removed to prevent hover from changing selection
-        // if (Gdx.input.getDeltaX() != 0 || Gdx.input.getDeltaY() != 0) {
-        // currentOption = hoveredOption;
-        // }
-
         // Keyboard Selection Logic
         if (Gdx.input.isKeyJustPressed(Input.Keys.UP) || Gdx.input.isKeyJustPressed(Input.Keys.W)) {
             if (currentOption == -1) {
@@ -114,10 +112,14 @@ public class MainMenuScreen extends BaseScreen {
             // Determine target: priority to hover if click, else currentOption
             int target = (click && hoveredOption != -1) ? hoveredOption : currentOption;
 
-            if (target == 0) { // PLAY
-                isStarting = true;
-            } else if (target == 1) {
-                currentSubScreen = "PARTIDA";
+            if (target == 0) { // PLAY -> Go to EleccionJuegoScreen
+                game.setScreen(new EleccionJuegoScreen(game));
+                dispose();
+                return;
+            } else if (target == 1) { // CARGAR -> Go to PartidasScreen
+                game.setScreen(new PartidasScreen(game));
+                dispose();
+                return;
             } else if (target == 2) {
                 currentSubScreen = "HELP";
             } else if (target == 3) {
@@ -129,12 +131,6 @@ public class MainMenuScreen extends BaseScreen {
             if (currentSubScreen != null) {
                 currentSubScreen = null;
             }
-        }
-
-        if (isStarting) {
-            game.setScreen(new IntroScreen(game));
-            dispose();
-            return;
         }
 
         // --- 2. Draw Logic ---
@@ -158,7 +154,8 @@ public class MainMenuScreen extends BaseScreen {
             boolean isPressed = Gdx.input.isButtonPressed(Input.Buttons.LEFT);
 
             // Show selected if it is the current keyboard option OR if it's being clicked
-            if (i == currentOption || (isHovered && isPressed)) {
+            // OR if it is hovered (UX improvement: highlight on hover)
+            if (i == currentOption || isHovered) {
                 showSelected = true;
             }
 
@@ -189,8 +186,7 @@ public class MainMenuScreen extends BaseScreen {
 
         if (currentSubScreen != null) {
             game.batch.setColor(0, 0, 0, 0.8f);
-            game.batch.draw(selectedTextures[0], 50, 50, screenWidth - 100, screenHeight - 100); // Use any texture for
-                                                                                                 // bg
+            game.batch.draw(selectedTextures[0], 50, 50, screenWidth - 100, screenHeight - 100); // Overlay
             game.batch.setColor(Color.WHITE);
             game.font.getData().setScale(1.5f);
             game.font.draw(game.batch, "SCREEN: " + currentSubScreen, 0, screenHeight / 2 + 20, screenWidth,
@@ -200,13 +196,6 @@ public class MainMenuScreen extends BaseScreen {
                     com.badlogic.gdx.utils.Align.center, false);
         }
 
-        if (fadeAlpha > 0) {
-            game.batch.setColor(0, 0, 0, fadeAlpha);
-            // Draw a black rectangle using a small texture stretched
-            game.batch.draw(selectedTextures[0], 0, 0, screenWidth, screenHeight);
-            game.batch.setColor(Color.WHITE);
-        }
-
         game.batch.end();
     }
 
@@ -214,11 +203,19 @@ public class MainMenuScreen extends BaseScreen {
     public void dispose() {
         if (background != null)
             background.dispose();
-        for (Texture t : normalTextures)
-            if (t != null)
-                t.dispose();
-        for (Texture t : selectedTextures)
-            if (t != null)
-                t.dispose();
+        // Since we are creating new screens, we might not want to dispose everything
+        // immediately if we plan to come back?
+        // But usually in LibGDX screen switching, we dispose the old one or keep it.
+        // For now, standard dispose.
+        if (normalTextures != null) {
+            for (Texture t : normalTextures)
+                if (t != null)
+                    t.dispose();
+        }
+        if (selectedTextures != null) {
+            for (Texture t : selectedTextures)
+                if (t != null)
+                    t.dispose();
+        }
     }
 }
