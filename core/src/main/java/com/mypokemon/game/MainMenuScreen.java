@@ -31,8 +31,14 @@ public class MainMenuScreen extends BaseScreen {
     float menuBoxWidth = 370;
     float menuBoxHeight = 260;
 
+    com.badlogic.gdx.utils.viewport.Viewport viewport;
+
     public MainMenuScreen(final PokemonMain game) {
         super(game);
+
+        // Ensure consistent view
+        viewport = new com.badlogic.gdx.utils.viewport.FitViewport(800, 600);
+        viewport.update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true);
 
         try {
             background = new Texture("menu_bg.jpg");
@@ -57,6 +63,11 @@ public class MainMenuScreen extends BaseScreen {
     }
 
     @Override
+    public void resize(int width, int height) {
+        viewport.update(width, height, true);
+    }
+
+    @Override
     public void show() {
         Gdx.input.setInputProcessor(null);
     }
@@ -64,18 +75,34 @@ public class MainMenuScreen extends BaseScreen {
     @Override
     public void render(float delta) {
         // --- 1. Update Logic ---
+        ScreenUtils.clear(0f, 0f, 0f, 1f);
 
-        // Calculate layout variables first for Input detection
-        float screenWidth = Gdx.graphics.getWidth();
-        float screenHeight = Gdx.graphics.getHeight();
+        viewport.apply();
+        game.batch.setProjectionMatrix(viewport.getCamera().combined);
+
+        // Logic uses Virtual Coordinates (800x600) now?
+        // We have to rely on unprojecting mouse.
+        // Or we can just use Gdx.input.getX() if we assume full screen.
+        // But to be robust:
+
+        float screenWidth = 800;
+        float screenHeight = 600;
+
+        // Mouse Unproject
+        com.badlogic.gdx.math.Vector2 mousePos = new com.badlogic.gdx.math.Vector2(Gdx.input.getX(), Gdx.input.getY());
+        viewport.unproject(mousePos);
+        float mouseX = mousePos.x;
+        float mouseY = mousePos.y; // Unproject already flips Y? No, unproject converts to world coords.
+        // LibGDX unproject: origin is bottom-left usually if camera is set up that way.
+        // But Gdx.input is top-left. unproject handles it.
+        // My layouts assume bottom-left is 0,0? Yes, standard Batch.
+        // So mousePos.y is correct world Y.
+
         float buttonWidth = 300;
         float buttonHeight = 80;
         float spacing = -15; // Negative spacing to bring them closer
         float totalMenuHeight = (options.length * buttonHeight) + ((options.length - 1) * spacing);
         float startY = (screenHeight + totalMenuHeight) / 2 - 100;
-
-        float mouseX = Gdx.input.getX();
-        float mouseY = screenHeight - Gdx.input.getY();
 
         // Determine which option is hovered
         int hoveredOption = -1;
@@ -83,7 +110,7 @@ public class MainMenuScreen extends BaseScreen {
             float buttonY = startY - (i * (buttonHeight + spacing)) - buttonHeight;
             float buttonX = (screenWidth - buttonWidth) / 2;
             if (mouseX >= buttonX && mouseX <= buttonX + buttonWidth &&
-                    mouseY >= buttonY && mouseY <= buttonY + buttonHeight) {
+                    mouseY >= buttonY && mouseY <= buttonY + buttonHeight) { // Check range
                 hoveredOption = i;
                 break; // Found it
             }
