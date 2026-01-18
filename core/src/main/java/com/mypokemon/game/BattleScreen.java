@@ -59,6 +59,7 @@ public class BattleScreen extends ScreenAdapter {
     private Texture hpBarBg;
     private Texture hpBarFill;
     private Texture baseCircleTexture;
+    private Texture statusBarTexture;
 
     // Battle State
     private enum BattleState {
@@ -132,6 +133,15 @@ public class BattleScreen extends ScreenAdapter {
         hpBarBg = createColorTexture(Color.GRAY);
         hpBarFill = createColorTexture(Color.GREEN);
         selectedBorder = createColorTexture(Color.LIME);
+
+        selectedBorder = createColorTexture(Color.LIME);
+
+        try {
+            statusBarTexture = new Texture(Gdx.files.internal("barraPokemon.png"));
+        } catch (Exception e) {
+            Gdx.app.log("BattleScreen", "Could not load barraPokemon.png");
+            statusBarTexture = borderBg; // Fallback
+        }
 
         baseCircleTexture = createCircleTexture(new Color(0.3f, 0.6f, 0.2f, 0.8f));
     }
@@ -677,57 +687,77 @@ public class BattleScreen extends ScreenAdapter {
         float textX = (400 - layout.width) / 2;
         // Más arriba, centrado en Y=110 aprox
         float textY = 110 + (layout.height / 2);
-
         font.draw(game.batch, infoText, textX, textY);
     }
 
     private void drawEnemyInfo() {
-        float infoX = 50;
-        // Posicionar relativo al borde superior del mundo virtual
-        float infoY = viewport.getWorldHeight() - 110;
-        float infoW = 300;
-        float infoH = 80; // Increased height for better spacing
-
-        game.batch.draw(borderBg, infoX - 2, infoY - 2, infoW + 4, infoH + 4);
-        game.batch.draw(buttonBg, infoX, infoY, infoW, infoH);
+        // Enemy Info (Top Left)
+        float infoX = 10;
+        float infoY = viewport.getWorldHeight() - 40; // Start higher for text
 
         font.getData().setScale(1.1f);
-        font.setColor(Color.BLACK);
-        // Name at top left
-        font.draw(game.batch, pokemonEnemigo.getNombre().toUpperCase(), infoX + 15, infoY + infoH - 15);
-        // Level at top right
-        font.draw(game.batch, "Nv" + pokemonEnemigo.getNivel(), infoX + infoW - 80, infoY + infoH - 15);
+        font.setColor(Color.WHITE);
 
-        // HP Text in middle
-        font.getData().setScale(1.0f);
-        font.draw(game.batch, "PS: " + (int) pokemonEnemigo.getHpActual() + "/" + (int) pokemonEnemigo.getHpMaximo(),
-                infoX + 15, infoY + 45);
+        // Name
+        font.draw(game.batch, pokemonEnemigo.getNombre().toUpperCase(), infoX + 10, infoY);
+        // Level next to name or slightly offset
+        font.draw(game.batch, "Nv" + pokemonEnemigo.getNivel(), infoX + 220, infoY);
 
-        // HP Bar at bottom
-        game.batch.draw(hpBarBg, infoX + 15, infoY + 15, infoW - 30, 18); // Thicker bar
-        float hpPercent = pokemonEnemigo.getHpActual() / pokemonEnemigo.getHpMaximo();
-        game.batch.draw(hpBarFill, infoX + 15, infoY + 15, (infoW - 30) * hpPercent, 18);
+        // Status Bar BELOW the text
+        // Scale down: original bar is likely large, let's make it more compact. width
+        // around 240, height around 60?
+        float barWidth = 260;
+        float barHeight = 70;
+        float barX = infoX;
+        float barY = infoY - barHeight - 10; // Below text
 
-        // Draw Player Info as well
-        float pInfoX = viewport.getWorldWidth() - infoX - infoW;
-        float pInfoY = 240; // Raised from 180
+        if (statusBarTexture != null) {
+            game.batch.draw(statusBarTexture, barX, barY, barWidth, barHeight);
+        }
 
-        game.batch.draw(borderBg, pInfoX - 2, pInfoY - 2, infoW + 4, infoH + 4);
-        game.batch.draw(buttonBg, pInfoX, pInfoY, infoW, infoH);
+        // HP Text inside bar area
+        font.getData().setScale(0.8f);
+        font.draw(game.batch, (int) pokemonEnemigo.getHpActual() + "/" + (int) pokemonEnemigo.getHpMaximo(),
+                barX + 140, barY + 30); // Adjusted relative to bar
+
+        // HP Fill
+        // Need to estimate fill bar position within the scaled image
+        // Assuming standard ratios, if image is scaled, internal offsets scale too.
+        // Let's approximate:
+        float fillWidth = 120;
+        float fillHeight = 8;
+
+        // Fine tuned for the 260x70 scale
+        // Previously: barX + 118, barY + 38 for unknown size.
+        // Let's try to center it visually within the "bar" part of the texture.
+        game.batch.draw(hpBarFill, barX + 90, barY + 28,
+                fillWidth * (pokemonEnemigo.getHpActual() / pokemonEnemigo.getHpMaximo()), fillHeight);
+
+        // Player Info (Bottom Right)
+        float pInfoX = viewport.getWorldWidth() - 280; // Right side
+        float pInfoY = 160; // Above menus
 
         font.getData().setScale(1.1f);
-        font.setColor(Color.BLACK);
-        font.draw(game.batch, pokemonJugador.getNombre().toUpperCase(), pInfoX + 15, pInfoY + infoH - 15);
+        font.draw(game.batch, pokemonJugador.getNombre().toUpperCase(), pInfoX + 10, pInfoY);
+        font.draw(game.batch, "Nv" + pokemonJugador.getNivel(), pInfoX + 220, pInfoY);
 
-        font.getData().setScale(1.0f);
-        font.draw(game.batch, "PS: " + (int) pokemonJugador.getHpActual() + "/" + (int) pokemonJugador.getHpMaximo(),
-                pInfoX + 15, pInfoY + 45);
+        // Bar below text
+        float pBarX = pInfoX;
+        float pBarY = pInfoY - barHeight - 10;
 
-        game.batch.draw(hpBarBg, pInfoX + 15, pInfoY + 15, infoW - 30, 18);
-        float pHPPercent = pokemonJugador.getHpActual() / pokemonJugador.getHpMaximo();
-        game.batch.draw(hpBarFill, pInfoX + 15, pInfoY + 15, (infoW - 30) * pHPPercent, 18);
+        if (statusBarTexture != null) {
+            game.batch.draw(statusBarTexture, pBarX, pBarY, barWidth, barHeight);
+        }
+
+        font.getData().setScale(0.8f);
+        font.draw(game.batch, (int) pokemonJugador.getHpActual() + "/" + (int) pokemonJugador.getHpMaximo(),
+                pBarX + 140, pBarY + 30);
+
+        game.batch.draw(hpBarFill, pBarX + 90, pBarY + 28,
+                fillWidth * (pokemonJugador.getHpActual() / pokemonJugador.getHpMaximo()), fillHeight);
 
         font.getData().setScale(1.0f); // Reset scale
+        font.setColor(Color.BLACK); // Reset color
     }
 
     private void drawButton(Rectangle rect, String text, boolean selected) {
@@ -765,5 +795,7 @@ public class BattleScreen extends ScreenAdapter {
             enemyTexture.dispose();
         if (playerBackTexture != null)
             playerBackTexture.dispose();
+        if (statusBarTexture != null)
+            statusBarTexture.dispose();
     }
 }

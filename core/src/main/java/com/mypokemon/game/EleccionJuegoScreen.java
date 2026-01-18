@@ -45,7 +45,7 @@ public class EleccionJuegoScreen extends BaseScreen {
         // Layout
         float buttonWidth = 500; // Increased from 300
         float buttonHeight = 120; // Increased from 80
-        float spacing = 5; // Decreased from 20 (closer together)
+        float spacing = -15; // Decreased to negative to overlap/tighten
 
         // Positions
         float centerX = (screenWidth - buttonWidth) / 2;
@@ -103,10 +103,9 @@ public class EleccionJuegoScreen extends BaseScreen {
                 dispose();
                 return;
             } else if (currentOption == OPTION_COMPARTIDA) {
-                // Placeholder for "Compartida" mode
-                // Maybe show a message or go to a different screen?
-                // For now, let's just log it or do nothing visually distinct yet
-                Gdx.app.log("EleccionJuego", "Modo Compartida selected - implementation pending");
+                game.setScreen(new CompartidaScreen(game));
+                dispose();
+                return;
             }
         }
 

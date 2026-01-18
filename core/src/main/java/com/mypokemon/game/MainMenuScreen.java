@@ -18,9 +18,9 @@ public class MainMenuScreen extends BaseScreen {
 
     // Menu Options (Keep strings for fallback or logic, though rendering uses
     // images now)
-    String[] options = { "PLAY", "CARGAR", "HELP", "ABOUT" };
+    String[] options = { "PLAY", "CARGAR", "HELP", "ABOUT", "EXIT" };
     // Changed "boton_partida" to "boton_cargar"
-    String[] filePrefixes = { "boton_jugar", "boton_cargar", "boton_ayuda", "boton_acercade" };
+    String[] filePrefixes = { "boton_jugar", "boton_cargar", "boton_ayuda", "boton_acercade", "boton_salir" };
 
     int currentOption = -1;
     float fadeAlpha = 0f;
@@ -65,7 +65,7 @@ public class MainMenuScreen extends BaseScreen {
         float screenHeight = Gdx.graphics.getHeight();
         float buttonWidth = 300;
         float buttonHeight = 80;
-        float spacing = 5;
+        float spacing = -15; // Negative spacing to bring them closer
         float totalMenuHeight = (options.length * buttonHeight) + ((options.length - 1) * spacing);
         float startY = (screenHeight + totalMenuHeight) / 2 - 100;
 
@@ -124,6 +124,8 @@ public class MainMenuScreen extends BaseScreen {
                 currentSubScreen = "HELP";
             } else if (target == 3) {
                 currentSubScreen = "ABOUT";
+            } else if (target == 4) { // EXIT
+                Gdx.app.exit();
             }
         }
 
