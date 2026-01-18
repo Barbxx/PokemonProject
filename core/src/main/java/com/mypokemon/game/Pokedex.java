@@ -8,11 +8,13 @@ public class Pokedex implements Serializable {
     private static final long serialVersionUID = 2L;
     private Map<String, EspeciePokemon> registro;
     private java.util.List<String> capturedOrder;
+    private java.util.List<String> encounterOrder;
     private int especiesCompletas;
 
     public Pokedex() {
         this.registro = new HashMap<>();
         this.capturedOrder = new java.util.ArrayList<>();
+        this.encounterOrder = new java.util.ArrayList<>();
         this.especiesCompletas = 0;
     }
 
@@ -20,6 +22,11 @@ public class Pokedex implements Serializable {
         // Corazón de la Misión 2
         // Si el Pokémon no existe en el mapa, se añade.
         registro.putIfAbsent(nombre, new EspeciePokemon(nombre));
+
+        // Añadir a encuentro si es nuevo (para que aparezca en la Pokedex)
+        if (!encounterOrder.contains(nombre)) {
+            encounterOrder.add(nombre);
+        }
 
         EspeciePokemon especie = registro.get(nombre);
         if (esCaptura) {
@@ -69,6 +76,11 @@ public class Pokedex implements Serializable {
     public void completarInstantaneamente(String nombre) {
         // Específico para el Hito Final.
         registro.putIfAbsent(nombre, new EspeciePokemon(nombre));
+
+        if (!encounterOrder.contains(nombre)) {
+            encounterOrder.add(nombre);
+        }
+
         EspeciePokemon especie = registro.get(nombre);
 
         boolean estabaCompleta = especie.isCompleta();
@@ -95,5 +107,11 @@ public class Pokedex implements Serializable {
         if (capturedOrder == null)
             capturedOrder = new java.util.ArrayList<>();
         return capturedOrder;
+    }
+
+    public java.util.List<String> getEncounterOrder() {
+        if (encounterOrder == null)
+            encounterOrder = new java.util.ArrayList<>();
+        return encounterOrder;
     }
 }

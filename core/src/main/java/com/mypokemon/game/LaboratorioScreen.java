@@ -223,6 +223,9 @@ public class LaboratorioScreen extends BaseScreen {
                             EspeciePokemon especie = exp.getRegistro().getRegistro().get(selectedName);
                             if (!especie.isCapturado()) {
                                 exp.getRegistro().getCapturedOrder().add(selectedName);
+                                if (!exp.getRegistro().getEncounterOrder().contains(selectedName)) {
+                                    exp.getRegistro().getEncounterOrder().add(selectedName);
+                                }
                                 especie.setCapturado(true);
                             }
                             // No points added, stays at 0

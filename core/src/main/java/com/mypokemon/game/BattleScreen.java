@@ -485,8 +485,11 @@ public class BattleScreen extends ScreenAdapter {
         if (pokemonEnemigo.getHpActual() <= 0) {
             updateInfo("¡" + pokemonEnemigo.getNombre() + " se debilitó!");
 
-            // Victoria: +1 Punto Investigación
-            explorador.getRegistro().registrarAccion(pokemonEnemigo.getNombre(), false);
+            // Victoria: +1 Punto Investigación para el jugador
+            // explorador.getRegistro().registrarAccion(pokemonEnemigo.getNombre(), false);
+            // // REMOVED per user request
+            // También investigar al propio Pokémon por la experiencia de combate
+            explorador.getRegistro().registrarAccion(pokemonJugador.getNombre(), false);
 
             // Recompensa de recursos
             String recurso = Math.random() < 0.5 ? "planta" : "guijarro";

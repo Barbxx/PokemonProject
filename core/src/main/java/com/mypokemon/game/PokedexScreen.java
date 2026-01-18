@@ -163,13 +163,25 @@ public class PokedexScreen extends BaseScreen {
             fontText.draw(game.batch, "TIPO: " + (data != null ? data.tipo : "???"), infoX + 20, infoY + infoH - 70);
 
             fontText.setColor(Color.ORANGE);
-            fontText.draw(game.batch, "NIVEL INV: " + (registro != null ? registro.getNivelInvestigacion() : 0) + "/10",
-                    infoX + 20, infoY + infoH - 100);
+            int nivelInv = (registro != null ? registro.getNivelInvestigacion() : 0);
+            fontText.draw(game.batch, "NIVEL INV: " + nivelInv + "/10",
+                    infoX + 20, infoY + infoH - 90);
+
+            // Display Stats
+            if (data != null) {
+                int ps = data.calcularPS(nivelInv);
+                int atq = data.calcularAtaque(nivelInv);
+                int vel = data.calcularVelocidad(nivelInv);
+
+                fontStats.setColor(Color.GREEN);
+                fontStats.draw(game.batch, "PS: " + ps + " | ATQ: " + atq + " | VEL: " + vel,
+                        infoX + 20, infoY + infoH - 115);
+            }
 
             fontText.setColor(Color.WHITE);
             fontText.getData().setScale(0.9f);
             if (data != null && data.descripcion != null) {
-                fontText.draw(game.batch, data.descripcion, infoX + 20, infoY + infoH - 140, infoW - 40,
+                fontText.draw(game.batch, data.descripcion, infoX + 20, infoY + infoH - 145, infoW - 40,
                         com.badlogic.gdx.utils.Align.left, true);
             }
         }

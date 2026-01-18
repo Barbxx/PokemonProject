@@ -274,7 +274,7 @@ public class BasePokemonData {
                                 new String[] { "Sombra Vil" },
                                 new String[] { "Normal", "Lucha" }));
 
-                // STARTERS (Adicionales si no están en la lista)
+                
                 DATABASE.put("Rowlet",
                                 new BasePokemonData("Rowlet", "Lanza plumas afiladas.", 45, 55, 55, 50, 50, 42, 15, 5,
                                                 0,
