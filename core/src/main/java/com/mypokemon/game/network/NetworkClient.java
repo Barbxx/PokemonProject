@@ -25,25 +25,56 @@ public class NetworkClient {
      * @param saveName Name of the game/save file.
      * @return true if connection and verification successful.
      */
-    public boolean connect(String saveName) {
+    public static void startHostMode(String gameName, String password) {
+        startLocalServer();
         try {
-            // Assume localhost for Solo mode, or configured IP for Shared
-            // For now, hardcoded logic for local testing
+            Thread.sleep(200);
+        } catch (Exception e) {
+        } // Wait for server boot
+
+        getInstance().connectAndSetup("CREATE", gameName, password);
+    }
+
+    public static boolean connectToHost(String password) {
+        // Assume localhost for now, or add IP param later
+        return getInstance().connectAndSetup("JOIN", "Unknown", password);
+    }
+
+    private boolean connectAndSetup(String action, String gameName, String password) {
+        try {
             socket = new Socket("localhost", 54321);
             out = new DataOutputStream(socket.getOutputStream());
             in = new DataInputStream(socket.getInputStream());
 
-            // Send handshake/save name
-            out.writeUTF(saveName);
-
-            // Wait for confirmation
-            String response = in.readUTF();
-            return "OK".equals(response);
+            // Protocol: ACTION | DATA1 | DATA2
+            out.writeUTF(action);
+            if (action.equals("CREATE")) {
+                out.writeUTF(gameName);
+                out.writeUTF(password);
+                String resp = in.readUTF(); // Expect SESSION_CREATED
+                return resp.equals("SESSION_CREATED");
+            } else if (action.equals("JOIN")) {
+                out.writeUTF(password); // Just pass for join
+                String resp = in.readUTF(); // Expect JOIN_SUCCESS
+                return resp.equals("JOIN_SUCCESS");
+            } else {
+                // connect() legacy
+                out.writeUTF(gameName);
+                String resp = in.readUTF();
+                return resp.equals("OK");
+            }
 
         } catch (IOException e) {
-            System.err.println("NetworkClient Connection Error: " + e.getMessage());
+            System.err.println("Connection Failed: " + e.getMessage());
             return false;
         }
+    }
+
+    /**
+     * Legacy Connect (Solo)
+     */
+    public boolean connect(String saveName) {
+        return connectAndSetup("SOLO", saveName, "");
     }
 
     public void sendPokedexUpdate(String jsonData) {
@@ -65,7 +96,15 @@ public class NetworkClient {
         return socket != null && !socket.isClosed();
     }
 
-    // Helper to start server locally if needed
+    public void close() {
+        try {
+            if (socket != null)
+                socket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public static void startLocalServer() {
         new Thread(() -> {
             new GameServer().start();
