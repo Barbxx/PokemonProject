@@ -1,7 +1,13 @@
-package com.mypokemon.game;
+package com.mypokemon.game.pantallas;
+
+import com.mypokemon.game.PokemonMain;
+import com.mypokemon.game.Explorador;
+import com.mypokemon.game.BasePokemonData;
+import com.mypokemon.game.EspeciePokemon;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -9,13 +15,12 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
-import com.mypokemon.game.utils.BaseScreen;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class PokedexScreen extends BaseScreen {
-    private final com.badlogic.gdx.Screen returnScreen;
+public class PokedexScreen extends NavigableScreen {
     private Texture background;
     private Texture entryBg;
     private Texture whitePixel;
@@ -38,9 +43,8 @@ public class PokedexScreen extends BaseScreen {
     private final int GRID_COLS = 6;
     private final int GRID_ROWS = 4; // Changed to 4 rows
 
-    public PokedexScreen(PokemonMain game, com.badlogic.gdx.Screen returnScreen, Explorador explorador) {
-        super(game);
-        this.returnScreen = returnScreen;
+    public PokedexScreen(PokemonMain game, Screen returnScreen, Explorador explorador) {
+        super(game, returnScreen);
         this.explorador = explorador;
 
         camera = new OrthographicCamera();
@@ -57,10 +61,7 @@ public class PokedexScreen extends BaseScreen {
         fontStats.getData().setScale(1.2f);
 
         // Textures
-        try {
-            background = new Texture(Gdx.files.internal("fondoPokedex.png"));
-        } catch (Exception e) {
-        }
+        background = loadTexture("fondoPokedex.png");
 
         com.badlogic.gdx.graphics.Pixmap pixmap = new com.badlogic.gdx.graphics.Pixmap(1, 1,
                 com.badlogic.gdx.graphics.Pixmap.Format.RGBA8888);
@@ -76,7 +77,7 @@ public class PokedexScreen extends BaseScreen {
     @Override
     public void render(float delta) {
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE) || Gdx.input.isKeyJustPressed(Input.Keys.K)) {
-            game.setScreen(returnScreen);
+            navigateBack();
             return;
         }
 
@@ -242,8 +243,7 @@ public class PokedexScreen extends BaseScreen {
 
     @Override
     public void dispose() {
-        if (background != null)
-            background.dispose();
+        super.dispose(); // Automatically disposes registered textures
         if (entryBg != null)
             entryBg.dispose();
         if (whitePixel != null)

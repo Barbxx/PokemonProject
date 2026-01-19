@@ -1,4 +1,11 @@
-package com.mypokemon.game;
+package com.mypokemon.game.pantallas;
+
+import com.mypokemon.game.PokemonMain;
+import com.mypokemon.game.Explorador;
+import com.mypokemon.game.Pokemon;
+import com.mypokemon.game.Movimiento;
+import com.mypokemon.game.EspeciePokemon;
+import com.mypokemon.game.GestorEncuentros;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputAdapter;

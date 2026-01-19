@@ -1,5 +1,7 @@
-package com.mypokemon.game;
+package com.mypokemon.game.pantallas;
 
+import com.mypokemon.game.PokemonMain;
+import com.mypokemon.game.Explorador;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
@@ -11,7 +13,7 @@ import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.badlogic.gdx.math.Vector3;
-import com.mypokemon.game.utils.BaseScreen;
+
 import java.util.ArrayList;
 import java.util.List;
 

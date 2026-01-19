@@ -1,4 +1,12 @@
-package com.mypokemon.game;
+package com.mypokemon.game.pantallas;
+
+import com.mypokemon.game.PokemonMain;
+import com.mypokemon.game.Explorador;
+import com.mypokemon.game.Pokemon;
+import com.mypokemon.game.Movimiento;
+import com.mypokemon.game.GestorEncuentros;
+import com.mypokemon.game.InputHandler;
+import com.mypokemon.game.RemotePlayer;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
@@ -21,13 +29,18 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
-import com.mypokemon.game.utils.BaseScreen;
+
 import com.mypokemon.game.utils.TextureUtils;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import com.badlogic.gdx.audio.Sound;
+import com.mypokemon.game.colisiones.GestorColisiones;
+import com.mypokemon.game.colisiones.ColisionNPC;
+import com.mypokemon.game.colisiones.ColisionPuertaLaboratorio;
+import com.mypokemon.game.colisiones.IInteractivo;
+import com.mypokemon.game.objects.NPC;
 
 // Main Game Screen
 public class GameScreen extends BaseScreen {
@@ -53,8 +66,12 @@ public class GameScreen extends BaseScreen {
     private TextureRegion currentFrame;
     private float stateTime;
     private boolean isMoving;
+    // Tamaño visual del sprite
     private float playerWidth = 40f;
     private float playerHeight = 32f;
+    // Tamaño de colisión (más pequeño para pasar por pasillos estrechos)
+    private float playerCollisionWidth = 24f;
+    private float playerCollisionHeight = 28f;
     private String playerName;
 
     private Explorador explorador;
@@ -68,21 +85,18 @@ public class GameScreen extends BaseScreen {
     // NPC Management (Refactored)
     private com.mypokemon.game.objects.NPCManager npcManager;
 
+    // Colisiones (Refactorizado)
+    private GestorColisiones gestorColisiones;
+    private ColisionPuertaLaboratorio puertaLaboratorio;
+
     // UI Management (Refactored)
     private com.mypokemon.game.ui.GameUI gameUI;
 
-    private Texture labSignTexture; // Lab Sign might belong to map objects eventually
+    private Texture labSignTexture; // Needed for ColisionPuertaLaboratorio
     private Texture currentPortrait;
     private Texture uiWhitePixel; // Keep for now if used elsewhere or move to UI
     private boolean showDialog = false;
 
-    // Proximity flags REMOVED (Handled by NPCManager)
-    private boolean isNearLab = false; // Keep Lab logic separate for now
-
-    private float labSignX, labSignY; // Fixed Lab Sign coordinates
-
-    // Laboratory Zone (Estimated relative to spawn)
-    private Rectangle labZone;
     private int currentDialogPage = 0;
 
     // Dynamic Dialog State
@@ -168,6 +182,7 @@ public class GameScreen extends BaseScreen {
         // Initialize Managers
         npcManager = new com.mypokemon.game.objects.NPCManager();
         gameUI = new com.mypokemon.game.ui.GameUI();
+        gestorColisiones = new GestorColisiones();
 
         // Check for saved progress using GAME NAME (Partida), not Player Name
         this.explorador = Explorador.cargarProgreso(gameName);
@@ -221,6 +236,7 @@ public class GameScreen extends BaseScreen {
             for (MapLayer layer : map.getLayers()) {
                 if (layer instanceof TiledMapTileLayer && layer.getName().equalsIgnoreCase("Objetos_colisión")) {
                     collisionLayer = (TiledMapTileLayer) layer;
+                    gestorColisiones.establecerCapaColisionTerreno(collisionLayer);
                     break;
                 }
             }
@@ -398,24 +414,25 @@ public class GameScreen extends BaseScreen {
             Gdx.app.log("GameScreen", "Lab Sign texture not found", e);
         }
 
-        // NOMENCLATURE: NPC POSITIONS
-        // Modify the coordinates (X, Y) here to change NPC locations.
+        // NOMENCLATURE: NPC POSITIONS and COLLISIONS
         if (npcManager != null) {
             npcManager.addNPC(new com.mypokemon.game.objects.FeidNPC(posX - 220, posY - 20));
             npcManager.addNPC(new com.mypokemon.game.objects.HarryPotterNPC(posX + 2100, posY + 900));
             npcManager.addNPC(new com.mypokemon.game.objects.HarryStylesNPC(posX + 1110, posY - 320));
             npcManager.addNPC(new com.mypokemon.game.objects.BrennerNPC(posX + 480, posY + 620));
+
+            // Add NPCs to collision manager
+            for (NPC npc : npcManager.getAllNPCs()) {
+                gestorColisiones.agregarColision(new ColisionNPC(npc));
+            }
         }
 
-        // Initialize Lab Zone
-        // Assuming Lab door is roughly at spawnX, spawnY - 140
+        // Initialize Lab Collision
         float labDoorX = posX - 120;
         float labDoorY = posY - 185;
-        labZone = new Rectangle(labDoorX, labDoorY, 80, 50);
 
-        // Initialize Lab Sign Position (Fixed)
-        labSignX = posX - 45;
-        labSignY = posY - 125;
+        puertaLaboratorio = new ColisionPuertaLaboratorio(labDoorX, labDoorY, labSignTexture, game, this, explorador);
+        gestorColisiones.agregarColision(puertaLaboratorio);
 
         // Initialize UI projection matrix
 
@@ -446,7 +463,7 @@ public class GameScreen extends BaseScreen {
         float regionSize = 60f;
 
         // 1. Costa Cobalto (Orange) - Near Harry Styles (Spawn + 1110, -320)
-        regions.add(new RegionTrigger(spawnX + 1170, spawnY - 320, regionSize, regionSize,
+        regions.add(new RegionTrigger(spawnX + 1250, spawnY - 360, regionSize, regionSize,
                 Color.ORANGE, texCostaCobalto, "Costa Cobalto"));
 
         // 2. Pantanal Carmesí (Pink) - Near Harry Potter (Spawn + 2100, + 900) - LEFT
@@ -458,7 +475,7 @@ public class GameScreen extends BaseScreen {
                 Color.YELLOW, texLadera, "Ladera Corona"));
 
         // 4. Tundra Alba (Purple) - Near Harry Potter - BOTTOM
-        regions.add(new RegionTrigger(spawnX - 100, spawnY + 950, regionSize, regionSize,
+        regions.add(new RegionTrigger(spawnX + 50, spawnY + 850, regionSize, regionSize,
                 Color.PURPLE, texTundra, "Tundra Alba"));
     }
 
@@ -719,11 +736,14 @@ public class GameScreen extends BaseScreen {
                     }
 
                     // Collision
-                    if (isColliding(posX, posY)) {
+                    if (gestorColisiones.verificarTodasLasColisiones(posX, posY, playerCollisionWidth,
+                            playerCollisionHeight)) {
                         // Simple collision resolve
-                        if (!isColliding(posX, oldY)) {
+                        if (!gestorColisiones.verificarTodasLasColisiones(posX, oldY, playerCollisionWidth,
+                                playerCollisionHeight)) {
                             posY = oldY;
-                        } else if (!isColliding(oldX, posY)) {
+                        } else if (!gestorColisiones.verificarTodasLasColisiones(oldX, posY, playerCollisionWidth,
+                                playerCollisionHeight)) {
                             posX = oldX;
                         } else {
                             posX = oldX;
@@ -756,41 +776,23 @@ public class GameScreen extends BaseScreen {
                     introState = IntroState.FINISHED;
             }
 
-            // Lab Entrance Check
-            isNearLab = false;
-            isNearLab = false;
-            // Use distance check for interaction prompt so it works even if we can't walk
-            // "inside"
-            if (labZone != null && com.badlogic.gdx.math.Vector2.dst(posX, posY, labZone.x + labZone.width / 2,
-                    labZone.y + labZone.height / 2) < 60f) {
-                isNearLab = true;
-                if (!fadingOut && Gdx.input.isKeyJustPressed(Input.Keys.T)) {
-                    if (explorador.getEquipo().isEmpty()) {
-                        fadingOut = true;
-                        // Pre-create screen
-                        nextScreen = new LaboratorioScreen(game, this);
+            // Interaction Input (Unified)
+            if (Gdx.input.isKeyJustPressed(Input.Keys.T) && !showMenu && !fadingOut) {
+                IInteractivo interactivo = gestorColisiones.obtenerInteractivoMasCercano(posX, posY);
+                if (interactivo != null) {
+                    if (interactivo instanceof ColisionNPC) {
+                        NPC npc = ((ColisionNPC) interactivo).obtenerNPC();
+                        if (!showDialog) {
+                            showDialog = true;
+                            currentDialogPage = 0;
+                            activeNpcName = npc.getName();
+                            activeDialogPages = npc.getDialog();
+                            currentPortrait = npc.getPortrait();
+                        } else {
+                            showDialog = false;
+                        }
                     } else {
-                        notificationMessage = "La elección es permanente. No puedes volver a entrar.";
-                        notificationTimer = NOTIFICATION_DURATION;
-                    }
-                }
-            }
-
-            // NPC Interaction Input
-            // Toggle dialog on interaction key (E)
-            // Toggle dialog on interaction key (E)
-            if (Gdx.input.isKeyJustPressed(Input.Keys.T) && !showMenu) {
-                com.mypokemon.game.objects.NPC closeNPC = (npcManager != null) ? npcManager.getCloseNPC(posX, posY)
-                        : null;
-                if (closeNPC != null) {
-                    if (!showDialog) {
-                        showDialog = true;
-                        currentDialogPage = 0;
-                        activeNpcName = closeNPC.getName();
-                        activeDialogPages = closeNPC.getDialog();
-                        currentPortrait = closeNPC.getPortrait();
-                    } else {
-                        showDialog = false;
+                        interactivo.interactuar();
                     }
                 }
             }
@@ -1133,7 +1135,10 @@ public class GameScreen extends BaseScreen {
 
         game.batch.begin();
 
-        drawLabSign();
+        // Draw Lab Sign via Collision Object
+        if (puertaLaboratorio != null) {
+            puertaLaboratorio.renderizarLetrero(game.batch);
+        }
         game.batch.end();
 
         // UI
@@ -1187,11 +1192,12 @@ public class GameScreen extends BaseScreen {
 
         // NPC Hints
         if (gameUI != null) {
-            com.mypokemon.game.objects.NPC hintNPC = (npcManager != null) ? npcManager.getCloseNPC(posX, posY) : null;
-            if (hintNPC != null && !showDialog) {
-                gameUI.renderHint(game.batch, "Presiona [T] para hablar con " + hintNPC.getName());
-            } else if (isNearLab && !showDialog) {
-                gameUI.renderHint(game.batch, "Presiona [T] para entrar");
+            // Unified UI Hint
+            if (gameUI != null && !showDialog) {
+                IInteractivo interactivo = gestorColisiones.obtenerInteractivoMasCercano(posX, posY);
+                if (interactivo != null) {
+                    gameUI.renderHint(game.batch, interactivo.obtenerMensajeInteraccion());
+                }
             }
         }
 
@@ -1246,13 +1252,6 @@ public class GameScreen extends BaseScreen {
         }
     }
 
-    private void drawLabSign() {
-        // Draw Lab Sign
-        if (labSignTexture != null) {
-            game.batch.draw(labSignTexture, labSignX, labSignY, 80, 53);
-        }
-    }
-
     private int getIntProperty(com.badlogic.gdx.maps.MapProperties props, String key, int defaultValue) {
         Object val = props.get(key);
         if (val instanceof Integer)
@@ -1267,66 +1266,6 @@ public class GameScreen extends BaseScreen {
             }
         }
         return defaultValue;
-    }
-
-    private boolean isColliding(float x, float y) {
-        // Define collision box for player feet
-        float minX = x - playerWidth / 3;
-        float minY = y - playerHeight / 2;
-        float w = playerWidth * 2 / 3;
-        float h = playerHeight / 4;
-
-        // Lab Collision (Door/Entrance area)
-        if (labZone != null && labZone.overlaps(new Rectangle(minX, minY, w, h))) {
-            return true;
-        }
-
-        // Colisión con Otro Jugador (Online)
-        if (otherPlayer != null) {
-            // Full Body Collision (Requested: "todo el borde")
-            Rectangle myRect = new Rectangle(x - playerWidth / 2, y - playerHeight / 2, playerWidth, playerHeight);
-            Rectangle otherRect = new Rectangle(otherPlayer.x - playerWidth / 2, otherPlayer.y - playerHeight / 2,
-                    playerWidth, playerHeight);
-
-            if (myRect.overlaps(otherRect)) {
-                return true;
-            }
-        }
-
-        // Check NPC Collision with a slightly larger box for better feel (Body
-        // collision)
-        if (npcManager != null && npcManager.checkCollision(x - playerWidth / 2, y - playerHeight / 2, playerWidth,
-                playerHeight / 2)) {
-            return true;
-        }
-
-        if (collisionLayer == null)
-            return false;
-
-        float[][] points = {
-                { minX, minY },
-                { minX + w, minY },
-                { minX, minY + h },
-                { minX + w, minY + h }
-        };
-
-        for (float[] p : points) {
-            int cellX = (int) (p[0] / collisionLayer.getTileWidth());
-            int cellY = (int) (p[1] / collisionLayer.getTileHeight());
-
-            TiledMapTileLayer.Cell cell = collisionLayer.getCell(cellX, cellY);
-            if (cell != null && cell.getTile() != null) {
-                Object col = cell.getTile().getProperties().get("Colision");
-                if (col != null) {
-                    if (col instanceof Boolean && (Boolean) col)
-                        return true;
-                    if (col instanceof String && "true".equalsIgnoreCase((String) col))
-                        return true;
-                }
-            }
-        }
-
-        return false;
     }
 
     @Override
@@ -1382,6 +1321,22 @@ public class GameScreen extends BaseScreen {
     // Getter for Explorador
     public Explorador getExplorador() {
         return explorador;
+    }
+
+    /**
+     * Inicia el efecto de fade out y cambia a la pantalla especificada.
+     */
+    public void iniciarFadeOut(BaseScreen pantallaDestino) {
+        this.fadingOut = true;
+        this.nextScreen = pantallaDestino;
+    }
+
+    /**
+     * Muestra un mensaje de notificación temporal.
+     */
+    public void mostrarNotificacion(String mensaje) {
+        this.notificationMessage = mensaje;
+        this.notificationTimer = NOTIFICATION_DURATION;
     }
 
     public Texture getPlayerSheet() {

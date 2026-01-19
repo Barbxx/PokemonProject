@@ -19,7 +19,7 @@ public abstract class NPC implements Interactable {
     protected float width, height;
     protected String name;
     protected String[] dialogPages;
-    protected float interactionDistance = 80f;
+    protected float interactionDistance = 45f; // Reducido de 30 a 20 para permitir acercarse más de frente
 
     public NPC(float x, float y, float width, float height, String texturePath, String name, String[] dialogPages) {
         this.x = x;

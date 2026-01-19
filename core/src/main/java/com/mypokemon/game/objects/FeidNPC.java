@@ -9,7 +9,7 @@ public class FeidNPC extends NPC {
     };
 
     public FeidNPC(float startX, float startY) {
-        super(startX, startY, 25, 35, "feidSprite.png", "Profesor Ferxxo", DIALOG);
+        super(startX, startY + 5, 25, 35, "feidSprite.png", "Profesor Ferxxo", DIALOG);
         setPortrait("ferxxoCientifico.png");
     }
 }

@@ -1,10 +1,15 @@
-package com.mypokemon.game;
+package com.mypokemon.game.pantallas;
+
+import com.mypokemon.game.PokemonMain;
+import com.mypokemon.game.Explorador;
+import com.mypokemon.game.EspeciePokemon;
+import com.mypokemon.game.Pokemon;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.utils.ScreenUtils;
-import com.mypokemon.game.utils.BaseScreen;
+
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;

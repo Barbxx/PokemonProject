@@ -1,12 +1,16 @@
-package com.mypokemon.game;
+package com.mypokemon.game.pantallas;
+
+import com.mypokemon.game.PokemonMain;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
-import com.mypokemon.game.utils.BaseScreen;
+import com.badlogic.gdx.utils.viewport.FitViewport;
+import com.badlogic.gdx.utils.viewport.Viewport;
 
 public class MainMenuScreen extends BaseScreen {
 
@@ -31,6 +35,12 @@ public class MainMenuScreen extends BaseScreen {
     float menuBoxWidth = 370;
     float menuBoxHeight = 260;
 
+    // Camera and Viewport for fixed aspect ratio
+    private OrthographicCamera camera;
+    private Viewport viewport;
+    private static final float VIRTUAL_WIDTH = 1280f;
+    private static final float VIRTUAL_HEIGHT = 720f;
+
     public MainMenuScreen(final PokemonMain game) {
         super(game);
 
@@ -54,6 +64,13 @@ public class MainMenuScreen extends BaseScreen {
                 Gdx.app.log("MainMenu", "Could not load images for option " + i + ": " + e.getMessage());
             }
         }
+
+        // Setup camera and viewport
+        camera = new OrthographicCamera();
+        viewport = new FitViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, camera);
+        viewport.apply();
+        camera.position.set(VIRTUAL_WIDTH / 2, VIRTUAL_HEIGHT / 2, 0);
+        camera.update();
     }
 
     @Override
@@ -66,30 +83,15 @@ public class MainMenuScreen extends BaseScreen {
         // --- 1. Update Logic ---
         ScreenUtils.clear(0f, 0f, 0f, 1f);
 
-        // Calculate layout variables first for Input detection
-        float screenWidth = Gdx.graphics.getWidth();
-        float screenHeight = Gdx.graphics.getHeight();
-
-        float mouseX = Gdx.input.getX();
-        float mouseY = screenHeight - Gdx.input.getY();
+        // Calculate layout variables for rendering
+        float screenWidth = VIRTUAL_WIDTH;
+        float screenHeight = VIRTUAL_HEIGHT;
 
         float buttonWidth = 300;
         float buttonHeight = 80;
         float spacing = -15; // Negative spacing to bring them closer
         float totalMenuHeight = (options.length * buttonHeight) + ((options.length - 1) * spacing);
         float startY = (screenHeight + totalMenuHeight) / 2 - 100;
-
-        // Determine which option is hovered
-        int hoveredOption = -1;
-        for (int i = 0; i < options.length; i++) {
-            float buttonY = startY - (i * (buttonHeight + spacing)) - buttonHeight;
-            float buttonX = (screenWidth - buttonWidth) / 2;
-            if (mouseX >= buttonX && mouseX <= buttonX + buttonWidth &&
-                    mouseY >= buttonY && mouseY <= buttonY + buttonHeight) { // Check range
-                hoveredOption = i;
-                break; // Found it
-            }
-        }
 
         // Keyboard Selection Logic
         if (Gdx.input.isKeyJustPressed(Input.Keys.UP) || Gdx.input.isKeyJustPressed(Input.Keys.W)) {
@@ -111,27 +113,25 @@ public class MainMenuScreen extends BaseScreen {
             }
         }
 
-        // Action Logic (Enter or Click)
-        boolean click = Gdx.input.isButtonJustPressed(Input.Buttons.LEFT);
+        // Action Logic (Only Enter key)
         boolean enter = Gdx.input.isKeyJustPressed(Input.Keys.ENTER) || Gdx.input.isKeyJustPressed(Input.Keys.SPACE);
 
-        if ((hoveredOption != -1 && click) || (currentOption != -1 && enter)) {
-            // Determine target: priority to hover if click, else currentOption
-            int target = (click && hoveredOption != -1) ? hoveredOption : currentOption;
-
-            if (target == 0) { // PLAY -> Go to EleccionJuegoScreen
+        if (currentOption != -1 && enter) {
+            if (currentOption == 0) { // PLAY -> Go to EleccionJuegoScreen
                 game.setScreen(new EleccionJuegoScreen(game));
                 dispose();
                 return;
-            } else if (target == 1) { // CARGAR -> Go to PartidasScreen
+            } else if (currentOption == 1) { // CARGAR -> Go to PartidasScreen
                 game.setScreen(new PartidasScreen(game));
                 dispose();
                 return;
-            } else if (target == 2) {
+            } else if (currentOption == 2) {
                 currentSubScreen = "HELP";
-            } else if (target == 3) {
-                currentSubScreen = "ABOUT";
-            } else if (target == 4) { // EXIT
+            } else if (currentOption == 3) { // ABOUT -> Go to AcercaDeScreen
+                game.setScreen(new AcercaDeScreen(game));
+                dispose();
+                return;
+            } else if (currentOption == 4) { // EXIT
                 Gdx.app.exit();
             }
         }
@@ -146,6 +146,9 @@ public class MainMenuScreen extends BaseScreen {
 
         ScreenUtils.clear(0f, 0f, 0f, 1f);
 
+        camera.update();
+        game.batch.setProjectionMatrix(camera.combined);
+
         game.batch.begin();
 
         if (background != null) {
@@ -159,12 +162,8 @@ public class MainMenuScreen extends BaseScreen {
             Texture textureToDraw = null;
             boolean showSelected = false;
 
-            boolean isHovered = (hoveredOption == i);
-            boolean isPressed = Gdx.input.isButtonPressed(Input.Buttons.LEFT);
-
-            // Show selected if it is the current keyboard option OR if it's being clicked
-            // OR if it is hovered (UX improvement: highlight on hover)
-            if (i == currentOption || isHovered) {
+            // Show selected if it is the current keyboard option
+            if (i == currentOption) {
                 showSelected = true;
             }
 
@@ -206,6 +205,12 @@ public class MainMenuScreen extends BaseScreen {
         }
 
         game.batch.end();
+    }
+
+    @Override
+    public void resize(int width, int height) {
+        viewport.update(width, height, true);
+        camera.position.set(VIRTUAL_WIDTH / 2, VIRTUAL_HEIGHT / 2, 0);
     }
 
     @Override

@@ -1,12 +1,16 @@
-package com.mypokemon.game;
+package com.mypokemon.game.pantallas;
+
+import com.mypokemon.game.PokemonMain;
+import com.mypokemon.game.Explorador;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.ScreenUtils;
+import com.badlogic.gdx.utils.viewport.FitViewport;
+import com.badlogic.gdx.utils.viewport.Viewport;
 import com.mypokemon.game.client.NetworkClient;
-import com.mypokemon.game.utils.BaseScreen;
 
 public class CompartidaScreen extends BaseScreen {
 
@@ -14,9 +18,22 @@ public class CompartidaScreen extends BaseScreen {
     private String statusText = "Inicializando...";
     private boolean isConnecting = false;
 
+    // Camera and Viewport for fixed aspect ratio
+    private OrthographicCamera camera;
+    private Viewport viewport;
+    private static final float VIRTUAL_WIDTH = 1280f;
+    private static final float VIRTUAL_HEIGHT = 720f;
+
     public CompartidaScreen(PokemonMain game, String playerName) {
         super(game);
         this.playerName = playerName;
+
+        // Setup camera and viewport
+        camera = new OrthographicCamera();
+        viewport = new FitViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, camera);
+        viewport.apply();
+        camera.position.set(VIRTUAL_WIDTH / 2, VIRTUAL_HEIGHT / 2, 0);
+        camera.update();
     }
 
     @Override
@@ -76,10 +93,13 @@ public class CompartidaScreen extends BaseScreen {
     public void render(float delta) {
         ScreenUtils.clear(0, 0, 0, 1);
 
-        game.batch.begin();
+        float w = VIRTUAL_WIDTH;
+        float h = VIRTUAL_HEIGHT;
 
-        float w = Gdx.graphics.getWidth();
-        float h = Gdx.graphics.getHeight();
+        camera.update();
+        game.batch.setProjectionMatrix(camera.combined);
+
+        game.batch.begin();
 
         game.font.setColor(Color.WHITE);
         game.font.getData().setScale(1.5f);
@@ -112,5 +132,11 @@ public class CompartidaScreen extends BaseScreen {
             game.setScreen(new EleccionJuegoScreen(game));
             dispose();
         }
+    }
+
+    @Override
+    public void resize(int width, int height) {
+        viewport.update(width, height, true);
+        camera.position.set(VIRTUAL_WIDTH / 2, VIRTUAL_HEIGHT / 2, 0);
     }
 }

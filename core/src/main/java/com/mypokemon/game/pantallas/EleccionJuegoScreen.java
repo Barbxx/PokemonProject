@@ -1,11 +1,16 @@
-package com.mypokemon.game;
+package com.mypokemon.game.pantallas;
+
+import com.mypokemon.game.PokemonMain;
+import com.mypokemon.game.Explorador;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.utils.ScreenUtils;
-import com.mypokemon.game.utils.BaseScreen;
+import com.badlogic.gdx.utils.viewport.FitViewport;
+import com.badlogic.gdx.utils.viewport.Viewport;
 
 public class EleccionJuegoScreen extends BaseScreen {
 
@@ -25,6 +30,12 @@ public class EleccionJuegoScreen extends BaseScreen {
     boolean isAskingName = false;
     String inputName = "";
     String statusMessage = "";
+
+    // Camera and Viewport for fixed aspect ratio
+    private OrthographicCamera camera;
+    private Viewport viewport;
+    private static final float VIRTUAL_WIDTH = 1280f;
+    private static final float VIRTUAL_HEIGHT = 720f;
 
     public EleccionJuegoScreen(PokemonMain game) {
         super(game);
@@ -82,6 +93,13 @@ public class EleccionJuegoScreen extends BaseScreen {
                 return false;
             }
         });
+
+        // Setup camera and viewport
+        camera = new OrthographicCamera();
+        viewport = new FitViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, camera);
+        viewport.apply();
+        camera.position.set(VIRTUAL_WIDTH / 2, VIRTUAL_HEIGHT / 2, 0);
+        camera.update();
     }
 
     @Override
@@ -90,8 +108,8 @@ public class EleccionJuegoScreen extends BaseScreen {
         ScreenUtils.clear(0, 0, 0, 1);
 
         // --- Update Logic ---
-        float screenWidth = Gdx.graphics.getWidth();
-        float screenHeight = Gdx.graphics.getHeight();
+        float screenWidth = VIRTUAL_WIDTH;
+        float screenHeight = VIRTUAL_HEIGHT;
 
         // Layout
         float buttonWidth = 500;
@@ -106,20 +124,8 @@ public class EleccionJuegoScreen extends BaseScreen {
         float solitarioY = startY - buttonHeight;
         float compartidaY = solitarioY - spacing - buttonHeight;
 
-        // Input Handling (Only if not typing name)
+        // Input Handling (Only keyboard, no mouse)
         if (!isAskingName) {
-            float mouseX = Gdx.input.getX();
-            float mouseY = screenHeight - Gdx.input.getY();
-
-            int hovered = -1;
-
-            if (mouseX >= centerX && mouseX <= centerX + buttonWidth &&
-                    mouseY >= solitarioY && mouseY <= solitarioY + buttonHeight) {
-                hovered = OPTION_SOLITARIO;
-            } else if (mouseX >= centerX && mouseX <= centerX + buttonWidth &&
-                    mouseY >= compartidaY && mouseY <= compartidaY + buttonHeight) {
-                hovered = OPTION_COMPARTIDA;
-            }
 
             if (Gdx.input.isKeyJustPressed(Input.Keys.UP) || Gdx.input.isKeyJustPressed(Input.Keys.W)) {
                 if (currentOption == -1)
@@ -134,11 +140,7 @@ public class EleccionJuegoScreen extends BaseScreen {
                     currentOption = OPTION_COMPARTIDA;
             }
 
-            if (hovered != -1) {
-                currentOption = hovered;
-            }
-
-            if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT) || Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
+            if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
                 if (currentOption == OPTION_SOLITARIO || currentOption == OPTION_COMPARTIDA) {
                     isAskingName = true;
                     inputName = ""; // Reset
@@ -154,6 +156,9 @@ public class EleccionJuegoScreen extends BaseScreen {
         }
 
         // --- Draw Logic ---
+        camera.update();
+        game.batch.setProjectionMatrix(camera.combined);
+
         game.batch.begin();
 
         if (background != null) {
@@ -272,6 +277,12 @@ public class EleccionJuegoScreen extends BaseScreen {
         // Pass name to CompartidaScreen
         game.setScreen(new CompartidaScreen(game, inputName));
         dispose();
+    }
+
+    @Override
+    public void resize(int width, int height) {
+        viewport.update(width, height, true);
+        camera.position.set(VIRTUAL_WIDTH / 2, VIRTUAL_HEIGHT / 2, 0);
     }
 
     @Override

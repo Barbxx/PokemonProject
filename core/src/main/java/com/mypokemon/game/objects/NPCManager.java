@@ -20,6 +20,10 @@ public class NPCManager {
         npcs.add(npc);
     }
 
+    public List<NPC> getAllNPCs() {
+        return npcs;
+    }
+
     public void render(SpriteBatch batch) {
         for (NPC npc : npcs) {
             npc.render(batch);
