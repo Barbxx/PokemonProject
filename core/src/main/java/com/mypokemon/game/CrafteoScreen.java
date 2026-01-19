@@ -112,11 +112,11 @@ public class CrafteoScreen extends BaseScreen {
                 texPokebola = new Texture(Gdx.files.internal("pokeball.png"));
                 texPokebolaPeso = new Texture(Gdx.files.internal("pokeballPeso.png"));
                 texPocionHerbal = new Texture(Gdx.files.internal("pocionHerbal.png"));
-                texElixir = new Texture(Gdx.files.internal("elixirEnergia.png"));
+                texElixir = new Texture(Gdx.files.internal("elixirPielPiedra.png"));
                 texRevivir = new Texture(Gdx.files.internal("revivirCasero.png"));
-                texRepelente = new Texture(Gdx.files.internal("repelente.png"));
-                texAmuleto = new Texture(Gdx.files.internal("amuleto.png"));
-                texCebo = new Texture(Gdx.files.internal("lure.png"));
+                texRepelente = new Texture(Gdx.files.internal("reproductor.png"));
+                texAmuleto = new Texture(Gdx.files.internal("guanteReflejo.png"));
+                texCebo = new Texture(Gdx.files.internal("frijolMagico.png"));
 
             } catch (Exception e) {
                 Gdx.app.error("Crafteo", "Error loading item textures", e);

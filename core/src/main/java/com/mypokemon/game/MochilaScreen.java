@@ -172,9 +172,9 @@ public class MochilaScreen extends BaseScreen {
                 Gdx.app.error("Mochila", "Missing pocionherbal.png");
             }
             try {
-                texElixir = new Texture(Gdx.files.internal("elixirEnergia.png"));
+                texElixir = new Texture(Gdx.files.internal("elixirPielPiedra.png"));
             } catch (Exception e) {
-                Gdx.app.error("Mochila", "Missing elixirEnergia.png");
+                Gdx.app.error("Mochila", "Missing elixirPielPiedra.png");
             }
             try {
                 texRevivir = new Texture(Gdx.files.internal("revivircasero.png"));
@@ -182,14 +182,14 @@ public class MochilaScreen extends BaseScreen {
                 Gdx.app.error("Mochila", "Missing revivircasero.png");
             }
             try {
-                texRepelente = new Texture(Gdx.files.internal("repelente.png"));
+                texRepelente = new Texture(Gdx.files.internal("reproductor.png"));
             } catch (Exception e) {
-                Gdx.app.error("Mochila", "Missing repelente.png");
+                Gdx.app.error("Mochila", "Missing reproductor.png");
             }
             try {
-                texAmuleto = new Texture(Gdx.files.internal("amuleto.png"));
+                texAmuleto = new Texture(Gdx.files.internal("guanteReflejo.png"));
             } catch (Exception e) {
-                Gdx.app.error("Mochila", "Missing amuleto.png");
+                Gdx.app.error("Mochila", "Missing guanteReflejo.png");
             }
 
             try {
@@ -198,9 +198,9 @@ public class MochilaScreen extends BaseScreen {
                 Gdx.app.error("Mochila", "Missing pokeballpeso.png");
             }
             try {
-                texLure = new Texture(Gdx.files.internal("lure.png"));
+                texLure = new Texture(Gdx.files.internal("frijolMagico.png"));
             } catch (Exception e) {
-                Gdx.app.error("Mochila", "Missing lure.png");
+                Gdx.app.error("Mochila", "Missing frijolMagico.png");
             }
             try {
                 texMarcoVerde = new Texture(Gdx.files.internal("marcoVerde.png"));

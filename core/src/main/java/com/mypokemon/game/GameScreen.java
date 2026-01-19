@@ -66,26 +66,11 @@ public class GameScreen extends BaseScreen {
     private com.mypokemon.game.ui.GameUI gameUI;
 
     private Texture labSignTexture; // Lab Sign might belong to map objects eventually
-    // private Texture dialogIconTexture; // REMOVED
-    // private Texture harryPortraitTexture; // REMOVED
-    // private Texture harryStylesPortraitTexture; // REMOVED
-    // private Texture brennerPortraitTexture; // REMOVED
     private Texture currentPortrait;
-    // private Texture dialogFrameTexture; // REMOVED
     private Texture uiWhitePixel; // Keep for now if used elsewhere or move to UI
-
-    // private float feidX, feidY; // REMOVED
-    // private float harryX, harryY; // REMOVED
-    // private float harryStylesX, harryStylesY; // REMOVED
-    // private float brennerX, brennerY; // REMOVED
-
     private boolean showDialog = false;
 
     // Proximity flags REMOVED (Handled by NPCManager)
-    // private boolean isNearFeid = false;
-    // private boolean isNearHarry = false;
-    // ...
-
     private boolean isNearLab = false; // Keep Lab logic separate for now
 
     private float labSignX, labSignY; // Fixed Lab Sign coordinates
@@ -99,9 +84,6 @@ public class GameScreen extends BaseScreen {
     private String[] activeDialogPages;
     // actually, let's keep currentPortrait to pass to GameUI.renderDialog
 
-    // Dialog Arrays REMOVED (Moved to NPC classes)
-
-    // Menu State
     // Menu State
     private boolean showMenu = false;
     private int menuSelectedIndex = 0;
@@ -147,6 +129,28 @@ public class GameScreen extends BaseScreen {
     private int frameCols;
     private int frameRows;
 
+    // Region Triggers
+    private class RegionTrigger {
+        Rectangle bounds;
+        Color color;
+        Texture signTexture;
+        boolean active;
+        String name;
+
+        public RegionTrigger(float x, float y, float w, float h, Color c, Texture t, String n) {
+            this.bounds = new Rectangle(x, y, w, h);
+            this.color = c;
+            this.signTexture = t;
+            this.name = n;
+            this.active = false;
+        }
+    }
+
+    private List<RegionTrigger> regions = new ArrayList<>();
+    private Texture texCostaCobalto, texPantanal, texLadera, texTundra, texFlorecita;
+    private RegionTrigger currentActiveRegion = null; // Track which one is currently "on" to avoid re-triggering
+                                                      // constantly
+
     public GameScreen(final PokemonMain game, String texturePath, int cols, int rows, String playerName,
             String gameName) {
         super(game);
@@ -172,12 +176,12 @@ public class GameScreen extends BaseScreen {
 
         // Load Intro Texture
         try {
-            introTexture = new Texture(Gdx.files.internal("praderaObsidiana.png"));
+            introTexture = new Texture(Gdx.files.internal("letreroPraderaObsidiana.png"));
             introState = IntroState.SLIDING_IN;
             // Start completely off-screen (above the viewport)
             introY = 480;
         } catch (Exception e) {
-            Gdx.app.log("GameScreen", "Could not load praderaObsidiana.png", e);
+            Gdx.app.log("GameScreen", "Could not load letreroPraderaObsidiana.png", e);
             introState = IntroState.FINISHED;
         }
 
@@ -187,6 +191,9 @@ public class GameScreen extends BaseScreen {
         } catch (Exception e) {
             Gdx.app.log("GameScreen", "Could not load Aviso.png", e);
         }
+
+        // Init White Pixel for UI
+        uiWhitePixel = TextureUtils.createSolidTexture(1, 1, Color.WHITE);
 
         // Load Sounds
         try {
@@ -405,9 +412,47 @@ public class GameScreen extends BaseScreen {
 
         // Initialize UI projection matrix
 
-        // Initialize UI projection matrix
-        uiMatrix = new com.badlogic.gdx.math.Matrix4().setToOrtho2D(0, 0, 800, 480);
         game.font.setUseIntegerPositions(true);
+
+        // Load Region Sign Textures
+        try {
+            texCostaCobalto = new Texture(Gdx.files.internal("letreroCostaCobalto.png"));
+            texPantanal = new Texture(Gdx.files.internal("letreroPantanalCarmesí.png"));
+            texLadera = new Texture(Gdx.files.internal("letreroLaderaCorona.png"));
+            texTundra = new Texture(Gdx.files.internal("letreroTundraAlba.png"));
+            texFlorecita = new Texture(Gdx.files.internal("florecita.png"));
+        } catch (Exception e) {
+            Gdx.app.log("GameScreen", "Error loading region signs", e);
+        }
+
+        // Initialize Regions (Offsets relative to Spawn Point)
+        // The actual posX and posY are set in loadMap() which is called in show().
+        // For constructor initialization, we'll use 0,0 and update in show() or
+        // render().
+        // However, the previous code used this.posX and this.posY directly, implying
+        // they might be set by Explorador.
+        // Let's stick to the previous logic for now, assuming posX/posY are correctly
+        // initialized by the time
+        // this block is reached, or that the relative offsets are what matters.
+        float spawnX = this.posX;
+        float spawnY = this.posY;
+        float regionSize = 60f;
+
+        // 1. Costa Cobalto (Orange) - Near Harry Styles (Spawn + 1110, -320)
+        regions.add(new RegionTrigger(spawnX + 1170, spawnY - 320, regionSize, regionSize,
+                Color.ORANGE, texCostaCobalto, "Costa Cobalto"));
+
+        // 2. Pantanal Carmesí (Pink) - Near Harry Potter (Spawn + 2100, + 900) - LEFT
+        regions.add(new RegionTrigger(spawnX + 2100 - 50, spawnY + 890, regionSize, regionSize,
+                Color.PINK, texPantanal, "Pantanal Carmesí"));
+
+        // 3. Ladera Corona (Yellow) - Near Harry Potter - RIGHT
+        regions.add(new RegionTrigger(spawnX + 2100 - 1300, spawnY + 1700, regionSize, regionSize,
+                Color.YELLOW, texLadera, "Ladera Corona"));
+
+        // 4. Tundra Alba (Purple) - Near Harry Potter - BOTTOM
+        regions.add(new RegionTrigger(spawnX - 100, spawnY + 950, regionSize, regionSize,
+                Color.PURPLE, texTundra, "Tundra Alba"));
     }
 
     // Fade State
@@ -795,6 +840,33 @@ public class GameScreen extends BaseScreen {
             }
         } // End !showMenu
 
+        // Region Trigger Logic
+        if (!showMenu && !showDialog && !fadingOut) {
+            for (RegionTrigger region : regions) {
+                // Check distance to center of region
+                float regCenterX = region.bounds.x + region.bounds.width / 2;
+                float regCenterY = region.bounds.y + region.bounds.height / 2;
+
+                if (com.badlogic.gdx.math.Vector2.dst(posX, posY, regCenterX, regCenterY) < 60f) {
+                    // Trigger!
+                    if (currentActiveRegion != region) {
+                        currentActiveRegion = region;
+                        if (region.signTexture != null) {
+                            introTexture = region.signTexture;
+                            introState = IntroState.SLIDING_IN;
+                            introY = 480; // Reset position
+                        }
+                    }
+                } else {
+                    if (com.badlogic.gdx.math.Vector2.dst(posX, posY, regCenterX, regCenterY) > 100f) {
+                        if (currentActiveRegion == region) {
+                            currentActiveRegion = null;
+                        }
+                    }
+                }
+            }
+        }
+
         // Resource Respawn Logic (Always run)
         // ...
         for (RecursoMapa r : recursosMapa) {
@@ -840,7 +912,8 @@ public class GameScreen extends BaseScreen {
         // NPC Range Check for Dialog Closing
         // ...
         // NPC Range Check for Dialog Closing
-        com.mypokemon.game.objects.NPC closeNPC = (npcManager != null) ? npcManager.getCloseNPC(posX, posY) : null;
+        com.mypokemon.game.objects.NPC closeNPC = (npcManager != null) ? npcManager.getCloseNPC(posX, posY)
+                : null;
         if (closeNPC == null) {
             showDialog = false;
         }
@@ -871,7 +944,8 @@ public class GameScreen extends BaseScreen {
         }
         // Clamp
         float camX = posX, camY = posY;
-        float hw = viewport.getWorldWidth() / 2, hh = viewport.getWorldHeight() / 2;
+        float hw = viewport.getWorldWidth() / 2, hh = viewport.getWorldHeight()
+                / 2;
         if (camX < hw)
             camX = hw;
         if (camX > mapWidth - hw)
@@ -900,6 +974,14 @@ public class GameScreen extends BaseScreen {
         npcManager.render(game.batch);
 
         drawPlayer();
+
+        // Draw Region Triggers (Florecitas)
+        if (texFlorecita != null) {
+            for (RegionTrigger r : regions) {
+                game.batch.draw(texFlorecita, r.bounds.x, r.bounds.y, r.bounds.width, r.bounds.height);
+            }
+        }
+
         // remove drawBrenner() call as it's now in npcManager
         game.batch.end();
 
@@ -907,6 +989,7 @@ public class GameScreen extends BaseScreen {
             mapRenderer.render(foregroundLayers);
 
         game.batch.begin();
+
         drawLabSign();
         game.batch.end();
 
@@ -915,7 +998,9 @@ public class GameScreen extends BaseScreen {
         game.batch.begin();
 
         // Intro
-        if (introState != IntroState.FINISHED && introTexture != null) {
+        if (introState != IntroState.FINISHED && introTexture != null)
+
+        {
             float introScale = 0.5f;
             game.batch.draw(introTexture, 0, introY, introTexture.getWidth() * introScale,
                     introTexture.getHeight() * introScale);
@@ -1114,6 +1199,7 @@ public class GameScreen extends BaseScreen {
             npcManager.dispose();
         if (gameUI != null)
             gameUI.dispose();
+
     }
 
     // Inner class for map resources

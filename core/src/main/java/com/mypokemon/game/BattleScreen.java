@@ -696,7 +696,7 @@ public class BattleScreen extends ScreenAdapter {
         float infoY = viewport.getWorldHeight() - 40; // Start higher for text
 
         font.getData().setScale(1.1f);
-        font.setColor(Color.WHITE);
+        font.setColor(Color.BLACK);
 
         // Name
         font.draw(game.batch, pokemonEnemigo.getNombre().toUpperCase(), infoX + 10, infoY);
@@ -735,7 +735,7 @@ public class BattleScreen extends ScreenAdapter {
 
         // Player Info (Bottom Right)
         float pInfoX = viewport.getWorldWidth() - 280; // Right side
-        float pInfoY = 160; // Above menus
+        float pInfoY = 300; // Raised further to 300 as requested to clear menu
 
         font.getData().setScale(1.1f);
         font.draw(game.batch, pokemonJugador.getNombre().toUpperCase(), pInfoX + 10, pInfoY);
