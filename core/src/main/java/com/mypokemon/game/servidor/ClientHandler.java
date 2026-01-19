@@ -99,30 +99,9 @@ public class ClientHandler extends Thread {
     }
 
     private void checkAndCreateSave() {
-        // Verificar si ambos tienen nombre y crear el archivo
-        if (peer != null && peer.getPlayerName() != null && this.playerName != null) {
-            // Sincronizar para que solo uno cree el archivo o log
-            synchronized (server) {
-                // Solo el Host (Player 1) o el servidor dispara la creación visual/lógica
-                if (playerId == 1) {
-                    String fileName = this.playerName + " - " + peer.getPlayerName() + ".save";
-                    System.out.println("CREANDO ARCHIVO DE GUARDADO: " + fileName);
-
-                    // Aquí se crearía el archivo físico real.
-                    // Por ahora, creamos un archivo placeholder para cumplir el requisito.
-                    File saveFile = new File("saves/" + fileName);
-                    try {
-                        if (saveFile.getParentFile() != null)
-                            saveFile.getParentFile().mkdirs();
-                        if (saveFile.createNewFile()) {
-                            System.out.println("Archivo creado exitosamente.");
-                        }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }
+        // La creación automática de archivo ha sido eliminada.
+        // El archivo solo se creará cuando ambos jugadores guarden explícitamente en el
+        // juego.
     }
 
     private void close() {

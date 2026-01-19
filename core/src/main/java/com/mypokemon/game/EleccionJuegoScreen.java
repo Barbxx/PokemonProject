@@ -218,7 +218,9 @@ public class EleccionJuegoScreen extends BaseScreen {
 
             // Title
             game.font.setColor(Color.BLACK);
-            game.font.draw(game.batch, "¿Nombre de la partida?", boxX, boxY + boxH - 30, boxW,
+            String title = (currentOption == OPTION_SOLITARIO) ? "¿Nombre de la partida?"
+                    : "Contraseña unica de la partida:";
+            game.font.draw(game.batch, title, boxX, boxY + boxH - 30, boxW,
                     com.badlogic.gdx.utils.Align.center, false);
 
             // Input

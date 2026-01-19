@@ -40,8 +40,7 @@ public class GameUI {
     public void renderHUD(SpriteBatch batch, Explorador explorador, boolean showMenu) {
         if (explorador != null) {
             font.setColor(Color.WHITE);
-            float hudX = 780;
-            font.draw(batch, "EXPLORADOR: " + explorador.getNombre(), hudX, 460, 0, Align.right, false);
+            font.setColor(Color.WHITE);
 
             // Draw Menu Hint Image (Bottom Right)
             if (menuHintTexture != null && !showMenu) {

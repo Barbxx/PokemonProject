@@ -14,6 +14,8 @@ public class GameServer {
     private ServerSocket serverSocket;
     private ClientHandler player1;
     private ClientHandler player2;
+    private boolean p1Saved = false;
+    private boolean p2Saved = false;
 
     public static void main(String[] args) {
         new GameServer().start();
@@ -125,11 +127,13 @@ public class GameServer {
     public synchronized void removeClient(ClientHandler client) {
         if (player1 == client) {
             player1 = null;
+            p1Saved = false;
             System.out.println("Jugador 1 desconectado. Slot liberado.");
             if (player2 != null)
                 player2.setPeer(null); // Unlink
         } else if (player2 == client) {
             player2 = null;
+            p2Saved = false;
             System.out.println("Jugador 2 desconectado. Slot liberado.");
             if (player1 != null)
                 player1.setPeer(null); // Unlink
@@ -154,6 +158,39 @@ public class GameServer {
                 player1.sendMessage(cmd);
             if (player2 != null)
                 player2.sendMessage(cmd);
+        } else if (msg.equals("SAVE_GAME")) {
+            if (sender == player1)
+                p1Saved = true;
+            if (sender == player2)
+                p2Saved = true;
+
+            System.out.println("Jugador " + sender.getPlayerName() + " quiere guardar.");
+
+            if (p1Saved && p2Saved) {
+                performSharedSave();
+                p1Saved = false;
+                p2Saved = false;
+                if (player1 != null)
+                    player1.sendMessage("SAVE_CONFIRMED");
+                if (player2 != null)
+                    player2.sendMessage("SAVE_CONFIRMED");
+            }
+        }
+    }
+
+    private void performSharedSave() {
+        if (player1 != null && player2 != null) {
+            String fileName = player1.getPlayerName() + " - " + player2.getPlayerName() + ".save";
+            try {
+                java.io.File saveFile = new java.io.File("saves/" + fileName);
+                if (saveFile.getParentFile() != null)
+                    saveFile.getParentFile().mkdirs();
+                if (saveFile.createNewFile()) {
+                    System.out.println("PARTIDA COMPARTIDA GUARDADA: " + fileName);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 

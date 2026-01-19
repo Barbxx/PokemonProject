@@ -549,6 +549,9 @@ public class GameScreen extends BaseScreen {
                     otherPlayer.x = oldX;
                     otherPlayer.y = oldY;
                 }
+            } else if (msg.equals("SAVE_CONFIRMED")) {
+                notificationMessage = "¡Partida Compartida Guardada!";
+                notificationTimer = NOTIFICATION_DURATION;
             } else if (msg.startsWith("RESOURCE_REMOVED:")) {
                 String id = msg.substring(17);
                 removeResourceById(id);
@@ -646,8 +649,14 @@ public class GameScreen extends BaseScreen {
                 } else if (selected.equals("POKÉDEX")) {
                     game.setScreen(new PokedexScreen(game, this, explorador));
                 } else if (selected.equals("GUARDAR")) {
-                    explorador.guardarProgreso();
-                    notificationMessage = "¡Partida Guardada!";
+                    explorador.guardarProgreso(); // Guardado local individual
+
+                    if (client != null) {
+                        client.sendMessage("SAVE_GAME");
+                        notificationMessage = "Esperando al otro jugador...";
+                    } else {
+                        notificationMessage = "¡Partida Guardada!";
+                    }
                     notificationTimer = NOTIFICATION_DURATION;
                     showMenu = false;
                 }
@@ -1270,6 +1279,18 @@ public class GameScreen extends BaseScreen {
         // Lab Collision (Door/Entrance area)
         if (labZone != null && labZone.overlaps(new Rectangle(minX, minY, w, h))) {
             return true;
+        }
+
+        // Colisión con Otro Jugador (Online)
+        if (otherPlayer != null) {
+            // Full Body Collision (Requested: "todo el borde")
+            Rectangle myRect = new Rectangle(x - playerWidth / 2, y - playerHeight / 2, playerWidth, playerHeight);
+            Rectangle otherRect = new Rectangle(otherPlayer.x - playerWidth / 2, otherPlayer.y - playerHeight / 2,
+                    playerWidth, playerHeight);
+
+            if (myRect.overlaps(otherRect)) {
+                return true;
+            }
         }
 
         // Check NPC Collision with a slightly larger box for better feel (Body
