@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 public class PokemonMain extends Game {
     public SpriteBatch batch;
     public BitmapFont font;
+    public com.mypokemon.game.client.NetworkClient networkClient;
 
     @Override
     public void create() {

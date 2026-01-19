@@ -59,6 +59,12 @@ public class GameScreen extends BaseScreen {
 
     private Explorador explorador;
 
+    // Network
+    private com.mypokemon.game.client.NetworkClient client;
+    private RemotePlayer otherPlayer;
+    private float moveUpdateTimer = 0;
+    private String myTexturePath;
+
     // NPC Management (Refactored)
     private com.mypokemon.game.objects.NPCManager npcManager;
 
@@ -157,6 +163,7 @@ public class GameScreen extends BaseScreen {
         this.frameCols = cols;
         this.frameRows = rows;
         this.playerName = playerName; // Explorer Name
+        this.myTexturePath = texturePath; // Store path for Network Identity
 
         // Initialize Managers
         npcManager = new com.mypokemon.game.objects.NPCManager();
@@ -482,6 +489,100 @@ public class GameScreen extends BaseScreen {
         fadingOut = false;
         fadeAlpha = 1f;
         nextScreen = null;
+
+        // Network Init
+        this.client = game.networkClient;
+        if (this.client != null) {
+            String genderStr = "CHICO";
+            if (myTexturePath != null && myTexturePath.toLowerCase().contains("fem")) {
+                genderStr = "CHICA";
+            }
+            client.sendMessage("IDENTITY:" + playerName + ":" + genderStr);
+
+            this.client.setListener(msg -> {
+                Gdx.app.postRunnable(() -> handleNetworkMessage(msg));
+            });
+        }
+    }
+
+    private void handleNetworkMessage(String msg) {
+        try {
+            if (msg.startsWith("MOVE:")) {
+                String[] parts = msg.split(":");
+                if (parts.length >= 4) {
+                    float tx = Float.parseFloat(parts[1]);
+                    float ty = Float.parseFloat(parts[2]);
+                    String dir = parts[3];
+
+                    if (otherPlayer == null && playerSheet != null) {
+                        otherPlayer = new RemotePlayer(playerSheet, frameCols, frameRows);
+                    }
+                    if (otherPlayer != null) {
+                        otherPlayer.update(Gdx.graphics.getDeltaTime(), tx, ty, dir);
+                    }
+                }
+            } else if (msg.startsWith("PEER_INFO:")) {
+                String[] parts = msg.split(":");
+                if (parts.length >= 2) {
+                    String peerName = parts[1];
+                    String peerGender = parts.length > 2 ? parts[2] : "CHICO";
+
+                    // Load correct texture for peer
+                    com.badlogic.gdx.graphics.Texture peerSheet;
+                    if ("CHICA".equals(peerGender)) {
+                        peerSheet = new com.badlogic.gdx.graphics.Texture("protagonistaFemenino.png");
+                    } else {
+                        peerSheet = new com.badlogic.gdx.graphics.Texture("protagonistaMasculino1.png");
+                    }
+
+                    // Preserve position if refreshing
+                    float oldX = 0;
+                    float oldY = 0;
+                    if (otherPlayer != null) {
+                        oldX = otherPlayer.x;
+                        oldY = otherPlayer.y;
+                    }
+
+                    // Re-create remote player with correct sprite
+                    otherPlayer = new RemotePlayer(peerSheet, frameCols, frameRows);
+                    otherPlayer.name = peerName;
+                    otherPlayer.x = oldX;
+                    otherPlayer.y = oldY;
+                }
+            } else if (msg.startsWith("RESOURCE_REMOVED:")) {
+                String id = msg.substring(17);
+                removeResourceById(id);
+            } else if (msg.startsWith("SYNC_RESOURCES:")) {
+                String[] ids = msg.substring(15).split(",");
+                for (String id : ids) {
+                    if (!id.isEmpty())
+                        removeResourceById(id);
+                }
+            }
+        } catch (Exception e) {
+            Gdx.app.log("Network", "Error parsing message: " + msg);
+        }
+    }
+
+    private void removeResourceById(String id) {
+        try {
+            String[] parts = id.split("_");
+            int cx = Integer.parseInt(parts[0]);
+            int cy = Integer.parseInt(parts[1]);
+
+            for (RecursoMapa r : recursosMapa) {
+                if (r.cellX == cx && r.cellY == cy) {
+                    if (!r.recolectado) {
+                        r.recolectado = true;
+                        // Remove visual tiles
+                        for (TiledMapTileLayer layer : r.cellsPorCapa.keySet())
+                            layer.setCell(r.cellX, r.cellY, null);
+                    }
+                    break;
+                }
+            }
+        } catch (Exception e) {
+        }
     }
 
     // ...
@@ -586,14 +687,27 @@ public class GameScreen extends BaseScreen {
                     posY += moveY * speed * delta;
 
                     // Animation Update
-                    if (moveX < 0)
+                    String dirStr = "DOWN";
+                    if (moveX < 0) {
                         currentFrame = walkLeft.getKeyFrame(stateTime, true);
-                    else if (moveX > 0)
+                        dirStr = "LEFT";
+                    } else if (moveX > 0) {
                         currentFrame = walkRight.getKeyFrame(stateTime, true);
-                    else if (moveY > 0)
+                        dirStr = "RIGHT";
+                    } else if (moveY > 0) {
                         currentFrame = walkUp.getKeyFrame(stateTime, true);
-                    else if (moveY < 0)
+                        dirStr = "UP";
+                    } else if (moveY < 0) {
                         currentFrame = walkDown.getKeyFrame(stateTime, true);
+                        dirStr = "DOWN";
+                    }
+
+                    // Network Update
+                    moveUpdateTimer += delta;
+                    if (client != null && moveUpdateTimer > 0.05f) { // 20 updates/sec
+                        moveUpdateTimer = 0;
+                        client.sendMessage("MOVE:" + posX + ":" + posY + ":" + dirStr);
+                    }
 
                     // Collision
                     if (isColliding(posX, posY)) {
@@ -696,6 +810,11 @@ public class GameScreen extends BaseScreen {
                                     layer.setCell(r.cellX, r.cellY, null);
                                 notificationMessage = "Recogiste " + r.tipo;
                                 notificationTimer = NOTIFICATION_DURATION;
+
+                                // Network Send
+                                if (client != null) {
+                                    client.sendMessage("COLLECT:" + r.cellX + "_" + r.cellY);
+                                }
                             } else {
                                 notificationMessage = "Mochila llena";
                                 notificationTimer = NOTIFICATION_DURATION;
@@ -972,6 +1091,21 @@ public class GameScreen extends BaseScreen {
         game.batch.begin();
         // Render NPCs
         npcManager.render(game.batch);
+
+        // Render Remote Player
+        if (otherPlayer != null && otherPlayer.currentFrame != null) {
+            game.batch.draw(otherPlayer.currentFrame, otherPlayer.x - playerWidth / 2, otherPlayer.y - playerHeight / 2,
+                    playerWidth,
+                    playerHeight * 1.2f);
+
+            if (otherPlayer.name != null && !otherPlayer.name.isEmpty()) {
+                game.font.getData().setScale(0.8f);
+                game.font.setColor(Color.YELLOW);
+                game.font.draw(game.batch, otherPlayer.name, otherPlayer.x - playerWidth / 2,
+                        otherPlayer.y + playerHeight * 0.8f, playerWidth, com.badlogic.gdx.utils.Align.center, false);
+                game.font.setColor(Color.WHITE);
+            }
+        }
 
         drawPlayer();
 

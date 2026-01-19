@@ -58,7 +58,11 @@ public class EleccionJuegoScreen extends BaseScreen {
                             inputName = inputName.substring(0, inputName.length() - 1);
                         }
                     } else if (character == '\r' || character == '\n') { // Enter
-                        startSoloGame();
+                        if (currentOption == OPTION_SOLITARIO) {
+                            startSoloGame();
+                        } else {
+                            startCompartidaGame();
+                        }
                     }
                     return true;
                 }
@@ -135,14 +139,10 @@ public class EleccionJuegoScreen extends BaseScreen {
             }
 
             if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT) || Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
-                if (currentOption == OPTION_SOLITARIO) {
+                if (currentOption == OPTION_SOLITARIO || currentOption == OPTION_COMPARTIDA) {
                     isAskingName = true;
                     inputName = ""; // Reset
                     statusMessage = "";
-                } else if (currentOption == OPTION_COMPARTIDA) {
-                    game.setScreen(new CompartidaScreen(game));
-                    dispose();
-                    return;
                 }
             }
 
@@ -256,30 +256,20 @@ public class EleccionJuegoScreen extends BaseScreen {
             return;
         }
 
-        statusMessage = "Conectando...";
+        // Transition to Intro directly (No Sockets)
+        game.setScreen(new IntroScreen(game, inputName));
+        dispose();
+    }
 
-        // 1. Start Server for Logic (Threaded)
-        com.mypokemon.game.network.NetworkClient.startLocalServer();
-
-        // Small delay to ensure server socket binds (Real implementation should use
-        // callbacks/retry)
-        try {
-            Thread.sleep(200);
-        } catch (Exception e) {
+    private void startCompartidaGame() {
+        if (inputName.trim().isEmpty()) {
+            statusMessage = "¡El nombre no puede estar vacío!";
+            return;
         }
 
-        // 2. Connect Client
-        boolean success = com.mypokemon.game.network.NetworkClient.getInstance().connect(inputName);
-
-        if (success) {
-            // Transition to Intro
-            Gdx.app.postRunnable(() -> {
-                game.setScreen(new IntroScreen(game, inputName)); // Pass Input Name (Partida)
-                dispose();
-            });
-        } else {
-            statusMessage = "Error al conectar con el servidor.";
-        }
+        // Pass name to CompartidaScreen
+        game.setScreen(new CompartidaScreen(game, inputName));
+        dispose();
     }
 
     @Override
