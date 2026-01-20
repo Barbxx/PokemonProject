@@ -274,6 +274,15 @@ public class BasePokemonData {
                                 new String[] { "Sombra Vil" },
                                 new String[] { "Normal", "Lucha" }));
 
+                DATABASE.put("Jigglypuff", new BasePokemonData(
+                                "Jigglypuff",
+                                "Un Pokémon que duerme todo el día. Su canto es encantador.",
+                                60, 45, 45, 45, 45, 45,
+                                5, 5, 5, 5, 5, 5,
+                                "Normal",
+                                new String[] { "Placaje", "Canto" },
+                                new String[] { "Mordisco" },
+                                new String[] { "Normal" }));
                 
                 DATABASE.put("Rowlet",
                                 new BasePokemonData("Rowlet", "Lanza plumas afiladas.", 45, 55, 55, 50, 50, 42, 15, 5,

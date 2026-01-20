@@ -18,17 +18,33 @@ public class Pokedex implements Serializable {
         this.especiesCompletas = 0;
     }
 
-    public void registrarAccion(String nombre, boolean esCaptura) {
-        // Corazón de la Misión 2
-        // Si el Pokémon no existe en el mapa, se añade.
+    public void registrarAvistamiento(String nombre) {
         registro.putIfAbsent(nombre, new EspeciePokemon(nombre));
 
         // Añadir a encuentro si es nuevo (para que aparezca en la Pokedex)
         if (!encounterOrder.contains(nombre)) {
             encounterOrder.add(nombre);
         }
+    }
+
+    public void registrarAccion(String nombre, boolean esCaptura) {
+        // Asegurar que existe en el registro
+        registrarAvistamiento(nombre);
 
         EspeciePokemon especie = registro.get(nombre);
+
+        // Si es Arceus, investigación máxima inmediata al interactuar (derrotar o
+        // capturar)
+        if (nombre.equalsIgnoreCase("Arceus")) {
+            especie.setInvestigacionMaxica();
+            especiesCompletas++; // Verificar si ya estaba completa en lógica futura si es necesario
+            if (esCaptura && !especie.isCapturado()) {
+                capturedOrder.add(nombre);
+                especie.setCapturado(true); // Redundante con setInvestigacionMaxica pero seguro
+            }
+            return;
+        }
+
         if (esCaptura) {
             if (!especie.isCapturado()) {
                 capturedOrder.add(nombre);

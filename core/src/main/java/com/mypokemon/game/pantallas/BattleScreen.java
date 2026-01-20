@@ -100,6 +100,9 @@ public class BattleScreen extends ScreenAdapter {
             this.pokemonJugador = new Pokemon("Piplup", 5, 20, false, "Agua");
         }
 
+        // Registrar avistamiento solo con encontrarlo
+        explorador.getRegistro().registrarAvistamiento(enemigo.getNombre());
+
         this.font = new BitmapFont();
         this.camera = new OrthographicCamera();
         this.viewport = new StretchViewport(800, 600, camera);
@@ -114,7 +117,7 @@ public class BattleScreen extends ScreenAdapter {
                 backgroundTexture = new Texture(Gdx.files.internal("fondoBatalla.jpg"));
             }
         } catch (Exception e) {
-            Gdx.app.log("BattleScreen", "Could not load background");
+            Gdx.app.log("BattleScreen", "No se pudo cargar el fondo");
         }
 
         try {
@@ -392,7 +395,8 @@ public class BattleScreen extends ScreenAdapter {
                 explorador.agregarAlEquipo(pokemonEnemigo);
                 endBattle(true);
             } else {
-                updateInfo("¡El Pokémon escapó! " + (tipo.equals("heavyball") ? "¡Casi!" : "Debilítalo más."));
+                updateInfo(
+                        "¡Fallo la captura! " + (tipo.equals("heavyball") ? "¡Casi!" : "Debe estar mas debilitado."));
                 currentState = BattleState.ENEMY_TURN;
                 performEnemyTurnWithDelay();
             }
@@ -587,10 +591,11 @@ public class BattleScreen extends ScreenAdapter {
             // Recompensa de recursos
             String recursoId = Math.random() < 0.5 ? "planta" : "guijarro";
             try {
-                explorador.getMochila().agregarItem(com.mypokemon.game.inventario.ItemFactory.crearRecurso(recursoId, 1));
+                explorador.getMochila()
+                        .agregarItem(com.mypokemon.game.inventario.ItemFactory.crearRecurso(recursoId, 1));
                 updateInfo("Ganaste +1 Inv. y encontraste 1 " + recursoId + ".");
             } catch (com.mypokemon.game.inventario.exceptions.EspacioException e) {
-                updateInfo("Ganaste +1 Inv. pero inventario lleno.");
+                updateInfo("Ganaste +1 Inv. pero tu inventario está lleno.");
             }
 
             endBattle(true);
@@ -717,7 +722,7 @@ public class BattleScreen extends ScreenAdapter {
             // Menú principal de batalla (2x2 centrado)
             drawButton(btnAtacarRect, "Atacar", selectedOption == 0);
             drawButton(btnMochilaRect, "Mochila", selectedOption == 1);
-            drawButton(btnPokemonRect, "Pokemon", selectedOption == 2);
+            drawButton(btnPokemonRect, "Pokémon", selectedOption == 2);
             drawButton(btnHuirRect, "Huir", selectedOption == 3);
         }
 
@@ -760,14 +765,14 @@ public class BattleScreen extends ScreenAdapter {
 
         font.setColor(Color.BLACK);
         font.getData().setScale(1.2f);
-        font.draw(game.batch, "POKEDEX - Pokemon Capturados", 250, 520);
+        font.draw(game.batch, "POKÉDEX - Pokemon Capturados", 250, 520);
         font.getData().setScale(1.0f);
 
         List<Pokemon> equipo = explorador.getEquipo();
         float yOffset = 470;
 
         if (equipo.isEmpty()) {
-            font.draw(game.batch, "No has capturado ningun Pokemon todavía.", 100, yOffset);
+            font.draw(game.batch, "No has capturado ningún Pokemon todavía.", 100, yOffset);
         } else {
             for (Pokemon p : equipo) {
                 String desc = p.getNombre() + ": " + p.getDescripcion();
@@ -809,7 +814,7 @@ public class BattleScreen extends ScreenAdapter {
         // Name
         font.draw(game.batch, pokemonEnemigo.getNombre().toUpperCase(), infoX + 10, infoY);
         // Level next to name or slightly offset
-        font.draw(game.batch, "Nv" + pokemonEnemigo.getNivel(), infoX + 220, infoY);
+        font.draw(game.batch, "Nv.Inv" + pokemonEnemigo.getNivel(), infoX + 220, infoY);
 
         // Status Bar BELOW the text
         // Scale down: original bar is likely large, let's make it more compact. width
@@ -847,7 +852,7 @@ public class BattleScreen extends ScreenAdapter {
 
         font.getData().setScale(1.1f);
         font.draw(game.batch, pokemonJugador.getNombre().toUpperCase(), pInfoX + 10, pInfoY);
-        font.draw(game.batch, "Nv" + pokemonJugador.getNivel(), pInfoX + 220, pInfoY);
+        font.draw(game.batch, "Nv.Inv" + pokemonJugador.getNivel(), pInfoX + 220, pInfoY);
 
         // Bar below text
         float pBarX = pInfoX;

@@ -44,7 +44,7 @@ import com.mypokemon.game.objects.NPC;
 
 // Main Game Screen
 public class GameScreen extends BaseScreen {
-
+    // Atributos
     private OrthographicCamera camera;
     private Viewport viewport;
     private com.badlogic.gdx.math.Matrix4 uiMatrix;
@@ -69,9 +69,9 @@ public class GameScreen extends BaseScreen {
     // Tamaño visual del sprite
     private float playerWidth = 40f;
     private float playerHeight = 32f;
-    // Tamaño de colisión (más pequeño para pasar por pasillos estrechos)
-    private float playerCollisionWidth = 24f;
-    private float playerCollisionHeight = 28f;
+    // Tamaño de colisión
+    private float playerCollisionWidth = 20f;
+    private float playerCollisionHeight = 24f;
     private String playerName;
 
     private Explorador explorador;
@@ -82,14 +82,14 @@ public class GameScreen extends BaseScreen {
     private float moveUpdateTimer = 0;
     private String myTexturePath;
 
-    // NPC Management (Refactored)
+    // NPC Management
     private com.mypokemon.game.objects.NPCManager npcManager;
 
-    // Colisiones (Refactorizado)
+    // Colisiones
     private GestorColisiones gestorColisiones;
     private ColisionPuertaLaboratorio puertaLaboratorio;
 
-    // UI Management (Refactored)
+    // UI Management
     private com.mypokemon.game.ui.GameUI gameUI;
 
     private Texture labSignTexture; // Needed for ColisionPuertaLaboratorio
@@ -117,7 +117,7 @@ public class GameScreen extends BaseScreen {
     private Texture introTexture;
     private IntroState introState;
     private float introY;
-    private float introSpeed = 200f; // Pixels per second
+    private float introSpeed = 200f; 
     private Texture avisoTexture;
 
     // Game Constants
@@ -182,7 +182,7 @@ public class GameScreen extends BaseScreen {
         this.explorador = Explorador.cargarProgreso(gameName);
         if (this.explorador == null) {
             // New Game: Create with Explorer Name (for display) and Game Name (for saving)
-            this.explorador = new Explorador(playerName, gameName, 40);
+            this.explorador = new Explorador(playerName, gameName, 80);
         }
 
         // Initialize Camera and Viewport

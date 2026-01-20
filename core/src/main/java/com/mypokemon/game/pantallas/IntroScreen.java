@@ -37,6 +37,10 @@ public class IntroScreen extends BaseScreen {
     private String gameName;
     private String playerName = "";
     private boolean isMale = true; // Default
+    // Timer for blink effects
+    private float stateTime = 0;
+
+    // Field Declarations (Restored)
     private Texture feidImage;
     private Texture ferxxoImage;
     private Texture jigglypuffImage;
@@ -67,7 +71,6 @@ public class IntroScreen extends BaseScreen {
     private Rectangle genderMenuBounds;
 
     // Timer for blink effects
-    private float stateTime = 0;
 
     // Jigglypuff Animation
     private Animation<TextureRegion> jigglyPoses;

@@ -50,7 +50,7 @@ public class PokedexScreen extends NavigableScreen {
         camera = new OrthographicCamera();
         viewport = new FitViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, camera);
 
-        capturedNames = explorador.getRegistro().getCapturedOrder();
+        capturedNames = explorador.getRegistro().getEncounterOrder();
 
         // Font Setup
         fontTitle = new BitmapFont();
@@ -156,28 +156,35 @@ public class PokedexScreen extends NavigableScreen {
             }
 
             fontTitle.setColor(Color.WHITE);
-            fontTitle.getData().setScale(1.3f);
+            fontTitle.getData().setScale(1.2f); // Slightly smaller to fit
             fontTitle.draw(game.batch, currentPokemonName.toUpperCase(), infoX + 20, infoY + infoH - 30);
 
+            // Region determination
+            String region = "Sinnoh";
+            if (currentPokemonName.contains("H.")) {
+                region = "Hisui";
+            }
+
             fontText.setColor(Color.CYAN);
-            fontText.getData().setScale(1.5f);
-            fontText.draw(game.batch, "TIPO: " + (data != null ? data.tipo : "???"), infoX + 20, infoY + infoH - 70);
+            fontText.getData().setScale(1.3f);
+            // Display Region instead of Type or along with Type? User said "su region...
+            // nombre unicamente. (quita lo demas)" but typically "lo demas" refers to
+            // stats.
+            // The prompt says "nivel de investigacion, su descripcion, su region... y su
+            // nombre unicamente". It implies "Type" MIGHT be removed or maybe kept?
+            // "su nombre unicamente" usually means "no other stats".
+            // I will keep TIPO if it helps identification but user said "su region... y su
+            // nombre unicamente (quita lo demas)".
+            // "Nombré, Nivel Inv, Descripcion, Region". I will stick to these 4.
+
+            fontText.draw(game.batch, "REGION: " + region, infoX + 20, infoY + infoH - 70);
 
             fontText.setColor(Color.ORANGE);
             int nivelInv = (registro != null ? registro.getNivelInvestigacion() : 0);
             fontText.draw(game.batch, "NIVEL INV: " + nivelInv + "/10",
-                    infoX + 20, infoY + infoH - 90);
+                    infoX + 20, infoY + infoH - 95);
 
-            // Display Stats
-            if (data != null) {
-                int ps = data.calcularPS(nivelInv);
-                int atq = data.calcularAtaque(nivelInv);
-                int vel = data.calcularVelocidad(nivelInv);
-
-                fontStats.setColor(Color.GREEN);
-                fontStats.draw(game.batch, "PS: " + ps + " | ATQ: " + atq + " | VEL: " + vel,
-                        infoX + 20, infoY + infoH - 115);
-            }
+            // Stats removed as requested
 
             fontText.setColor(Color.WHITE);
             fontText.getData().setScale(0.9f);
