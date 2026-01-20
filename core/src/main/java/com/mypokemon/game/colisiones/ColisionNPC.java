@@ -36,7 +36,7 @@ public class ColisionNPC extends ColisionBase implements IInteractivo {
 
     @Override
     public String obtenerMensajeInteraccion() {
-        return "Presiona T para hablar";
+        return "Presiona T para hablar con " + npc.getName();
     }
 
     /**

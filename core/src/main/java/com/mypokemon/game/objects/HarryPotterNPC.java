@@ -13,5 +13,6 @@ public class HarryPotterNPC extends NPC {
     public HarryPotterNPC(float startX, float startY) {
         super(startX, startY, 25, 35, "harryPotterSprite.png", "Entrenador Harry Potter", DIALOG);
         setPortrait("harryPotter.png");
+        loadMusic("MusicaHarryPotter.mp3");
     }
 }

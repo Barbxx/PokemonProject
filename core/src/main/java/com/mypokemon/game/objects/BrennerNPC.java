@@ -12,5 +12,6 @@ public class BrennerNPC extends NPC {
     public BrennerNPC(float startX, float startY) {
         super(startX, startY, 25, 35, "drBrennerSprite.png", "Dr. Martin Brenner", DIALOG);
         setPortrait("drBrenner.png");
+        loadMusic("MusicaDrBrenner.mp3");
     }
 }

@@ -76,6 +76,26 @@ public abstract class NPC implements Interactable {
             sprite.dispose();
         if (portrait != null)
             portrait.dispose();
+        if (music != null)
+            music.dispose();
+    }
+
+    // Music Management
+    protected com.badlogic.gdx.audio.Music music;
+
+    public void loadMusic(String musicPath) {
+        try {
+            if (Gdx.files.internal(musicPath).exists()) {
+                this.music = Gdx.audio.newMusic(Gdx.files.internal(musicPath));
+                this.music.setLooping(true);
+            }
+        } catch (Exception e) {
+            Gdx.app.log("NPC", "Error loading music: " + musicPath, e);
+        }
+    }
+
+    public com.badlogic.gdx.audio.Music getMusic() {
+        return music;
     }
 
     // Getters for position/size if needed for collision distinct from interaction

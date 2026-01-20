@@ -107,7 +107,7 @@ public class GameScreen extends BaseScreen {
     // Menu State
     private boolean showMenu = false;
     private int menuSelectedIndex = 0;
-    private String[] menuOptions = { "POKÉDEX", "CRAFTEO", "MOCHILA", "GUARDAR", "OPCIONES", "INICIO" };
+    private String[] menuOptions = { "POKÉDEX", "CRAFTEO", "MOCHILA", "GUARDAR", "PERFIL", "INICIO" };
 
     // Intro Animation State
     private enum IntroState {
@@ -117,7 +117,7 @@ public class GameScreen extends BaseScreen {
     private Texture introTexture;
     private IntroState introState;
     private float introY;
-    private float introSpeed = 200f; 
+    private float introSpeed = 200f;
     private Texture avisoTexture;
 
     // Game Constants
@@ -139,6 +139,9 @@ public class GameScreen extends BaseScreen {
     private float notificationTimer = 0;
     private boolean showMissionComplete = false;
     private float missionCompleteTimer = 0;
+
+    // NPC Music Logic
+    private com.badlogic.gdx.audio.Music currentNpcMusic = null;
 
     private int frameCols;
     private int frameRows;
@@ -462,6 +465,7 @@ public class GameScreen extends BaseScreen {
         // 4. Tundra Alba (Purple) - Near Harry Potter - BOTTOM
         regions.add(new RegionTrigger(spawnX + 50, spawnY + 850, regionSize, regionSize,
                 Color.PURPLE, texTundra, "Tundra Alba"));
+
     }
 
     // Fade State
@@ -654,6 +658,12 @@ public class GameScreen extends BaseScreen {
                     }
                     notificationTimer = NOTIFICATION_DURATION;
                     showMenu = false;
+                } else if (selected.equals("PERFIL")) {
+                    boolean esChico = true;
+                    if (myTexturePath != null && myTexturePath.toLowerCase().contains("fem")) {
+                        esChico = false;
+                    }
+                    game.setScreen(new PerfilScreen(game, this, explorador, esChico));
                 }
                 if (!selected.equals("GUARDAR")) {
                     showMenu = false;
@@ -966,6 +976,57 @@ public class GameScreen extends BaseScreen {
                 }
             }
         }
+
+        if (!showMenu && !fadingOut) {
+            com.badlogic.gdx.audio.Music targetMusic = null;
+
+            if (npcManager != null) {
+                // Check closest NPC for music
+                float minDst = Float.MAX_VALUE;
+                for (com.mypokemon.game.objects.NPC npc : npcManager.getAllNPCs()) {
+                    if (npc.isClose(posX, posY)) {
+                        float dst = com.badlogic.gdx.math.Vector2.dst(posX, posY, npc.getX(), npc.getY());
+                        if (dst < minDst) {
+                            com.badlogic.gdx.audio.Music m = npc.getMusic();
+                            if (m != null) {
+                                targetMusic = m;
+                                minDst = dst;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (targetMusic != null) {
+                // If found music, play it
+                if (currentNpcMusic != targetMusic) {
+                    if (currentNpcMusic != null) {
+                        currentNpcMusic.stop();
+                    }
+                    targetMusic.play();
+                    currentNpcMusic = targetMusic;
+                } else {
+                    // Ensure it is playing
+                    if (!currentNpcMusic.isPlaying()) {
+                        currentNpcMusic.play();
+                    }
+                }
+            } else {
+                // No music nearby
+                if (currentNpcMusic != null) {
+                    currentNpcMusic.stop();
+                    currentNpcMusic = null;
+                }
+            }
+        } else {
+            // Menu or fading out
+            if (currentNpcMusic != null && currentNpcMusic.isPlaying()) {
+                currentNpcMusic.pause();
+            }
+        }
+
+        // Recover music if returning from menu? (Optional, kept simple for now:
+        // proximity check re-triggers it above)
 
         // Dialog Advance
         if (showDialog && Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {

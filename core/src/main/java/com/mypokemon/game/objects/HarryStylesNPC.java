@@ -11,5 +11,6 @@ public class HarryStylesNPC extends NPC {
     public HarryStylesNPC(float startX, float startY) {
         super(startX - 20, startY - 15, 25, 35, "harryStylesSprite.png", "Cartógrafo Harry Styles", DIALOG);
         setPortrait("harryStyles.png");
+        loadMusic("MusicaHarryStyles.mp3");
     }
 }
