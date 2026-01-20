@@ -16,24 +16,28 @@ public class Explorador implements Serializable {
 
     private String nombreUsuario;
     private String nombrePartida; // New field for filename
+    private String genero; // CHICO or CHICA
     private Inventario mochila;
     private Pokedex registro;
     private List<Pokemon> equipo;
     private int misionesCompletadas;
 
-    public Explorador(String nombreUsuario, String nombrePartida, int capacidadInicial) {
+    public Explorador(String nombreUsuario, String nombrePartida, int capacidadInicial, String genero) {
         this.nombreUsuario = nombreUsuario;
         this.nombrePartida = nombrePartida;
+        this.genero = genero;
         this.mochila = new Inventario(capacidadInicial);
         this.registro = new Pokedex();
         this.equipo = new ArrayList<>();
         this.misionesCompletadas = 0;
     }
 
-    public void guardarProgreso() {
-        // Guarda el objeto Explorador completo en un archivo .dat usa el nombre de la
-        // PARTIDA
-        String filename = nombrePartida + "_save.dat";
+    public Explorador(String nombreUsuario, String nombrePartida, int capacidadInicial) {
+        this(nombreUsuario, nombrePartida, capacidadInicial, "CHICO");
+    }
+
+    public void guardarProgreso(String filename) {
+        // Guarda el objeto Explorador completo en el archivo especificado
         try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(filename))) {
             out.writeObject(this);
             System.out.println("Progreso guardado exitosamente en " + filename);
@@ -43,13 +47,20 @@ public class Explorador implements Serializable {
         }
     }
 
-    public static Explorador cargarProgreso(String nombrePartida) {
-        // Busca el archivo y reconstruye el objeto usando el nombre de la PARTIDA
-        String filename = nombrePartida + "_save.dat";
+    public void guardarProgreso() {
+        // Fallback for default behavior if needed, generally shouldn't be used with new
+        // logic
+        guardarProgreso(nombrePartida + "_" + nombreUsuario + ".dat");
+    }
+
+    public static Explorador cargarProgreso(String filename) {
+        // Busca el archivo y reconstruye el objeto usando el nombre del archivo
+        // Ensure extension is handled if not provided (helper logic could go here, but
+        // let's assume valid filenames)
         try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(filename))) {
             return (Explorador) in.readObject();
         } catch (IOException | ClassNotFoundException e) {
-            System.err.println("No se pudo cargar el progreso para " + nombrePartida + ": " + e.getMessage());
+            System.err.println("No se pudo cargar el progreso para " + filename + ": " + e.getMessage());
             return null;
         }
     }
@@ -83,6 +94,14 @@ public class Explorador implements Serializable {
 
     public String getNombre() {
         return nombreUsuario;
+    }
+
+    public String getNombrePartida() {
+        return nombrePartida;
+    }
+
+    public String getGenero() {
+        return genero;
     }
 
     public List<Pokemon> getEquipo() {

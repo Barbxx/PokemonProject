@@ -41,7 +41,7 @@ public class PartidasScreen extends BaseScreen {
 
         // Find Save Files
         FileHandle local = Gdx.files.local(".");
-        saveFiles = local.list((dir, name) -> name.endsWith("_save.dat"));
+        saveFiles = local.list((dir, name) -> name.contains(" - ") && name.endsWith(".dat"));
 
         if (saveFiles == null) {
             saveFiles = new FileHandle[0];
@@ -77,7 +77,7 @@ public class PartidasScreen extends BaseScreen {
 
         // Input Handling
         if (saveFiles.length > 0) {
-            String gameNameForLogic = saveFiles[selectedIndex].name().replace("_save.dat", "");
+            String gameNameForLogic = saveFiles[selectedIndex].nameWithoutExtension();
 
             if (!selectingAction) {
                 // FILE SELECTION PHASE (Keyboard)
@@ -116,29 +116,23 @@ public class PartidasScreen extends BaseScreen {
                     if (actionIndex == 0) {
                         // PLAY
                         FileHandle selectedFile = saveFiles[selectedIndex];
-                        String explorerName = gameNameForLogic; // default
+                        String fullFileName = selectedFile.name();
 
-                        try (java.io.ObjectInputStream in = new java.io.ObjectInputStream(selectedFile.read())) {
-                            Explorador exp = (Explorador) in.readObject();
-                            if (exp != null)
-                                explorerName = exp.getNombre();
-                        } catch (Exception e) {
-                        }
-
-                        Gdx.app.log("PartidasScreen", "Loading: " + gameNameForLogic);
-                        game.setScreen(new GameScreen(game, "protagonistaMasculino1.png", 4, 4, explorerName,
-                                gameNameForLogic));
+                        // Pass FULL filename so Explorador.cargarProgreso can find it.
+                        Gdx.app.log("PartidasScreen", "Loading: " + fullFileName);
+                        game.setScreen(new GameScreen(game, "protagonistaMasculino1.png", 4, 4, "",
+                                fullFileName));
                         dispose();
                         return;
                     } else {
                         // DELETE
                         FileHandle selectedFile = saveFiles[selectedIndex];
                         selectedFile.delete();
-                        Gdx.app.log("PartidasScreen", "Deleted: " + gameNameForLogic);
+                        Gdx.app.log("PartidasScreen", "Deleted: " + selectedFile.name());
 
                         // Refresh List
                         FileHandle local = Gdx.files.local(".");
-                        saveFiles = local.list((dir, name) -> name.endsWith("_save.dat"));
+                        saveFiles = local.list((dir, name) -> name.contains(" - ") && name.endsWith(".dat"));
                         if (saveFiles == null)
                             saveFiles = new FileHandle[0];
 
@@ -151,7 +145,6 @@ public class PartidasScreen extends BaseScreen {
                 }
             }
         }
-
         if (!selectingAction && Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             game.setScreen(new MainMenuScreen(game));
             dispose();
@@ -234,18 +227,7 @@ public class PartidasScreen extends BaseScreen {
 
             for (int i = startIdx; i < endIdx; i++) {
                 FileHandle file = saveFiles[i];
-                String fileName = file.name();
-                String saveName = fileName.replace("_save.dat", "");
-                String explorerName = "???";
-
-                try (java.io.ObjectInputStream in = new java.io.ObjectInputStream(file.read())) {
-                    Explorador exp = (Explorador) in.readObject();
-                    if (exp != null)
-                        explorerName = exp.getNombre();
-                } catch (Exception e) {
-                }
-
-                String nameDisplay = saveName + " - " + explorerName;
+                String nameDisplay = file.nameWithoutExtension(); // Display filename directly
                 float textY = listStartY - ((i - startIdx) * spacing);
 
                 if (i == selectedIndex) {

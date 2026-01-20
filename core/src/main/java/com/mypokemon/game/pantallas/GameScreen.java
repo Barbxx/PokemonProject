@@ -181,11 +181,25 @@ public class GameScreen extends BaseScreen {
         gameUI = new com.mypokemon.game.ui.GameUI();
         gestorColisiones = new GestorColisiones();
 
-        // Check for saved progress using GAME NAME (Partida), not Player Name
+        // Determine Gender from Texture Path (passed from Intro)
+        String genderStr = "CHICO";
+        if (texturePath != null && texturePath.toLowerCase().contains("fem")) {
+            genderStr = "CHICA";
+        }
+
+        // Check for saved progress (using the FULL FILENAME passed as gameName)
         this.explorador = Explorador.cargarProgreso(gameName);
+
         if (this.explorador == null) {
-            // New Game: Create with Explorer Name (for display) and Game Name (for saving)
-            this.explorador = new Explorador(playerName, gameName, 80);
+            // New Game: Create with Explorer Name, Game Name, Capacity, and Gender
+            this.explorador = new Explorador(playerName, gameName, 80, genderStr);
+        } else {
+            // Loaded Game: Ensure texture matches saved gender
+            if ("CHICA".equals(this.explorador.getGenero())) {
+                this.myTexturePath = "protagonistaFemenino.png";
+            } else {
+                this.myTexturePath = "protagonistaMasculino1.png";
+            }
         }
 
         // Initialize Camera and Viewport
@@ -374,11 +388,12 @@ public class GameScreen extends BaseScreen {
 
         boolean assetsLoaded = false;
         try {
-            playerSheet = new Texture(texturePath);
+            // Use myTexturePath which has been updated based on the loaded save file
+            playerSheet = new Texture(myTexturePath);
             playerSheet.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
             assetsLoaded = true;
         } catch (Exception e) {
-            Gdx.app.log("GameScreen", "Critical: Could not load " + texturePath, e);
+            Gdx.app.log("GameScreen", "Critical: Could not load " + myTexturePath, e);
         }
 
         if (assetsLoaded) {
@@ -648,14 +663,39 @@ public class GameScreen extends BaseScreen {
                 } else if (selected.equals("POKÉDEX")) {
                     game.setScreen(new PokedexScreen(game, this, explorador));
                 } else if (selected.equals("GUARDAR")) {
-                    explorador.guardarProgreso(); // Guardado local individual
+                    String pName = explorador.getNombre();
+                    String gName = explorador.getNombrePartida();
+                    boolean canSave = true;
 
                     if (client != null) {
-                        client.sendMessage("SAVE_GAME");
-                        notificationMessage = "Esperando al otro jugador...";
+                        // Check for duplicate names
+                        if (otherPlayer != null && otherPlayer.name != null
+                                && otherPlayer.name.trim().equalsIgnoreCase(pName.trim())) {
+                            notificationMessage = "No deben haber nombres iguales";
+                            notificationTimer = NOTIFICATION_DURATION;
+                            canSave = false;
+                        } else {
+                            // SHARED MODE: PlayerName - GameName
+                            String filename = pName + " - " + gName + ".dat";
+                            explorador.guardarProgreso(filename);
+                        }
                     } else {
-                        notificationMessage = "¡Partida Guardada!";
+                        // SOLO MODE: GameName - PlayerName
+                        String filename = gName + " - " + pName + ".dat";
+                        explorador.guardarProgreso(filename);
                     }
+
+                    if (canSave) {
+                        if (client != null) {
+                            client.sendMessage("SAVE_GAME");
+                            notificationMessage = "Esperando al otro jugador..."; // Keep original message logic
+                        } else {
+                            notificationMessage = "¡Partida Guardada!";
+                        }
+                    } else {
+                        // If save failed due to name conflict, message is already set
+                    }
+
                     notificationTimer = NOTIFICATION_DURATION;
                     showMenu = false;
                 } else if (selected.equals("PERFIL")) {

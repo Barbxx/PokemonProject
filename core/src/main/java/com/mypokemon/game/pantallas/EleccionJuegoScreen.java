@@ -71,9 +71,8 @@ public class EleccionJuegoScreen extends BaseScreen {
                     } else if (character == '\r' || character == '\n') { // Enter
                         if (currentOption == OPTION_SOLITARIO) {
                             startSoloGame();
-                        } else {
-                            startCompartidaGame();
                         }
+                        // Compartida handled directly in main input loop now, no name asking
                     }
                     return true;
                 }
@@ -141,10 +140,12 @@ public class EleccionJuegoScreen extends BaseScreen {
             }
 
             if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
-                if (currentOption == OPTION_SOLITARIO || currentOption == OPTION_COMPARTIDA) {
+                if (currentOption == OPTION_SOLITARIO) {
                     isAskingName = true;
                     inputName = ""; // Reset
                     statusMessage = "";
+                } else if (currentOption == OPTION_COMPARTIDA) {
+                    startCompartidaGame();
                 }
             }
 
@@ -154,7 +155,6 @@ public class EleccionJuegoScreen extends BaseScreen {
                 return;
             }
         }
-
         // --- Draw Logic ---
         camera.update();
         game.batch.setProjectionMatrix(camera.combined);
@@ -223,8 +223,8 @@ public class EleccionJuegoScreen extends BaseScreen {
 
             // Title
             game.font.setColor(Color.BLACK);
-            String title = (currentOption == OPTION_SOLITARIO) ? "¿Nombre de la partida?"
-                    : "Contraseña unica de la partida:";
+            // Only Solitario asks for name here now
+            String title = "¿Nombre de la partida?";
             game.font.draw(game.batch, title, boxX, boxY + boxH - 30, boxW,
                     com.badlogic.gdx.utils.Align.center, false);
 
@@ -269,13 +269,9 @@ public class EleccionJuegoScreen extends BaseScreen {
     }
 
     private void startCompartidaGame() {
-        if (inputName.trim().isEmpty()) {
-            statusMessage = "¡El nombre no puede estar vacío!";
-            return;
-        }
-
-        // Pass name to CompartidaScreen
-        game.setScreen(new CompartidaScreen(game, inputName));
+        // No input validation needed as we don't ask for generic password/name anymore
+        // Pass a generic temporary ID, the real name is asked in IntroScreen
+        game.setScreen(new CompartidaScreen(game, "Explorador"));
         dispose();
     }
 
