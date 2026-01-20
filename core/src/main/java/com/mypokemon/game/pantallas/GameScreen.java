@@ -188,7 +188,7 @@ public class GameScreen extends BaseScreen {
         this.explorador = Explorador.cargarProgreso(gameName);
         if (this.explorador == null) {
             // New Game: Create with Explorer Name (for display) and Game Name (for saving)
-            this.explorador = new Explorador(playerName, gameName, 70);
+            this.explorador = new Explorador(playerName, gameName, 40);
         }
 
         // Initialize Camera and Viewport
