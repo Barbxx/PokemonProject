@@ -2,7 +2,7 @@ package com.mypokemon.game.pantallas;
 
 import com.mypokemon.game.PokemonMain;
 import com.mypokemon.game.Explorador;
-import com.mypokemon.game.Inventario;
+import com.mypokemon.game.inventario.Inventario;
 import com.mypokemon.game.Pokemon;
 
 import com.badlogic.gdx.Gdx;
@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.badlogic.gdx.Screen;
+import com.mypokemon.game.inventario.Item;
 
 /**
  * Screen for the inventory (Mochila).
@@ -41,12 +42,12 @@ public class MochilaScreen extends BaseScreen {
     private Texture texPocionHerbal;
     private Texture texElixir;
     private Texture texRevivir;
-    private Texture texRepelente;
-    private Texture texAmuleto;
+    private Texture texReproductor;
+    private Texture texGuante;
 
     // New Textures for Heavy Ball and Lure
     private Texture texHeavyBall;
-    private Texture texLure;
+    private Texture texFrijol;
 
     // New Texture for Green Frame
     private Texture texMarcoVerde;
@@ -61,12 +62,19 @@ public class MochilaScreen extends BaseScreen {
         public String descripcion;
         public Texture textura;
         public int cantidad;
+        public Item itemReal; // Referencia al ítem real del sistema OO
 
-        public ItemData(String nombre, String descripcion, Texture textura, int cantidad) {
+        public ItemData(String nombre, String descripcion, Texture textura, int cantidad, Item itemReal) {
             this.nombre = nombre;
             this.descripcion = descripcion;
             this.textura = textura;
             this.cantidad = cantidad;
+            this.itemReal = itemReal;
+        }
+
+        // Constructor de compatibilidad para Pokémon (que no son Items)
+        public ItemData(String nombre, String descripcion, Texture textura, int cantidad) {
+            this(nombre, descripcion, textura, cantidad, null);
         }
     }
 
@@ -91,10 +99,6 @@ public class MochilaScreen extends BaseScreen {
 
     private Vector3 mousePos = new Vector3();
 
-    private com.mypokemon.game.logic.Crafteo crafteo;
-
-    private boolean confirmingPokeball = false;
-
     // STATE MACHINE
     private enum InventoryState {
         BROWSING,
@@ -110,7 +114,7 @@ public class MochilaScreen extends BaseScreen {
     private List<String> currentOptions = new ArrayList<>();
     private int selectedOptionIndex = 0;
     private ItemData selectedItemForAction = null;
-    private String currentActionType = ""; // "CURAR", "REVIVIR", etc.
+    // currentActionType eliminado - ya no se necesita con el sistema OO
 
     // Feedback
     private String feedbackMessage = "";
@@ -124,8 +128,6 @@ public class MochilaScreen extends BaseScreen {
         this.returnScreen = returnScreen;
         this.explorador = explorador;
         Gdx.app.log("MochilaScreen", "Constructor call started");
-
-        crafteo = new com.mypokemon.game.logic.Crafteo();
 
         // Initialize Camera and Viewport
         camera = new OrthographicCamera();
@@ -148,7 +150,6 @@ public class MochilaScreen extends BaseScreen {
             Gdx.app.log("MochilaScreen", "Buttons loaded successfully");
 
             // Load Item Textures
-            // Note: User mentioned these are already loaded/available. Assuming filenames.
             try {
                 texPokeball = new Texture(Gdx.files.internal("pokeball.png"));
             } catch (Exception e) {
@@ -187,23 +188,22 @@ public class MochilaScreen extends BaseScreen {
                 Gdx.app.error("Mochila", "Missing revivircasero.png");
             }
             try {
-                texRepelente = new Texture(Gdx.files.internal("reproductor.png"));
+                texReproductor = new Texture(Gdx.files.internal("reproductor.png"));
             } catch (Exception e) {
                 Gdx.app.error("Mochila", "Missing reproductor.png");
             }
             try {
-                texAmuleto = new Texture(Gdx.files.internal("guanteReflejo.png"));
+                texGuante = new Texture(Gdx.files.internal("guanteReflejo.png"));
             } catch (Exception e) {
                 Gdx.app.error("Mochila", "Missing guanteReflejo.png");
             }
-
             try {
                 texHeavyBall = new Texture(Gdx.files.internal("pokeballpeso.png"));
             } catch (Exception e) {
                 Gdx.app.error("Mochila", "Missing pokeballpeso.png");
             }
             try {
-                texLure = new Texture(Gdx.files.internal("frijolMagico.png"));
+                texFrijol = new Texture(Gdx.files.internal("frijolMagico.png"));
             } catch (Exception e) {
                 Gdx.app.error("Mochila", "Missing frijolMagico.png");
             }
@@ -217,27 +217,25 @@ public class MochilaScreen extends BaseScreen {
             Gdx.app.error("MochilaScreen", "Error loading textures: " + e.getMessage());
         }
 
-        // Define Button Positions (Horizontal Centered)
+        // Define Button Positions
         buttonPositions = new float[buttonNames.length][2];
         float totalWidth = (buttonNames.length * buttonWidth) + ((buttonNames.length - 1) * 20);
         float startX = (VIRTUAL_WIDTH - totalWidth) / 2;
-        float startY = VIRTUAL_HEIGHT - 220; // Moved down as requested
+        float startY = VIRTUAL_HEIGHT - 220;
 
         for (int i = 0; i < buttonNames.length; i++) {
             buttonPositions[i][0] = startX + i * (buttonWidth + 20);
             buttonPositions[i][1] = startY;
         }
 
-        // Create white pixel for drawing shapes and slot background
+        // Create white pixel
         com.badlogic.gdx.graphics.Pixmap pixmap = new com.badlogic.gdx.graphics.Pixmap(1, 1,
                 com.badlogic.gdx.graphics.Pixmap.Format.RGBA8888);
         pixmap.setColor(Color.WHITE);
         pixmap.fill();
         whitePixel = new Texture(pixmap);
 
-        // Create dark gray pixel for slot background (simulating slot_vacio.png)
-        // Create dark gray pixel for slot background (simulating slot_vacio.png)
-        // Lighter as requested
+        // Create dark gray pixel
         pixmap.setColor(0.0f, 0.0f, 0.0f, 0.5f);
         pixmap.fill();
         textureFondoSlot = new Texture(pixmap);
@@ -245,7 +243,7 @@ public class MochilaScreen extends BaseScreen {
 
         // Font setup
         fontContador = new com.badlogic.gdx.graphics.g2d.BitmapFont();
-        fontContador.getData().setScale(1.5f); // Increased scale from 0.8 to 1.5
+        fontContador.getData().setScale(1.5f);
 
         Gdx.app.log("MochilaScreen", "Positions and assets initialized");
     }
@@ -311,11 +309,11 @@ public class MochilaScreen extends BaseScreen {
             drawPokemonSelectionPrompt(game.batch);
         }
 
-        // Draw Feedback Message
+        // Draw Feedback Message (abajo a la izquierda, en rojo)
         if (feedbackTimer > 0) {
-            game.font.setColor(Color.CYAN);
-            game.font.getData().setScale(1.5f);
-            game.font.draw(game.batch, feedbackMessage, VIRTUAL_WIDTH / 2 - 100, VIRTUAL_HEIGHT - 100);
+            game.font.setColor(Color.RED);
+            game.font.getData().setScale(1.2f);
+            game.font.draw(game.batch, feedbackMessage, 100, 80);
             game.font.getData().setScale(1.0f);
             game.font.setColor(Color.WHITE);
         }
@@ -348,7 +346,7 @@ public class MochilaScreen extends BaseScreen {
         // Mouse Check for "OPCIONES" button
         // Coordinates must match dibujarExplicacion
         float btnX = 100;
-        float btnY = 220;
+        float btnY = 160; // Bajado para coincidir con el menú
         float btnW = 150;
         float btnH = 40;
 
@@ -439,35 +437,14 @@ public class MochilaScreen extends BaseScreen {
 
     private void openOptionsMenu(ItemData item) {
         currentOptions.clear();
-        String name = item.nombre;
 
-        if (name.equals("Poké Ball") || name.equals("Poké Ball de Peso")) {
-            currentOptions.add("Lanzar");
-            currentOptions.add("Tirar");
-        } else if (name.equals("Baya Aranja") || name.equals("Poción Herbal")) {
-            currentOptions.add("Curar");
-            currentOptions.add("Tirar");
-        } else if (name.equals("Revivir Casero")) {
-            currentOptions.add("Revivir");
-            currentOptions.add("Tirar");
-        } else if (name.equals("Elíxir de Piel de Piedra")) {
-            currentOptions.add("Usar");
-            currentOptions.add("Tirar");
-        } else if (name.equals("Reproductor de música")) {
-            currentOptions.add("Encender");
-            currentOptions.add("Tirar");
-        } else if (name.equals("Guante de reflejo cuarcítico")) {
-            currentOptions.add("Equipar");
-            currentOptions.add("Tirar");
-        } else if (name.equals("Frijol mágico")) {
-            currentOptions.add("Comer");
-            currentOptions.add("Tirar");
+        // NUEVO SISTEMA OO: Usa el método getOpciones() del ítem real
+        if (item.itemReal != null) {
+            currentOptions.addAll(item.itemReal.getOpciones());
         } else {
+            // Fallback para casos sin itemReal (no debería ocurrir en el futuro)
             currentOptions.add("Tirar");
         }
-
-        // Always add "Información" (Ver Info)
-        currentOptions.add("Información");
 
         selectedOptionIndex = 0;
         currentState = InventoryState.OPTIONS_MENU;
@@ -477,6 +454,7 @@ public class MochilaScreen extends BaseScreen {
         if (selectedItemForAction == null)
             return;
 
+        // **OPCIÓN: Tirar**
         if (option.equals("Tirar")) {
             explorador.getMochila().consumirItem(mapNameToInternal(selectedItemForAction.nombre), 1);
             showFeedback("Tiraste 1 " + selectedItemForAction.nombre);
@@ -484,114 +462,78 @@ public class MochilaScreen extends BaseScreen {
             if (indexSeleccionado >= visibleItems.size())
                 indexSeleccionado = Math.max(0, visibleItems.size() - 1);
             currentState = InventoryState.BROWSING;
+            return;
+        }
 
-        } else if (option.equals("Ver recetas")) {
+        // **OPCIÓN: Ver recetas**
+        if (option.equals("Ver recetas")) {
             loadRecipesFor(selectedItemForAction.nombre);
             currentState = InventoryState.SHOW_RECIPES;
+            return;
+        }
 
-        } else if (option.equals("Curar")) {
-            currentActionType = "CURAR";
-            currentState = InventoryState.SELECT_POKEMON_TARGET;
-
-        } else if (option.equals("Revivir")) {
-            currentActionType = "REVIVIR";
-            currentState = InventoryState.SELECT_POKEMON_TARGET;
-
-        } else if (option.equals("Restaurar movimiento") || option.equals("Usar")) {
-            currentActionType = "RESTAURAR";
-            currentState = InventoryState.SELECT_POKEMON_TARGET;
-
-        } else if (option.equals("Aplicar")
-                || (option.equals("Encender") && selectedItemForAction.nombre.contains("Reproductor"))) {
-            if (explorador.getMochila().consumirItem("repelente", 1)) {
-                showFeedback("Música de fondo ACTIVADA");
-                updateVisibleItems();
-                currentState = InventoryState.BROWSING;
-            }
-        } else if (option.equals("Activar") || option.equals("Equipar")) {
-            if (explorador.getMochila().consumirItem("amuleto", 1)) {
-                showFeedback("Guante EQUIPADO");
-                updateVisibleItems();
-                currentState = InventoryState.BROWSING;
-            }
-        } else if (option.equals("Comer")) {
-            currentActionType = "CURAR_FULL";
-            currentState = InventoryState.SELECT_POKEMON_TARGET;
-
-        } else if (option.equals("Encender") && selectedItemForAction.nombre.contains("Cebo")) {
-            // Legacy fallback if needed, but Frijol is "Comer"
-            if (explorador.getMochila().consumirItem("lure", 1)) {
-                showFeedback("Cebo ENCENDIDO");
-                updateVisibleItems();
-                currentState = InventoryState.BROWSING;
-            }
-        } else if (option.equals("Lanzar")) {
+        // **OPCIÓN: Lanzar** (Pokéballs)
+        if (option.equals("Lanzar")) {
             if (returnScreen instanceof BattleScreen) {
                 if (explorador.getMochila().consumirItem(mapNameToInternal(selectedItemForAction.nombre), 1)) {
-                    // Need to trigger use in battle
                     BattleScreen battle = (BattleScreen) returnScreen;
-                    // Assuming battle has public method or we use reusable method
                     String internalName = mapNameToInternal(selectedItemForAction.nombre);
-                    if (internalName.equals("pokeball") || internalName.equals("heavyball")) {
-                        battle.usarItemEnBatalla("pokeball"); // Generic for now, or adapt battle
-                    }
+                    battle.usarItemEnBatalla(internalName);
                     game.setScreen(battle);
                 }
             } else {
-                showFeedback("No estás en combate");
+                showFeedback("No puedes lanzar una pokebola, no estas en batalla.");
                 currentState = InventoryState.BROWSING;
             }
-        } else if (option.equals("Información")) {
-            // Just show info (already shown in browsing), maybe highlight
+            return;
+        }
+
+        // **OPCIÓN: Información**
+        if (option.equals("Información")) {
+            currentState = InventoryState.BROWSING;
+            return;
+        }
+
+        // **SISTEMA OO: Opciones de uso (Curar, Revivir, Usar, Comer, Encender,
+        // Equipar)**
+        // Todas estas opciones requieren seleccionar un Pokémon o ejecutarse
+        // directamente
+        if (selectedItemForAction.itemReal != null && selectedItemForAction.itemReal.esUsable()) {
+            // El ítem es usable - ir al selector de Pokémon
+            currentState = InventoryState.SELECT_POKEMON_TARGET;
+        } else {
+            showFeedback("Este ítem no se puede usar.");
             currentState = InventoryState.BROWSING;
         }
     }
 
     private void applyItemToPokemon(Pokemon p) {
-        String itemInternal = mapNameToInternal(selectedItemForAction.nombre);
-        boolean success = false;
-
-        if (currentActionType.equals("CURAR")) {
-            if (itemInternal.equals("baya") || itemInternal.equals("unguento")) { // Baya Aranja or Pocion
-                float amount = itemInternal.equals("baya") ? 10 : 20;
-                if (p.getHpActual() < p.getHpMaximo() && !p.isDebilitado()) {
-                    p.recuperarSalud(amount);
-                    explorador.getMochila().consumirItem(itemInternal, 1);
-                    showFeedback("Curaste a " + p.getNombre());
-                    success = true;
-                } else {
-                    showFeedback("No tiene efecto.");
-                }
-            }
-        } else if (currentActionType.equals("REVIVIR")) {
-            if (p.isDebilitado()) {
-                p.recuperarSalud(p.getHpMaximo() * 0.5f);
-                explorador.getMochila().consumirItem("revivir", 1);
-                showFeedback("¡" + p.getNombre() + " revivió!");
-                success = true;
-            } else {
-                showFeedback("No está debilitado.");
-            }
-        } else if (currentActionType.equals("RESTAURAR")) {
-            explorador.getMochila().consumirItem("elixir", 1);
-            showFeedback("Ataque subió +3 (Efecto visual)");
-            success = true;
-        } else if (currentActionType.equals("CURAR_FULL")) {
-            if (p.getHpActual() < p.getHpMaximo() && !p.isDebilitado()) {
-                p.recuperarSalud(p.getHpMaximo());
-                explorador.getMochila().consumirItem("lure", 1);
-                showFeedback("¡HP restaurado al 100%!");
-                success = true;
-            } else {
-                showFeedback("No tiene efecto.");
-            }
-        }
-
-        if (success || !currentActionType.isEmpty()) {
-            selectedIndex = 0; // Return to materials tab
-            updateVisibleItems();
+        if (selectedItemForAction == null || selectedItemForAction.itemReal == null) {
+            showFeedback("Error: ítem no disponible");
             currentState = InventoryState.BROWSING;
+            return;
         }
+
+        Item item = selectedItemForAction.itemReal;
+
+        // NUEVO SISTEMA OO: Verificar si el ítem es usable
+        if (item.esUsable()) {
+            com.mypokemon.game.inventario.interfaces.IUsable itemUsable = (com.mypokemon.game.inventario.interfaces.IUsable) item;
+
+            // Usar el ítem en el Pokémon
+            com.mypokemon.game.inventario.ResultadoUso resultado = itemUsable.usar(p,
+                    explorador.getMochila());
+
+            // Mostrar mensaje de resultado
+            showFeedback(resultado.getMensaje());
+        } else {
+            showFeedback("Este ítem no se puede usar en Pokémon.");
+        }
+
+        // Regresar a la pestaña de materiales y actualizar vista
+        selectedIndex = 0;
+        updateVisibleItems();
+        currentState = InventoryState.BROWSING;
     }
 
     private void loadRecipesFor(String itemName) {
@@ -601,7 +543,8 @@ public class MochilaScreen extends BaseScreen {
             currentRecipesToShow.add("Poké Ball de Peso - 1 Planta");
             currentRecipesToShow.add("Poción Herbal - 3 Plantas");
             currentRecipesToShow.add("Revivir Casero - 5 Plantas");
-            currentRecipesToShow.add("Repelente Orgánico - 4 Plantas");
+            currentRecipesToShow.add("Reproductor de música - 1 Baya"); // Fixed text
+
             currentRecipesToShow.add("Cebo de Bayas - 1 Planta");
         } else if (itemName.equals("Guijarro")) {
             currentRecipesToShow.add("Poké Ball - 3 Guijarros");
@@ -637,10 +580,38 @@ public class MochilaScreen extends BaseScreen {
                     indexSeleccionado = Math.max(0, visibleItems.size() - 1);
             }
         }
-        // UP/DOWN logic omitted for brevity but should exist in real generic method
 
-        // Mouse hover
-        // ... (Existing mouse logic in render handles selection update)
+        // UP/DOWN Navigation (Grid 3 columns)
+        int columns = 3;
+        int totalItems = (currentState == InventoryState.SELECT_POKEMON_TARGET) ? 6 : visibleItems.size();
+
+        if (Gdx.input.isKeyJustPressed(Input.Keys.DOWN)) {
+            if (totalItems > 0) {
+                indexSeleccionado += columns;
+                if (indexSeleccionado >= totalItems) {
+                    // Wrap to top same column or just clamp? Standard varies.
+                    // Let's loop to top:
+                    indexSeleccionado = indexSeleccionado % columns;
+                    // Ensure valid
+                    if (indexSeleccionado >= totalItems)
+                        indexSeleccionado = 0;
+                }
+            }
+        }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.UP)) {
+            if (totalItems > 0) {
+                indexSeleccionado -= columns;
+                if (indexSeleccionado < 0) {
+                    // Wrap to bottom
+                    int rows = (int) Math.ceil((double) totalItems / columns);
+                    int bottomIndex = indexSeleccionado + (rows * columns);
+                    if (bottomIndex >= totalItems)
+                        bottomIndex -= columns;
+                    indexSeleccionado = bottomIndex;
+                }
+            }
+        }
+
     }
 
     private String mapNameToInternal(String display) {
@@ -655,17 +626,17 @@ public class MochilaScreen extends BaseScreen {
         if (display.equals("Poké Ball de Peso"))
             return "heavyball";
         if (display.equals("Poción Herbal"))
-            return "unguento";
+            return "pocion";
         if (display.equals("Elíxir de Piel de Piedra"))
             return "elixir";
         if (display.equals("Revivir Casero"))
             return "revivir";
         if (display.equals("Reproductor de música"))
-            return "repelente";
+            return "reproductor";
         if (display.equals("Guante de reflejo cuarcítico"))
-            return "amuleto";
+            return "guante";
         if (display.equals("Frijol mágico"))
-            return "lure";
+            return "frijol";
         return display.toLowerCase();
     }
 
@@ -793,9 +764,9 @@ public class MochilaScreen extends BaseScreen {
 
     private void drawOptionsMenu(com.badlogic.gdx.graphics.g2d.SpriteBatch batch) {
         // Pop-up Menu Style
-        // Position it near the Options button (approx 100, 220)
+        // Position it lower to avoid covering description text
         float mx = 100;
-        float my = 220; // Bottom of the menu
+        float my = 120; // Bottom of the menu (bajado para no tapar el texto)
         float mw = 250;
         float mh = 40;
 
@@ -861,66 +832,70 @@ public class MochilaScreen extends BaseScreen {
         game.font.setColor(Color.WHITE);
     }
 
-    private void drawConfirmationDialog(com.badlogic.gdx.graphics.g2d.SpriteBatch batch) {
-        float dialogW = 500;
-        float dialogH = 150;
-        float dx = (VIRTUAL_WIDTH - dialogW) / 2;
-        float dy = (VIRTUAL_HEIGHT - dialogH) / 2;
-
-        batch.setColor(Color.DARK_GRAY);
-        batch.draw(whitePixel, dx, dy, dialogW, dialogH);
-        batch.setColor(Color.WHITE);
-        batch.draw(whitePixel, dx + 5, dy + 5, dialogW - 10, dialogH - 10);
-
-        game.font.setColor(Color.BLACK);
-        game.font.draw(batch, "¿Quieres usar una PokeBall?", dx + 50, dy + 100);
-        game.font.draw(batch, "S para SI | N para NO", dx + 100, dy + 50);
-    }
-
     private void updateVisibleItems() {
         visibleItems.clear();
         Inventario inventory = explorador.getMochila();
 
         if (selectedIndex == 0) { // Red Button: Materiales
-            if (inventory.getPlantas() > 0)
-                visibleItems.add(new ItemData("Planta Medicinal", "Componente base para fabricar pociones y revivir.",
-                        texPlanta, inventory.getPlantas()));
-            if (inventory.getBayas() > 0)
-                visibleItems.add(new ItemData("Baya Aranja", "Restaura 10 HP cuando la vida del Pokémon baja.", texBaya,
-                        inventory.getBayas()));
-            if (inventory.getGuijarros() > 0)
+            // Obtener ítems reales del inventario
+            Item planta = inventory.getItem("planta");
+            if (planta != null && planta.getCantidad() > 0)
+                visibleItems.add(new ItemData("Planta Medicinal", "Ingrediente básico para medicinas.",
+                        texPlanta, planta.getCantidad(), planta));
+
+            Item baya = inventory.getItem("baya");
+            if (baya != null && baya.getCantidad() > 0)
+                visibleItems.add(new ItemData("Baya Aranja", "Restaura 10 HP cuando la vida del Pokémon baja.",
+                        texBaya, baya.getCantidad(), baya));
+
+            Item guijarro = inventory.getItem("guijarro");
+            if (guijarro != null && guijarro.getCantidad() > 0)
                 visibleItems.add(new ItemData("Guijarro", "Ingrediente principal para fabricar Poké Balls.",
-                        texGuijarro, inventory.getGuijarros()));
+                        texGuijarro, guijarro.getCantidad(), guijarro));
 
         } else if (selectedIndex == 1) { // Blue Button: Pokebolas
-            if (inventory.getPokeBalls() > 0)
-                visibleItems.add(new ItemData("Poké Ball", "Dispositivo para atrapar Pokémon.", texPokeball,
-                        inventory.getPokeBalls()));
-            if (inventory.getHeavyBalls() > 0)
+            Item pokeball = inventory.getItem("pokeball");
+            if (pokeball != null && pokeball.getCantidad() > 0)
+                visibleItems.add(new ItemData("Poké Ball", "Dispositivo para atrapar Pokémon.",
+                        texPokeball, pokeball.getCantidad(), pokeball));
+
+            Item heavyball = inventory.getItem("heavyball");
+            if (heavyball != null && heavyball.getCantidad() > 0)
                 visibleItems.add(new ItemData("Poké Ball de Peso", "Dispositivo con mejor captura en nivel bajo.",
-                        texHeavyBall, inventory.getHeavyBalls()));
+                        texHeavyBall, heavyball.getCantidad(), heavyball));
 
         } else if (selectedIndex == 2) { // Yellow Button: Pociones + Crafteo + Lure
-            if (inventory.getUnguentos() > 0)
-                visibleItems
-                        .add(new ItemData("Poción Herbal", "Cura 20 HP.", texPocionHerbal, inventory.getUnguentos()));
-            if (inventory.getElixires() > 0)
+            Item pocion = inventory.getItem("pocion");
+            if (pocion != null && pocion.getCantidad() > 0)
+                visibleItems.add(new ItemData("Poción Herbal", "Cura 20 HP.",
+                        texPocionHerbal, pocion.getCantidad(), pocion));
+
+            Item elixir = inventory.getItem("elixir");
+            if (elixir != null && elixir.getCantidad() > 0)
                 visibleItems.add(new ItemData("Elíxir de Piel de Piedra",
-                        "Aumenta la potencia del ataque (+3 por ataque).", texElixir,
-                        inventory.getElixires()));
-            if (inventory.getRevivires() > 0)
+                        "Aumenta la potencia del ataque (+3 por ataque).",
+                        texElixir, elixir.getCantidad(), elixir));
+
+            Item revivir = inventory.getItem("revivir");
+            if (revivir != null && revivir.getCantidad() > 0)
                 visibleItems.add(new ItemData("Revivir Casero", "Revive con 50% HP a un Pokémon debilitado.",
-                        texRevivir, inventory.getRevivires()));
-            if (inventory.getRepelentes() > 0)
+                        texRevivir, revivir.getCantidad(), revivir));
+
+            Item reproductor = inventory.getItem("reproductor");
+            if (reproductor != null && reproductor.getCantidad() > 0)
                 visibleItems.add(new ItemData("Reproductor de música", "Permite escuchar música de fondo.",
-                        texRepelente, inventory.getRepelentes()));
-            if (inventory.getAmuletos() > 0)
+                        texReproductor, reproductor.getCantidad(), reproductor));
+
+            Item guante = inventory.getItem("guante");
+            if (guante != null && guante.getCantidad() > 0)
                 visibleItems.add(new ItemData("Guante de reflejo cuarcítico",
                         "Utilizan guijarros brillantes para recolectar doble recurso.",
-                        texAmuleto, inventory.getAmuletos()));
-            if (inventory.getLures() > 0)
-                visibleItems.add(new ItemData("Frijol mágico", "Restaura el 100% de HP de un Pokémon.", texLure,
-                        inventory.getLures()));
+                        texGuante, guante.getCantidad(), guante));
+
+            Item frijol = inventory.getItem("frijol");
+            if (frijol != null && frijol.getCantidad() > 0)
+                visibleItems.add(new ItemData("Frijol mágico", "Restaura el 100% de HP de un Pokémon.",
+                        texFrijol, frijol.getCantidad(), frijol));
 
         } else if (selectedIndex == 3) { // Brown Button
             // User moved Lure to Yellow. Leaving empty as implied by "solo aparezcan de
@@ -936,36 +911,7 @@ public class MochilaScreen extends BaseScreen {
         viewport.update(width, height, true);
     }
 
-    private void usarItemEnBatalla(String itemName) {
-        if (itemName == null)
-            return;
-        BattleScreen battle = (BattleScreen) returnScreen;
-
-        if (itemName.equalsIgnoreCase("pokeball")) {
-            if (explorador.getMochila().consumirItem("pokeball", 1)) {
-                battle.usarItemEnBatalla("pokeball");
-                game.setScreen(battle);
-            }
-        } else if (itemName.equalsIgnoreCase("Poción Herbal") || itemName.equalsIgnoreCase("Ungüento Herbal")) {
-            if (explorador.getMochila().consumirItem("unguento", 1)) {
-                battle.usarItemEnBatalla("pocion");
-                game.setScreen(battle);
-            }
-        } else if (itemName.equalsIgnoreCase("baya") || itemName.equalsIgnoreCase("Baya Aranja")) {
-            if (explorador.getMochila().consumirItem("baya", 1)) {
-                battle.usarItemEnBatalla("pocion");
-                game.setScreen(battle);
-            }
-        }
-    }
-
     // Old methods replaced by new logic
-    private void dibujarMochila(com.badlogic.gdx.graphics.g2d.SpriteBatch batch) {
-        // This method is now redundant as drawGridSlots and drawGridContent act as
-        // replacements,
-        // but we kept certain logic like pokemon texture loading.
-        // We can empty this or leave it if it's not called.
-    }
 
     private void dibujarExplicacion(com.badlogic.gdx.graphics.g2d.SpriteBatch batch) {
         String titulo = "";
@@ -1011,7 +957,7 @@ public class MochilaScreen extends BaseScreen {
             // Draw "OPCIONES" button
             if (currentState == InventoryState.BROWSING && !titulo.isEmpty()) {
                 float btnX = 100;
-                float btnY = 220;
+                float btnY = 160; // Bajado para no tapar el texto
                 float btnW = 150;
                 float btnH = 40;
 
@@ -1069,14 +1015,14 @@ public class MochilaScreen extends BaseScreen {
             texElixir.dispose();
         if (texRevivir != null)
             texRevivir.dispose();
-        if (texRepelente != null)
-            texRepelente.dispose();
-        if (texAmuleto != null)
-            texAmuleto.dispose();
+        if (texReproductor != null)
+            texReproductor.dispose();
+        if (texGuante != null)
+            texGuante.dispose();
         if (texHeavyBall != null)
             texHeavyBall.dispose();
-        if (texLure != null)
-            texLure.dispose();
+        if (texFrijol != null)
+            texFrijol.dispose();
         if (texMarcoVerde != null)
             texMarcoVerde.dispose();
 

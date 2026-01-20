@@ -134,13 +134,7 @@ public class GameScreen extends BaseScreen {
     // Resource Management
     private List<RecursoMapa> recursosMapa = new ArrayList<>();
 
-    // Crafting and Notifications
-    private enum CraftingState {
-        CLOSED, SHOWING_RECIPES
-    }
-
-    private CraftingState craftingState = CraftingState.CLOSED;
-    private String craftingRecipe = "";
+    // Crafting State removed (Decoupled Architecture)
     private String notificationMessage = "";
     private float notificationTimer = 0;
     private boolean showMissionComplete = false;
@@ -449,15 +443,6 @@ public class GameScreen extends BaseScreen {
             Gdx.app.log("GameScreen", "Error loading region signs", e);
         }
 
-        // Initialize Regions (Offsets relative to Spawn Point)
-        // The actual posX and posY are set in loadMap() which is called in show().
-        // For constructor initialization, we'll use 0,0 and update in show() or
-        // render().
-        // However, the previous code used this.posX and this.posY directly, implying
-        // they might be set by Explorador.
-        // Let's stick to the previous logic for now, assuming posX/posY are correctly
-        // initialized by the time
-        // this block is reached, or that the relative offsets are what matters.
         float spawnX = this.posX;
         float spawnY = this.posY;
         float regionSize = 60f;
@@ -484,13 +469,6 @@ public class GameScreen extends BaseScreen {
     private boolean fadingIn = true;
     private boolean fadingOut = false;
     private BaseScreen nextScreen; // Screen to switch to after fade
-
-    // ... (keep class definition)
-
-    // In Constructor or Init
-    // ...
-    // fadeAlpha = 1f;
-    // fadingIn = true;
 
     @Override
     public void show() {
@@ -813,7 +791,10 @@ public class GameScreen extends BaseScreen {
                         if (com.badlogic.gdx.math.Vector2.dst(posX, posY, rx, ry) < 60f &&
                                 mousePos.x >= rx - tileW / 2 && mousePos.x <= rx + tileW / 2 &&
                                 mousePos.y >= ry - tileH / 2 && mousePos.y <= ry + tileH / 2) {
-                            if (explorador.getMochila().recolectarRecurso(r.tipo, r.cantidad)) {
+
+                            try {
+                                explorador.getMochila().agregarItem(
+                                        com.mypokemon.game.inventario.ItemFactory.crearRecurso(r.tipo, r.cantidad));
                                 r.recolectado = true;
                                 r.timerRespawn = r.TIEMPO_RESPAWN;
                                 // Remove from layers
@@ -826,7 +807,7 @@ public class GameScreen extends BaseScreen {
                                 if (client != null) {
                                     client.sendMessage("COLLECT:" + r.cellX + "_" + r.cellY);
                                 }
-                            } else {
+                            } catch (com.mypokemon.game.inventario.exceptions.EspacioException e) {
                                 notificationMessage = "Mochila llena";
                                 notificationTimer = NOTIFICATION_DURATION;
                             }
@@ -835,22 +816,6 @@ public class GameScreen extends BaseScreen {
                     }
                 }
             }
-
-            // Crafting disabled as requested
-            /*
-             * if (Gdx.input.isKeyJustPressed(Input.Keys.C) && craftingState ==
-             * CraftingState.CLOSED) {
-             * int plantas = explorador.getMochila().getPlantas();
-             * int guijarros = explorador.getMochila().getGuijarros();
-             * if (plantas == 0 && guijarros == 0) {
-             * notificationMessage = "Inventario vacío";
-             * notificationTimer = NOTIFICATION_DURATION;
-             * } else {
-             * craftingState = CraftingState.SHOWING_RECIPES;
-             * craftingRecipe = "2 Plantas + 3 Guijarros = 1 Poké Ball";
-             * }
-             * }
-             */
 
             // Encounter Logic
             if (!inEncounter && !showDialog) {
@@ -894,14 +859,6 @@ public class GameScreen extends BaseScreen {
                         // Check for Boss Encounter
                         boolean isBoss = false;
                         String bossName = "";
-
-                        // We need to re-check the current tile for boss properties since the previous
-                        // loop breaks on any 'ZonaEncuentro'
-                        // Actually, let's just use the logic if 'foundGrass' is true, assuming boss
-                        // tiles also have 'ZonaEncuentro' property.
-                        // Or better, let's just check the specific layer/tile properties for the boss
-                        // condition regardless of grass loop structure if needed,
-                        // but sticking to the current structure:
 
                         if (foundGrass) {
                             // Check for specific BOSS properties
@@ -1010,26 +967,6 @@ public class GameScreen extends BaseScreen {
             }
         }
 
-        // Crafting Input
-        if (craftingState == CraftingState.SHOWING_RECIPES) {
-            if (Gdx.input.isKeyJustPressed(Input.Keys.S)) {
-                if (explorador.getMochila().fabricarPokeBall()) {
-                    notificationMessage = "¡Poké Ball creada!";
-                    notificationTimer = NOTIFICATION_DURATION;
-                    if (explorador.getMochila().getPokeBalls() == 1) {
-                        showMissionComplete = true;
-                        missionCompleteTimer = 6.0f;
-                    }
-                } else {
-                    notificationMessage = "Materiales insuficientes";
-                    notificationTimer = NOTIFICATION_DURATION;
-                }
-                craftingState = CraftingState.CLOSED;
-            } else if (Gdx.input.isKeyJustPressed(Input.Keys.N)) {
-                craftingState = CraftingState.CLOSED;
-            }
-        }
-
         // Dialog Advance
         if (showDialog && Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
             currentDialogPage++;
@@ -1039,8 +976,6 @@ public class GameScreen extends BaseScreen {
             }
         }
 
-        // NPC Range Check for Dialog Closing
-        // ...
         // NPC Range Check for Dialog Closing
         com.mypokemon.game.objects.NPC closeNPC = (npcManager != null) ? npcManager.getCloseNPC(posX, posY)
                 : null;
@@ -1154,16 +1089,6 @@ public class GameScreen extends BaseScreen {
                     introTexture.getHeight() * introScale);
         }
 
-        // Debug
-        /*
-         * game.font.setColor(Color.RED);
-         * game.font.getData().setScale(0.8f);
-         * game.font.draw(game.batch, "X: " + (int) posX + " Y: " + (int) posY, 10,
-         * 470);
-         * game.font.setColor(Color.WHITE);
-         * game.font.getData().setScale(1.0f);
-         */
-
         // HUD
         if (gameUI != null) {
             gameUI.renderHUD(game.batch, explorador, showMenu);
@@ -1208,15 +1133,6 @@ public class GameScreen extends BaseScreen {
                     currentDialogPage < activeDialogPages.length - 1);
         }
 
-        // CRAFTING UI
-        if (craftingState == CraftingState.SHOWING_RECIPES) {
-            game.font.setColor(Color.CYAN);
-            game.font.draw(game.batch, craftingRecipe, 400, 250, 0, com.badlogic.gdx.utils.Align.center, false);
-            game.font.draw(game.batch, "¿Fabricar? [S/N]", 400, 220, 0, com.badlogic.gdx.utils.Align.center, false);
-            game.font.setColor(Color.WHITE);
-        }
-
-        // Menu
         // Menu
         if (showMenu && gameUI != null) {
             gameUI.renderMenu(game.batch, menuOptions, menuSelectedIndex);

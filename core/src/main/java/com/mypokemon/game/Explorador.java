@@ -9,6 +9,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.mypokemon.game.inventario.Inventario;
+
 public class Explorador implements Serializable {
     private static final long serialVersionUID = 1L;
 
@@ -101,5 +103,15 @@ public class Explorador implements Serializable {
 
     public void agregarPokemonEquipo(Pokemon pokemon) {
         agregarAlEquipo(pokemon);
+    }
+
+    // Sistema de Crafteo Centralizado
+    private com.mypokemon.game.inventario.Crafteo crafteoSystem;
+
+    public com.mypokemon.game.inventario.Crafteo getCrafteoSystem() {
+        if (crafteoSystem == null) {
+            crafteoSystem = new com.mypokemon.game.inventario.Crafteo();
+        }
+        return crafteoSystem;
     }
 }

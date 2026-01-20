@@ -4,8 +4,6 @@ import com.mypokemon.game.PokemonMain;
 import com.mypokemon.game.Explorador;
 import com.mypokemon.game.Pokemon;
 import com.mypokemon.game.Movimiento;
-import com.mypokemon.game.EspeciePokemon;
-import com.mypokemon.game.GestorEncuentros;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputAdapter;
@@ -50,11 +48,24 @@ public class BattleScreen extends ScreenAdapter {
     private String infoText = "...";
     private String damageText = ""; // Mostrar daño recibido
     private float damageTextTimer = 0;
+    private float damageTextX = 500;
+    private float damageTextY = 400;
     private int selectedOption = 0; // 0: Atacar, 1: Mochila, 2: Pokemon, 3: Huir
     private boolean showMoveMenu = false;
     private boolean showPokedex = false;
     private int selectedMove = 0;
     private Texture selectedBorder;
+
+    // Animation State
+    private enum AnimState {
+        NONE, THROWING, CAPTURE_CHECK
+    }
+
+    private AnimState animState = AnimState.NONE;
+    private float animTimer = 0;
+    private float ballX, ballY;
+    private float ballTargetX = 400, ballTargetY = 350; // Default center
+    private String currentBallType;
 
     // Textures
     private Texture backgroundTexture;
@@ -349,24 +360,78 @@ public class BattleScreen extends ScreenAdapter {
     }
 
     public void usarItemEnBatalla(String tipo) {
-        if (tipo.equals("pokeball")) {
-            updateInfo("¡Usaste una Poké Ball!");
+        if (tipo.equals("pokeball") || tipo.equals("heavyball")) {
+            updateInfo("¡Usaste una " + (tipo.equals("heavyball") ? "Heavy Ball" : "Poké Ball") + "!");
             float hpPercent = pokemonEnemigo.getHpActual() / pokemonEnemigo.getHpMaximo();
+            int nivelEnemigo = pokemonEnemigo.getNivel();
 
-            if (hpPercent <= 0.20f) {
+            // Capture Logic
+            boolean capturado = false;
+
+            if (tipo.equals("heavyball")) {
+                // Heavy Ball works better on low-level Pokémon (0-3)
+                if (nivelEnemigo <= 3) {
+                    // Better threshold for low-level Pokémon
+                    if (hpPercent <= 0.40f)
+                        capturado = true;
+                } else {
+                    // Standard threshold for higher-level Pokémon
+                    if (hpPercent <= 0.20f)
+                        capturado = true;
+                }
+            } else {
+                // Standard Pokeball (20% threshold regardless of level)
+                if (hpPercent <= 0.20f)
+                    capturado = true;
+            }
+
+            if (capturado) {
                 // Success!
-                updateInfo("¡" + pokemonEnemigo.getNombre() + " ha sido capturado!");
+                updateInfo("Pokemon " + pokemonEnemigo.getNombre() + " capturado");
                 explorador.getRegistro().registrarAccion(pokemonEnemigo.getNombre(), true);
                 explorador.agregarAlEquipo(pokemonEnemigo);
                 endBattle(true);
             } else {
-                updateInfo("¡El Pokémon escapó! Su HP debe estar en 20% o menos.");
+                updateInfo("¡El Pokémon escapó! " + (tipo.equals("heavyball") ? "¡Casi!" : "Debilítalo más."));
                 currentState = BattleState.ENEMY_TURN;
                 performEnemyTurnWithDelay();
             }
         } else if (tipo.equals("pocion")) {
             updateInfo("¡Usaste una Poción! Tu Pokémon recuperó 20 PS.");
             pokemonJugador.recuperarSalud(20);
+            currentState = BattleState.ENEMY_TURN;
+            performEnemyTurnWithDelay();
+        }
+    }
+
+    private void checkCapture() {
+        float hpPercent = pokemonEnemigo.getHpActual() / pokemonEnemigo.getHpMaximo();
+        int nivelEnemigo = pokemonEnemigo.getNivel();
+        boolean capturado = false;
+
+        if (currentBallType.equals("heavyball")) {
+            // Heavy Ball works better on low-level Pokémon (0-3)
+            if (nivelEnemigo <= 3) {
+                if (hpPercent <= 0.40f)
+                    capturado = true;
+            } else {
+                if (hpPercent <= 0.20f)
+                    capturado = true;
+            }
+        } else {
+            // Standard Pokeball (20% threshold regardless of level)
+            if (hpPercent <= 0.20f)
+                capturado = true;
+        }
+
+        if (capturado) {
+            updateInfo("¡Pokémon " + pokemonEnemigo.getNombre() + " capturado!");
+            explorador.getRegistro().registrarAccion(pokemonEnemigo.getNombre(), true);
+            explorador.agregarAlEquipo(pokemonEnemigo);
+            endBattle(true);
+        } else {
+            updateInfo("¡El Pokémon escapó!");
+            animState = AnimState.NONE;
             currentState = BattleState.ENEMY_TURN;
             performEnemyTurnWithDelay();
         }
@@ -423,6 +488,8 @@ public class BattleScreen extends ScreenAdapter {
             } else if (dano > 0) {
                 updateInfo(pokemonJugador.getNombre() + " usó " + mov.getNombre() + ". Daño: " + dano);
                 damageText = "-" + dano;
+                damageTextX = 500; // Over Enemy
+                damageTextY = 400;
                 damageTextTimer = 2.0f;
             } else {
                 updateInfo(pokemonJugador.getNombre() + " usó " + mov.getNombre() + ", pero falló.");
@@ -457,6 +524,8 @@ public class BattleScreen extends ScreenAdapter {
                     } else if (dano > 0) {
                         updateInfo(pokemonJugador.getNombre() + " usó " + mov.getNombre() + ". Daño: " + dano);
                         damageText = "-" + dano;
+                        damageTextX = 500; // Over Enemy
+                        damageTextY = 400;
                         damageTextTimer = 2.0f;
                     } else {
                         updateInfo(pokemonJugador.getNombre() + " usó " + mov.getNombre() + ", pero falló.");
@@ -479,6 +548,10 @@ public class BattleScreen extends ScreenAdapter {
             int dano = (int) (pokemonEnemigo.getAtaque() * 0.3);
             pokemonJugador.recibirDaño(dano);
             updateInfo(pokemonEnemigo.getNombre() + " usó Placaje. Daño: " + dano);
+            damageText = "-" + dano;
+            damageTextX = 160;
+            damageTextY = 330;
+            damageTextTimer = 2.0f;
         } else {
             Movimiento mov = movimientos.get((int) (Math.random() * movimientos.size()));
             int dano = mov.ejecutar(pokemonEnemigo, pokemonJugador);
@@ -487,6 +560,10 @@ public class BattleScreen extends ScreenAdapter {
                         + pokemonJugador.getNombre() + " es inmune a " + mov.getTipo() + "!");
             } else if (dano > 0) {
                 updateInfo(pokemonEnemigo.getNombre() + " usó " + mov.getNombre() + ". Daño: " + dano);
+                damageText = "-" + dano;
+                damageTextX = 160; // Over Player (approx center)
+                damageTextY = 330;
+                damageTextTimer = 2.0f;
             } else {
                 updateInfo(pokemonEnemigo.getNombre() + " usó " + mov.getNombre() + ", pero falló.");
             }
@@ -508,9 +585,13 @@ public class BattleScreen extends ScreenAdapter {
             explorador.getRegistro().registrarAccion(pokemonJugador.getNombre(), false);
 
             // Recompensa de recursos
-            String recurso = Math.random() < 0.5 ? "planta" : "guijarro";
-            explorador.getMochila().recolectarRecurso(recurso, 1);
-            updateInfo("Ganaste +1 Inv. y encontraste 1 " + recurso + ".");
+            String recursoId = Math.random() < 0.5 ? "planta" : "guijarro";
+            try {
+                explorador.getMochila().agregarItem(com.mypokemon.game.inventario.ItemFactory.crearRecurso(recursoId, 1));
+                updateInfo("Ganaste +1 Inv. y encontraste 1 " + recursoId + ".");
+            } catch (com.mypokemon.game.inventario.exceptions.EspacioException e) {
+                updateInfo("Ganaste +1 Inv. pero inventario lleno.");
+            }
 
             endBattle(true);
         } else if (pokemonJugador.getHpActual() <= 0) {
@@ -640,11 +721,31 @@ public class BattleScreen extends ScreenAdapter {
             drawButton(btnHuirRect, "Huir", selectedOption == 3);
         }
 
+        // Animation Logic
+        if (animState == AnimState.THROWING) {
+            animTimer += delta;
+            float duration = 1.0f;
+            float progress = Math.min(animTimer / duration, 1.0f);
+
+            // Interpolate pos
+            float currentX = ballX + (ballTargetX - ballX) * progress;
+            float currentY = ballY + (ballTargetY - ballY) * progress;
+
+            // Draw Ball (White circle with red top if possible, or just a small circle)
+            game.batch.draw(baseCircleTexture, currentX - 15, currentY - 15, 30, 30); // Simple ball representation
+
+            if (progress >= 1.0f) {
+                animState = AnimState.CAPTURE_CHECK;
+                // Trigger check
+                checkCapture();
+            }
+        }
+
         // Mostrar texto de daño si está activo
         if (!damageText.isEmpty() && damageTextTimer > 0) {
             font.setColor(Color.RED);
             font.getData().setScale(2.0f);
-            font.draw(game.batch, damageText, 500, 400);
+            font.draw(game.batch, damageText, damageTextX, damageTextY);
             font.getData().setScale(1.0f);
         }
 

@@ -1,7 +1,10 @@
 package com.mypokemon.game.pantallas;
 
 import com.mypokemon.game.PokemonMain;
-import com.mypokemon.game.Explorador;
+import com.mypokemon.game.inventario.exceptions.EspacioException;
+import com.mypokemon.game.inventario.ItemFactory;
+import com.mypokemon.game.inventario.Crafteo;
+import com.mypokemon.game.inventario.Receta;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
@@ -14,7 +17,6 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.badlogic.gdx.math.Vector3;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class CrafteoScreen extends BaseScreen {
@@ -31,46 +33,20 @@ public class CrafteoScreen extends BaseScreen {
     // Buttons
     private Texture texBtnGris, texBtnGrisSel;
 
-    private List<RecipeDisplay> recipes;
-
-    // Data Structure for Recipes
-    // Data Structure for Recipes
-    private class Ingredient {
-        String name;
-        int required;
-
-        public Ingredient(String name, int required) {
-            this.name = name;
-            this.required = required;
-        }
-    }
-
-    private class RecipeDisplay {
-        String name;
-        String desc;
-        Texture icon; // Added icon field
-        List<Ingredient> ingredients;
-
-        public RecipeDisplay(String name, String desc, Texture icon) {
-            this.name = name;
-            this.desc = desc;
-            this.icon = icon;
-            this.ingredients = new ArrayList<>();
-        }
-
-        public void addIngredient(String name, int required) {
-            ingredients.add(new Ingredient(name, required));
-        }
-    }
+    // Logic
+    private Crafteo crafteoLogic;
+    private List<Receta> recetas;
 
     // Item Textures
     private Texture texPlanta, texGuijarro, texBaya;
-    private Texture texPokebola, texPokebolaPeso, texPocionHerbal, texElixir, texRevivir, texRepelente, texAmuleto,
-            texCebo;
-    private Texture textureFondoSlot; // Added for visible grid background
-    private Texture textureWhite; // For borders
+    // Renaming legacy texRepelente->texReproductor, texAmuleto->texGuante,
+    // texCebo->texFrijol
+    private Texture texPokebola, texPokebolaPeso, texPocionHerbal, texElixir, texRevivir, texReproductor, texGuante,
+            texFrijol;
+    private Texture textureFondoSlot;
+    private Texture textureWhite;
 
-    // Selected Recipe Index for Middle Category
+    // Selected Recipe Index
     private int selectedRecipeIndex = -1;
 
     // Crafting Feedback
@@ -85,16 +61,12 @@ public class CrafteoScreen extends BaseScreen {
         viewport = new FitViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, camera);
         camera.position.set(VIRTUAL_WIDTH / 2, VIRTUAL_HEIGHT / 2, 0);
 
+        // Usar instancia centralizada de Explorador
+        this.crafteoLogic = returnScreen.getExplorador().getCrafteoSystem();
+
         loadAssets();
         initRecipes();
     }
-    // ... loadAssets omitted for brevity ... (Assuming it stays same or I need to
-    // preserve it carefully if I touched surrounding lines)
-    // Wait, replacing lines 35-115 covers loadAssets too. I must preserve
-    // loadAssets.
-    // Let me target smaller chunks to avoid deleting loadAssets.
-
-    // RE-TARGETING to just RecipeDisplay class definition first
 
     private void loadAssets() {
         try {
@@ -116,9 +88,11 @@ public class CrafteoScreen extends BaseScreen {
                 texPocionHerbal = new Texture(Gdx.files.internal("pocionHerbal.png"));
                 texElixir = new Texture(Gdx.files.internal("elixirPielPiedra.png"));
                 texRevivir = new Texture(Gdx.files.internal("revivirCasero.png"));
-                texRepelente = new Texture(Gdx.files.internal("reproductor.png"));
-                texAmuleto = new Texture(Gdx.files.internal("guanteReflejo.png"));
-                texCebo = new Texture(Gdx.files.internal("frijolMagico.png"));
+
+                // New standard naming
+                texReproductor = new Texture(Gdx.files.internal("reproductor.png"));
+                texGuante = new Texture(Gdx.files.internal("guanteReflejo.png"));
+                texFrijol = new Texture(Gdx.files.internal("frijolMagico.png"));
 
             } catch (Exception e) {
                 Gdx.app.error("Crafteo", "Error loading item textures", e);
@@ -126,7 +100,7 @@ public class CrafteoScreen extends BaseScreen {
 
             // Create visible slot background (Lighter)
             Pixmap pixmap = new Pixmap(1, 1, Format.RGBA8888);
-            pixmap.setColor(0.0f, 0.0f, 0.0f, 0.4f); // Lighter (Lower alpha)
+            pixmap.setColor(0.0f, 0.0f, 0.0f, 0.4f);
             pixmap.fill();
             textureFondoSlot = new Texture(pixmap);
 
@@ -141,67 +115,38 @@ public class CrafteoScreen extends BaseScreen {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private void initRecipes() {
-        recipes = new ArrayList<>();
+        // Load recipes specifically from the Crafteo logic
+        this.recetas = crafteoLogic.obtenerTodasLasRecetas();
+    }
 
-        // 1. Poké Ball
-        RecipeDisplay r1 = new RecipeDisplay("Poké Ball", "Dispositivo para atrapar Pokémon.", texPokebola);
-        r1.addIngredient("Planta", 2);
-        r1.addIngredient("Guijarro", 3);
-        recipes.add(r1);
+    // Helper to get texture by ID result
+    private Texture getTextureForId(String id) {
+        switch (id.toLowerCase()) {
+            case "pokeball":
+                return texPokebola;
+            case "heavyball":
+                return texPokebolaPeso;
+            case "pocion":
+                return texPocionHerbal;
+            case "elixir":
+                return texElixir;
+            case "revivir":
+                return texRevivir;
+            case "reproductor":
+                return texReproductor;
+            case "guante":
+                return texGuante;
+            case "frijol":
+                return texFrijol;
+            default:
+                return null;
+        }
+    }
 
-        // 2. Poké Ball de Peso
-        RecipeDisplay r2 = new RecipeDisplay("Poké Ball de Peso", "Dispositivo con mejor captura en nivel bajo.",
-                texPokebolaPeso);
-        r2.addIngredient("Guijarro", 5);
-        r2.addIngredient("Planta", 1);
-        recipes.add(r2);
-
-        // 3. Poción Herbal
-        RecipeDisplay r3 = new RecipeDisplay("Poción Herbal", "Cura 20 HP.", texPocionHerbal);
-        r3.addIngredient("Planta", 3);
-        r3.addIngredient("Baya", 1);
-        recipes.add(r3);
-
-        // 4. Elíxir de Piel de Piedra
-        RecipeDisplay r4 = new RecipeDisplay("Elíxir de Piel de Piedra",
-                "Aumenta la potencia del ataque (+3 por ataque).", texElixir);
-        r4.addIngredient("Guijarro", 7);
-        r4.addIngredient("Planta", 1);
-        recipes.add(r4);
-
-        // 5. Revivir Casero
-        RecipeDisplay r5 = new RecipeDisplay("Revivir Casero", "Revive con 50% HP a un Pokémon debilitado.",
-                texRevivir);
-        r5.addIngredient("Planta", 5);
-        r5.addIngredient("Baya", 5);
-        r5.addIngredient("Guijarro", 1);
-        recipes.add(r5);
-
-        // 6. Reproductor de música
-        RecipeDisplay r6 = new RecipeDisplay("Reproductor de música",
-                "Permite que el jugador pueda escuchar musica de\nfondo durante la partida.",
-                texRepelente);
-        r6.addIngredient("Guijarro", 9);
-        r6.addIngredient("Baya", 1);
-        recipes.add(r6);
-
-        // 7. Guante de reflejo cuarcítico
-        RecipeDisplay r7 = new RecipeDisplay("Guante de reflejo cuarcítico",
-                "Utilizan guijarros pulidos que brillan como\nespejos, su destello permite recolectar el doble\nde recursos.",
-                texAmuleto);
-        r7.addIngredient("Guijarro", 13);
-        r7.addIngredient("Planta", 5);
-        recipes.add(r7);
-
-        // 8. Frijol mágico
-        RecipeDisplay r8 = new RecipeDisplay("Frijol mágico",
-                "Creado mediante energía vital y raíces de plantas,\nal ser ingerido por un pokemon se restaura el\n100% de su HP.",
-                texCebo);
-        r8.addIngredient("Guijarro", 20);
-        r8.addIngredient("Planta", 20);
-        recipes.add(r8);
+    // Helper to extract description using ItemFactory
+    private String getDescriptionForId(String id) {
+        return ItemFactory.crearCrafteado(id, 1).getDescripcion();
     }
 
     @Override
@@ -226,6 +171,7 @@ public class CrafteoScreen extends BaseScreen {
 
         drawGrid();
         drawGrisButton();
+        drawDetailsPanel();
 
         game.batch.end();
     }
@@ -248,7 +194,7 @@ public class CrafteoScreen extends BaseScreen {
             float gap = 20;
             int cols = 4;
 
-            for (int i = 0; i < recipes.size(); i++) {
+            for (int i = 0; i < recetas.size(); i++) {
                 float x = gridX + (i % cols) * (slotSize + gap);
                 float y = gridY - (i / cols) * (slotSize + gap);
 
@@ -267,7 +213,7 @@ public class CrafteoScreen extends BaseScreen {
             if (mousePos.x >= btnX && mousePos.x <= btnX + btnW &&
                     mousePos.y >= btnY && mousePos.y <= btnY + btnH) {
                 if (selectedRecipeIndex != -1) {
-                    attemptCrafting(recipes.get(selectedRecipeIndex));
+                    attemptCrafting(recetas.get(selectedRecipeIndex));
                 } else {
                     craftingMessage = "¡Selecciona una receta primero!";
                     craftingMessageTimer = 3;
@@ -276,62 +222,24 @@ public class CrafteoScreen extends BaseScreen {
         }
     }
 
-    private void attemptCrafting(RecipeDisplay r) {
-        // 1. Check Ingredients
-        boolean canCraft = true;
-        for (Ingredient ing : r.ingredients) {
-            int owned = returnScreen.getExplorador().getMochila().getCantidad(ing.name.toLowerCase());
-            if (owned < ing.required) {
-                canCraft = false;
-                break;
-            }
-        }
-
-        if (canCraft) {
-            // 2. Consume Ingredients
-            for (Ingredient ing : r.ingredients) {
-                returnScreen.getExplorador().getMochila().consumirItem(ing.name.toLowerCase(), ing.required);
-            }
-            // 3. Add Result (Mapping Name to Internal ID if needed, or loosely based on
-            // name)
-            // Simplified: adding 1 of the item. Assuming addItem uses same naming
-            // convention or we map it.
-            // Using a helper or direct check.
-            String itemId = r.name; // Basic mapping
-            if (itemId.contains("Poké Ball"))
-                itemId = "pokeball";
-            else if (itemId.contains("Poción"))
-                itemId = "unguento"; // Poción Herbal -> unguento logic in Mochila
-            else if (itemId.contains("Elíxir"))
-                itemId = "elixir";
-            else if (itemId.contains("Revivir"))
-                itemId = "revivir";
-            else if (itemId.contains("Reproductor"))
-                itemId = "repelente"; // Maps to internal repelente slot
-            else if (itemId.contains("Guante"))
-                itemId = "amuleto"; // Maps to internal amuleto slot
-            else if (itemId.contains("Frijol"))
-                itemId = "lure"; // Maps to internal lure slot
-            else if (itemId.contains("Guijarro"))
-                itemId = "guijarro"; // fallback
-
-            // NOTE: Special case for Heavy Ball if needed, but 'pokeball' covers basic.
-            // If internal ID needed for Heavy Ball is 'heavyball', adapt:
-            if (r.name.equals("Poké Ball de Peso"))
-                itemId = "heavyball";
-
-            returnScreen.getExplorador().getMochila().agregarItem(itemId.toLowerCase(), 1);
-
+    private void attemptCrafting(Receta r) {
+        try {
+            crafteoLogic.craftear(r.getIdResultado(), returnScreen.getExplorador().getMochila());
             craftingMessage = "¡Crafteaste con éxito!";
-        } else {
-            craftingMessage = "¡No tienes los materiales suficientes!";
+        } catch (EspacioException e) {
+            craftingMessage = "¡Inventario lleno!";
+        } catch (IllegalArgumentException e) {
+            craftingMessage = "¡No tienes los materiales!";
+        } catch (Exception e) {
+            craftingMessage = "Error inesperado: " + e.getMessage();
+            Gdx.app.error("Crafteo", "Error al craftear", e);
         }
         craftingMessageTimer = 3;
     }
 
     private void drawGrisButton() {
         float btnW = 320;
-        float btnH = 120; // Assuming similar dimensions to old buttons or using texture size
+        float btnH = 120;
         float x = 200; // Bottom Left
         float y = 60;
 
@@ -341,8 +249,6 @@ public class CrafteoScreen extends BaseScreen {
         Vector3 mousePos = new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0);
         viewport.unproject(mousePos);
 
-        // Simple hover check (y-flipped mouse coordinates are handled by unproject
-        // usually, but Gdx.input.getY() is top-down. viewport.unproject handles this.)
         if (mousePos.x >= x && mousePos.x <= x + btnW &&
                 mousePos.y >= y && mousePos.y <= y + btnH) {
             tex = texBtnGrisSel;
@@ -354,20 +260,18 @@ public class CrafteoScreen extends BaseScreen {
     }
 
     private void drawGrid() {
-        // GRID
         float gridX = 100;
         float gridY = VIRTUAL_HEIGHT - 350;
-        float slotSize = 120; // Increased size
+        float slotSize = 120;
         float gap = 20;
         int cols = 4;
 
         game.font.getData().setScale(1.0f);
 
-        for (int i = 0; i < recipes.size(); i++) {
-            RecipeDisplay r = recipes.get(i);
+        for (int i = 0; i < recetas.size(); i++) {
+            Receta r = recetas.get(i);
             float x = gridX + (i % cols) * (slotSize + gap);
-            float y = gridY - (i / cols) * (slotSize + gap); // Adjust logic if going upwards, but this is downwards
-                                                             // spacing usually
+            float y = gridY - (i / cols) * (slotSize + gap);
 
             // Draw Slot Background
             if (textureFondoSlot != null) {
@@ -376,105 +280,79 @@ public class CrafteoScreen extends BaseScreen {
             }
 
             // Draw Icon
-            if (r.icon != null) {
-                // Center icon in top part of slot
-                float iconSize = slotSize * 0.7f; // Slightly larger or same
+            Texture icon = getTextureForId(r.getIdResultado());
+            if (icon != null) {
+                float iconSize = slotSize * 0.7f;
                 float iconX = x + (slotSize - iconSize) / 2;
-                float iconY = y + (slotSize - iconSize) / 2; // Perfectly centered
-                game.batch.draw(r.icon, iconX, iconY, iconSize, iconSize);
+                float iconY = y + (slotSize - iconSize) / 2;
+                game.batch.draw(icon, iconX, iconY, iconSize, iconSize);
             }
 
-            // Draw Name (REMOVED)
-            // game.font.setColor(Color.WHITE);
-            // game.font.getData().setScale(0.8f);
-            // game.font.draw(game.batch, r.name, x + 5, y + 25);
-
-            // Selection Highlight (Yellow Border)
+            // Selection Highlight
             if (i == selectedRecipeIndex) {
                 float borderThickness = 3;
                 game.batch.setColor(Color.YELLOW);
                 if (textureWhite != null) {
-                    // Top
                     game.batch.draw(textureWhite, x - borderThickness, y + slotSize, slotSize + 2 * borderThickness,
                             borderThickness);
-                    // Bottom
                     game.batch.draw(textureWhite, x - borderThickness, y - borderThickness,
                             slotSize + 2 * borderThickness, borderThickness);
-                    // Left
                     game.batch.draw(textureWhite, x - borderThickness, y - borderThickness, borderThickness,
                             slotSize + 2 * borderThickness);
-                    // Right
                     game.batch.draw(textureWhite, x + slotSize, y - borderThickness, borderThickness,
                             slotSize + 2 * borderThickness);
                 }
                 game.batch.setColor(Color.WHITE);
             }
         }
+    }
 
-        // DETAILS PANEL (RIGHT)
-        if (selectedRecipeIndex >= 0 && selectedRecipeIndex < recipes.size()) {
-            RecipeDisplay selected = recipes.get(selectedRecipeIndex);
+    private void drawDetailsPanel() {
+        if (selectedRecipeIndex >= 0 && selectedRecipeIndex < recetas.size()) {
+            Receta selected = recetas.get(selectedRecipeIndex);
+
             float detailsX = 700;
             float detailsY = VIRTUAL_HEIGHT - 300;
 
-            // DRAW LARGE IMAGE ABOVE INFO
-            if (selected.icon != null) {
+            // DRAW LARGE IMAGE
+            Texture icon = getTextureForId(selected.getIdResultado());
+            if (icon != null) {
                 float largeSize = 130;
-                // Position above the text. Text starts at detailsY + 80.
-                // Let's put it around detailsY + 120
-                float largeX = detailsX + 200; // Indented slightly
+                float largeX = detailsX + 200;
                 float largeY = detailsY - 20;
-                game.batch.draw(selected.icon, largeX, largeY, largeSize, largeSize);
+                game.batch.draw(icon, largeX, largeY, largeSize, largeSize);
             }
 
             // Title and Desc
             game.font.setColor(Color.CYAN);
             game.font.getData().setScale(1.5f);
-            game.font.draw(game.batch, selected.name, detailsX + 90, detailsY - 40);
+            game.font.draw(game.batch, selected.getNombreResultado(), detailsX + 90, detailsY - 40);
 
             game.font.setColor(Color.LIGHT_GRAY);
             game.font.getData().setScale(1.0f);
-            game.font.draw(game.batch, selected.desc, detailsX + 90, detailsY - 80);
-
-            // Ingredients Header REMOVED
+            game.font.draw(game.batch, getDescriptionForId(selected.getIdResultado()), detailsX + 90, detailsY - 80);
 
             // Ingredients List
-            float ingY = detailsY - 200; // Adjusted start since Header is gone
-            for (Ingredient ing : selected.ingredients) {
-                int owned = returnScreen.getExplorador().getMochila().getCantidad(ing.name.toLowerCase());
+            float ingY = detailsY - 200;
 
-                // Render Icon
-                Texture ingIcon = null;
-                if (ing.name.equalsIgnoreCase("Planta"))
-                    ingIcon = texPlanta;
-                else if (ing.name.equalsIgnoreCase("Guijarro"))
-                    ingIcon = texGuijarro;
-                else if (ing.name.equalsIgnoreCase("Baya"))
-                    ingIcon = texBaya;
-
-                if (ingIcon != null) {
-                    game.batch.setColor(Color.WHITE);
-                    game.batch.draw(ingIcon, detailsX + 100, ingY - 30, 30, 30);
-                }
-
-                // Name
-                game.font.setColor(Color.WHITE);
-                game.font.draw(game.batch, ing.name, detailsX + 150, ingY - 10);
-
-                // Count (Owned / Required)
-                if (owned >= ing.required)
-                    game.font.setColor(Color.GREEN);
-                else
-                    game.font.setColor(Color.RED);
-
-                game.font.draw(game.batch, owned + "/" + ing.required, detailsX + 390, ingY - 10);
-
+            // Draw ingredients explicitly via helper to avoid Map
+            if (selected.reqPlantas > 0) {
+                drawIndidualIngredient("planta", selected.reqPlantas, detailsX, ingY);
                 ingY -= 50;
             }
+            if (selected.reqGuijarros > 0) {
+                drawIndidualIngredient("guijarro", selected.reqGuijarros, detailsX, ingY);
+                ingY -= 50;
+            }
+            if (selected.reqBayas > 0) {
+                drawIndidualIngredient("baya", selected.reqBayas, detailsX, ingY);
+                ingY -= 50;
+            }
+
             game.font.setColor(Color.WHITE);
         }
 
-        // Draw Crafting Message
+        // Draw Crafting Feedback Message
         if (craftingMessageTimer > 0) {
             game.font.getData().setScale(1.2f);
             if (craftingMessage.contains("éxito"))
@@ -482,15 +360,42 @@ public class CrafteoScreen extends BaseScreen {
             else
                 game.font.setColor(Color.RED);
 
-            game.font.draw(game.batch, craftingMessage, 100, 200); // Above button
+            game.font.draw(game.batch, craftingMessage, 100, 200);
             game.font.setColor(Color.WHITE);
             game.font.getData().setScale(1.0f);
         }
     }
 
-    private void drawList() {
-        // Deprecated by separated draw methods, keeping empty to satisfy calls if any
-        // remainder exists
+    private void drawIndidualIngredient(String nombreIng, int cantidadReq, float detailsX, float ingY) {
+        // Get real owned amount
+        int owned = returnScreen.getExplorador().getMochila().getCantidad(nombreIng);
+
+        // Render Icon
+        Texture ingIcon = null;
+        if (nombreIng.equalsIgnoreCase("planta"))
+            ingIcon = texPlanta;
+        else if (nombreIng.equalsIgnoreCase("guijarro"))
+            ingIcon = texGuijarro;
+        else if (nombreIng.equalsIgnoreCase("baya"))
+            ingIcon = texBaya;
+
+        if (ingIcon != null) {
+            game.batch.setColor(Color.WHITE);
+            game.batch.draw(ingIcon, detailsX + 100, ingY - 30, 30, 30);
+        }
+
+        // Name (Capitalized for display)
+        String displayName = nombreIng.substring(0, 1).toUpperCase() + nombreIng.substring(1);
+        game.font.setColor(Color.WHITE);
+        game.font.draw(game.batch, displayName, detailsX + 150, ingY - 10);
+
+        // Count (Owned / Required)
+        if (owned >= cantidadReq)
+            game.font.setColor(Color.GREEN);
+        else
+            game.font.setColor(Color.RED);
+
+        game.font.draw(game.batch, owned + "/" + cantidadReq, detailsX + 390, ingY - 10);
     }
 
     @Override
@@ -518,7 +423,6 @@ public class CrafteoScreen extends BaseScreen {
         if (texBaya != null)
             texBaya.dispose();
 
-        // Dispose new textures
         if (texPokebola != null)
             texPokebola.dispose();
         if (texPokebolaPeso != null)
@@ -529,11 +433,13 @@ public class CrafteoScreen extends BaseScreen {
             texElixir.dispose();
         if (texRevivir != null)
             texRevivir.dispose();
-        if (texRepelente != null)
-            texRepelente.dispose();
-        if (texAmuleto != null)
-            texAmuleto.dispose();
-        if (texCebo != null)
-            texCebo.dispose();
+
+        // Dispose renamed
+        if (texReproductor != null)
+            texReproductor.dispose();
+        if (texGuante != null)
+            texGuante.dispose();
+        if (texFrijol != null)
+            texFrijol.dispose();
     }
 }
