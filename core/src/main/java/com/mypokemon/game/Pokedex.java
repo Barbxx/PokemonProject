@@ -36,11 +36,14 @@ public class Pokedex implements Serializable {
         // Si es Arceus, investigación máxima inmediata al interactuar (derrotar o
         // capturar)
         if (nombre.equalsIgnoreCase("Arceus")) {
+            boolean estabaCompleta = especie.isCompleta();
             especie.setInvestigacionMaxica();
-            especiesCompletas++; // Verificar si ya estaba completa en lógica futura si es necesario
+            if (!estabaCompleta) {
+                especiesCompletas++;
+            }
             if (esCaptura && !especie.isCapturado()) {
                 capturedOrder.add(nombre);
-                especie.setCapturado(true); // Redundante con setInvestigacionMaxica pero seguro
+                especie.setCapturado(true);
             }
             return;
         }
@@ -84,9 +87,8 @@ public class Pokedex implements Serializable {
     }
 
     public boolean puedeAccederAlHito() {
-        // Retorna true si especiesCompletas >= 5.
-        // Aseguramos que el contador esté al día
-        return verificarProgreso() >= 5;
+        // Retorna true si se cumple la condición de Arceus (5 capturados nivel 10)
+        return verificarRequisitosArceus();
     }
 
     public void completarInstantaneamente(String nombre) {
@@ -134,7 +136,7 @@ public class Pokedex implements Serializable {
     public boolean verificarRequisitosArceus() {
         int count = 0;
         for (EspeciePokemon esp : registro.values()) {
-            if (esp.getNivelInvestigacion() >= 10) {
+            if (esp.getNivelInvestigacion() >= 10 && esp.isCapturado()) {
                 count++;
             }
         }

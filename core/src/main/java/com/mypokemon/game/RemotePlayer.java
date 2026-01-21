@@ -34,9 +34,6 @@ public class RemotePlayer {
 
         stateTime += delta;
 
-        // Simple direction update
-        // In a real network interpolation, we would lerp.
-        // Here we just snap and update Anim.
         if (direction.equals("LEFT"))
             currentFrame = walkLeft.getKeyFrame(stateTime, true);
         else if (direction.equals("RIGHT"))

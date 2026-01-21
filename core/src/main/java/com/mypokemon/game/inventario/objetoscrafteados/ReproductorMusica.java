@@ -28,7 +28,7 @@ public class ReproductorMusica extends ItemConsumible {
 
     @Override
     public boolean puedeUsar(Pokemon pokemon) {
-        return true; // No requiere Pokémon
+        return true; 
     }
 
     @Override

@@ -78,6 +78,7 @@ public class BattleScreen extends ScreenAdapter {
     private boolean showPokedex = false;
     private int selectedMove = 0;
     private Texture selectedBorder;
+    private int puntosInvestigacionGanados = 0;
 
     // Animation State
     private enum AnimState {
@@ -393,6 +394,15 @@ public class BattleScreen extends ScreenAdapter {
 
     public void usarItemEnBatalla(String tipo) {
         if (tipo.equals("pokeball") || tipo.equals("heavyball")) {
+            if (pokemonEnemigo.getNombre().equalsIgnoreCase("Arceus")) {
+                updateInfo("¡Las Poké Balls no funcionan contra el Dios Pokémon!");
+                damageText = "¡INMUNE!";
+                damageTextX = 350;
+                damageTextY = 400;
+                damageTextTimer = 2.0f;
+                return;
+            }
+
             updateInfo("¡Usaste una " + (tipo.equals("heavyball") ? "Heavy Ball" : "Poké Ball") + "!");
             float hpPercent = pokemonEnemigo.getHpActual() / pokemonEnemigo.getHpMaximo();
             int nivelEnemigo = pokemonEnemigo.getNivel();
@@ -419,15 +429,22 @@ public class BattleScreen extends ScreenAdapter {
 
             if (capturado) {
                 // Success!
-                updateInfo("Pokemon " + pokemonEnemigo.getNombre() + " capturado");
+                updateInfo("¡Captura exitosa! " + pokemonEnemigo.getNombre() + " se unió a tu equipo.");
                 explorador.getRegistro().registrarAccion(pokemonEnemigo.getNombre(), true);
                 explorador.agregarAlEquipo(pokemonEnemigo);
+
+                // Show 'CAPTURA EXITOSA' text on screen
+                damageText = "¡CAPTURA EXITOSA!";
+                damageTextX = 350; // Center
+                damageTextY = 400;
+                damageTextTimer = 2.0f;
+
                 endBattle(true);
             } else {
                 updateInfo(
                         "¡Fallo la captura! " + (tipo.equals("heavyball") ? "¡Casi!" : "Debe estar mas debilitado."));
                 // Show 'FALLÓ' text on screen
-                damageText = "¡FALLASTE!";
+                damageText = "¡FALLÓ!";
                 damageTextX = 350; // Center
                 damageTextY = 400;
                 damageTextTimer = 2.0f;
@@ -463,9 +480,16 @@ public class BattleScreen extends ScreenAdapter {
         }
 
         if (capturado) {
-            updateInfo("¡Pokémon " + pokemonEnemigo.getNombre() + " capturado!");
+            updateInfo("¡Captura exitosa! " + pokemonEnemigo.getNombre() + " se unió a tu equipo.");
             explorador.getRegistro().registrarAccion(pokemonEnemigo.getNombre(), true);
             explorador.agregarAlEquipo(pokemonEnemigo);
+
+            // Show 'EXITOSA' text on screen
+            damageText = "¡EXITOSA!";
+            damageTextX = 350; // Center
+            damageTextY = 400;
+            damageTextTimer = 2.0f;
+
             endBattle(true);
         } else {
             updateInfo("¡Fallaste la captura!");
@@ -616,9 +640,17 @@ public class BattleScreen extends ScreenAdapter {
         if (pokemonEnemigo.getHpActual() <= 0) {
             updateInfo("¡" + pokemonEnemigo.getNombre() + " se debilitó!");
 
-            // Victoria: +1 Punto Investigación para el jugador
-            explorador.getRegistro().registrarAccion(pokemonEnemigo.getNombre(), false);
-            // También investigar al propio Pokémon por la experiencia de combate
+            // Victoria: +1 Punto Investigación para el quien vence
+
+            // SI ES ARCEUS: El derrotado (Arceus) se completa al nivel 10 por el hito.
+            if (pokemonEnemigo.getNombre().equalsIgnoreCase("Arceus")) {
+                explorador.getRegistro().registrarAccion(pokemonEnemigo.getNombre(), false);
+                puntosInvestigacionGanados = 10;
+            } else {
+                puntosInvestigacionGanados = 1;
+            }
+
+            // El que vence (Jugador) siempre recibe +1 por la experiencia de combate
             explorador.getRegistro().registrarAccion(pokemonJugador.getNombre(), false);
 
             // Recompensa de recursos
@@ -626,14 +658,17 @@ public class BattleScreen extends ScreenAdapter {
             try {
                 explorador.getMochila()
                         .agregarItem(com.mypokemon.game.inventario.ItemFactory.crearRecurso(recursoId, 1));
-                updateInfo("Ganaste +1 Inv. y encontraste 1 " + recursoId + ".");
+                updateInfo("Ganaste +" + puntosInvestigacionGanados + " Inv. y encontraste 1 " + recursoId + ".");
             } catch (com.mypokemon.game.inventario.exceptions.EspacioException e) {
-                updateInfo("Ganaste +1 Inv. pero tu inventario está lleno.");
+                updateInfo("Ganaste +" + puntosInvestigacionGanados + " Inv. pero tu inventario está lleno.");
             }
 
             endBattle(true);
         } else if (pokemonJugador.getHpActual() <= 0) {
             updateInfo("¡Tu Pokémon se debilitó!");
+
+            // Derrota: El Pokémon salvaje gana experiencia (+1 investigación)
+            explorador.getRegistro().registrarAccion(pokemonEnemigo.getNombre(), false);
 
             // Derrota: Penalización
             String perdido = explorador.getMochila().perderObjetoCrafteado();
