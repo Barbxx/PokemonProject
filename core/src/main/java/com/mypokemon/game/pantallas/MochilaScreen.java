@@ -103,7 +103,6 @@ public class MochilaScreen extends BaseScreen {
     private enum InventoryState {
         BROWSING,
         OPTIONS_MENU,
-        SHOW_RECIPES,
         SELECT_POKEMON_TARGET,
         SELECT_MOVE_TARGET // Future expansion
     }
@@ -119,9 +118,6 @@ public class MochilaScreen extends BaseScreen {
     // Feedback
     private String feedbackMessage = "";
     private float feedbackTimer = 0;
-
-    // Recipes Data
-    private List<String> currentRecipesToShow = new ArrayList<>();
 
     public MochilaScreen(PokemonMain game, Screen returnScreen, Explorador explorador) {
         super(game);
@@ -280,8 +276,6 @@ public class MochilaScreen extends BaseScreen {
             handleBrowsingInput();
         } else if (currentState == InventoryState.OPTIONS_MENU) {
             handleOptionsMenuInput();
-        } else if (currentState == InventoryState.SHOW_RECIPES) {
-            handleRecipesInput();
         } else if (currentState == InventoryState.SELECT_POKEMON_TARGET) {
             handlePokemonTargetInput();
         }
@@ -303,8 +297,6 @@ public class MochilaScreen extends BaseScreen {
         } else if (currentState == InventoryState.OPTIONS_MENU) {
             drawOptionsMenu(game.batch);
             dibujarExplicacion(game.batch); // Still show info
-        } else if (currentState == InventoryState.SHOW_RECIPES) {
-            drawRecipesList(game.batch);
         } else if (currentState == InventoryState.SELECT_POKEMON_TARGET) {
             drawPokemonSelectionPrompt(game.batch);
         }
@@ -336,29 +328,37 @@ public class MochilaScreen extends BaseScreen {
 
         // Select Item to Open Menu
         if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
-            // Keep ENTER shortcut
-            if (indexSeleccionado < visibleItems.size() && selectedIndex < 3) {
-                selectedItemForAction = visibleItems.get(indexSeleccionado);
-                openOptionsMenu(selectedItemForAction);
+            // Check if we are in Pokemon Tab (3) or Item Tabs (<3)
+            int totalItems = (selectedIndex == 3) ? explorador.getEquipo().size() : visibleItems.size();
+            if (indexSeleccionado < totalItems) {
+                if (selectedIndex < 3) {
+                    selectedItemForAction = visibleItems.get(indexSeleccionado);
+                    openOptionsMenu(selectedItemForAction);
+                } else if (selectedIndex == 3) {
+                    // Open options for Pokemon
+                    openOptionsMenu(null);
+                }
             }
         }
 
         // Mouse Check for "OPCIONES" button
-        // Coordinates must match dibujarExplicacion
         float btnX = 100;
-        float btnY = 160; // Bajado para coincidir con el menú
+        float btnY = 160;
         float btnW = 150;
         float btnH = 40;
 
         if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
-            // Check if clicking Item Grid
-            // (Existing select logic via hover handles selection, so we just check if we
-            // clicked options)
             if (mousePos.x >= btnX && mousePos.x <= btnX + btnW &&
                     mousePos.y >= btnY && mousePos.y <= btnY + btnH) {
-                if (indexSeleccionado < visibleItems.size() && selectedIndex < 3) {
-                    selectedItemForAction = visibleItems.get(indexSeleccionado);
-                    openOptionsMenu(selectedItemForAction);
+
+                int totalItems = (selectedIndex == 3) ? explorador.getEquipo().size() : visibleItems.size();
+                if (indexSeleccionado < totalItems) {
+                    if (selectedIndex < 3) {
+                        selectedItemForAction = visibleItems.get(indexSeleccionado);
+                        openOptionsMenu(selectedItemForAction);
+                    } else if (selectedIndex == 3) {
+                        openOptionsMenu(null);
+                    }
                 }
             }
         }
@@ -402,12 +402,6 @@ public class MochilaScreen extends BaseScreen {
         }
     }
 
-    private void handleRecipesInput() {
-        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE) || Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
-            currentState = InventoryState.OPTIONS_MENU; // Go back to options
-        }
-    }
-
     private void handlePokemonTargetInput() {
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             currentState = InventoryState.OPTIONS_MENU;
@@ -435,11 +429,24 @@ public class MochilaScreen extends BaseScreen {
 
     // -- LOGIC --
 
+    public void setSelectedIndex(int index) {
+        this.selectedIndex = index;
+        updateVisibleItems();
+    }
+
     private void openOptionsMenu(ItemData item) {
         currentOptions.clear();
 
-        // NUEVO SISTEMA OO: Usa el método getOpciones() del ítem real
-        if (item.itemReal != null) {
+        // ** POQUEMON TAB LOGIC **
+        if (selectedIndex == 3) {
+            // Case: Pokemon Selected
+            currentOptions.add("Cambiar a principal");
+            // Add Info or other stuff if desired, but user asked for "una sola opcion"
+            selectedIndex = 3; // Ensure we stick to this tab
+        }
+        // ** ITEM LOGIC **
+        else if (item.itemReal != null) {
+            // NUEVO SISTEMA OO: Usa el método getOpciones() del ítem real
             currentOptions.addAll(item.itemReal.getOpciones());
         } else {
             // Fallback para casos sin itemReal (no debería ocurrir en el futuro)
@@ -451,8 +458,38 @@ public class MochilaScreen extends BaseScreen {
     }
 
     private void executeOption(String option) {
-        if (selectedItemForAction == null)
+        if (selectedItemForAction == null && selectedIndex != 3)
             return;
+
+        // **OPCIÓN: Cambiar a principal (POKEMON)**
+        if (option.equals("Cambiar a principal")) {
+            // Logic: Swap selected pokemon with first pokemon in team
+            int index = indexSeleccionado;
+            List<Pokemon> equipo = explorador.getEquipo();
+
+            if (index > 0 && index < equipo.size()) {
+                Pokemon selected = equipo.get(index);
+                Pokemon currentMain = equipo.get(0);
+
+                // If in battle and current main is fainted or simply user wants to switch
+                // context
+                // The team order defines the 'main' pokemon usually.
+
+                // Swap in list
+                equipo.set(0, selected);
+                equipo.set(index, currentMain);
+
+                showFeedback("¡" + selected.getNombre() + " es ahora tu Pokémon principal!");
+
+                if (returnScreen instanceof BattleScreen) {
+                    ((BattleScreen) returnScreen).cambiarPokemon(selected);
+                }
+            } else {
+                showFeedback("Ya es el principal.");
+            }
+            currentState = InventoryState.BROWSING;
+            return;
+        }
 
         // **OPCIÓN: Tirar**
         if (option.equals("Tirar")) {
@@ -462,13 +499,6 @@ public class MochilaScreen extends BaseScreen {
             if (indexSeleccionado >= visibleItems.size())
                 indexSeleccionado = Math.max(0, visibleItems.size() - 1);
             currentState = InventoryState.BROWSING;
-            return;
-        }
-
-        // **OPCIÓN: Ver recetas**
-        if (option.equals("Ver recetas")) {
-            loadRecipesFor(selectedItemForAction.nombre);
-            currentState = InventoryState.SHOW_RECIPES;
             return;
         }
 
@@ -496,10 +526,49 @@ public class MochilaScreen extends BaseScreen {
 
         // **SISTEMA OO: Opciones de uso (Curar, Revivir, Usar, Comer, Encender,
         // Equipar)**
-        // Todas estas opciones requieren seleccionar un Pokémon o ejecutarse
-        // directamente
         if (selectedItemForAction.itemReal != null && selectedItemForAction.itemReal.esUsable()) {
-            // El ítem es usable - ir al selector de Pokémon
+
+            // Caso especial: Equipar, Encender, Apagar o Tomar (No requieren target Pokemon
+            // manual o requieren validación especial)
+            if (option.equals("Equipar") || option.equals("Encender") || option.equals("Apagar")
+                    || option.equals("Tomar")) {
+                com.mypokemon.game.inventario.interfaces.IUsable itemUsable = (com.mypokemon.game.inventario.interfaces.IUsable) selectedItemForAction.itemReal;
+
+                // Validación para Tomar (Solo en batalla)
+                if (option.equals("Tomar")) {
+                    if (!(returnScreen instanceof BattleScreen)) {
+                        showFeedback("no puedes tomar el elixir porque no estas en batalla.");
+                        currentState = InventoryState.BROWSING;
+                        return;
+                    }
+                }
+
+                // Lógica específica para Guante
+                if (option.equals("Equipar") && selectedItemForAction.itemReal.getId().equals("guante")) {
+                    explorador.activarGuante(300f); // Duración de 5 minutos
+                }
+
+                // Determinar target (para Tomar usamos el pokemon activo en batalla)
+                Pokemon target = null;
+                if (option.equals("Tomar") && returnScreen instanceof BattleScreen) {
+                    target = ((BattleScreen) returnScreen).getPokemonJugador();
+                }
+
+                com.mypokemon.game.inventario.ResultadoUso resultado = itemUsable.usar(target, explorador.getMochila());
+                showFeedback(resultado.getMensaje());
+                updateVisibleItems();
+                currentState = InventoryState.BROWSING;
+                return;
+            }
+
+            // El ítem es usable - ir al selector de Pokémon para opciones que SÍ requieren
+            // target
+            if (option.equals("Curar") || option.equals("Revivir") || option.equals("Usar") || option.equals("Comer")) {
+                // Switch to Pokemon Tab (Index 3)
+                selectedIndex = 3;
+                updateVisibleItems();
+                indexSeleccionado = 0; // Reset selection to first pokemon
+            }
             currentState = InventoryState.SELECT_POKEMON_TARGET;
         } else {
             showFeedback("Este ítem no se puede usar.");
@@ -536,54 +605,40 @@ public class MochilaScreen extends BaseScreen {
         currentState = InventoryState.BROWSING;
     }
 
-    private void loadRecipesFor(String itemName) {
-        currentRecipesToShow.clear();
-        if (itemName.equals("Planta Medicinal")) {
-            currentRecipesToShow.add("Poké Ball - 2 Plantas");
-            currentRecipesToShow.add("Poké Ball de Peso - 1 Planta");
-            currentRecipesToShow.add("Poción Herbal - 3 Plantas");
-            currentRecipesToShow.add("Revivir Casero - 5 Plantas");
-            currentRecipesToShow.add("Reproductor de música - 1 Baya"); // Fixed text
-
-            currentRecipesToShow.add("Cebo de Bayas - 1 Planta");
-        } else if (itemName.equals("Guijarro")) {
-            currentRecipesToShow.add("Poké Ball - 3 Guijarros");
-            currentRecipesToShow.add("Poké Ball de Peso - 5 Guijarros");
-            currentRecipesToShow.add("Elíxir de Piel de Piedra - 7 Guijarros");
-            currentRecipesToShow.add("Revivir Casero - 1 Guijarro");
-            currentRecipesToShow.add("Guante de reflejo - 13 Guijarros");
-        } else if (itemName.equals("Baya Aranja")) {
-            currentRecipesToShow.add("Poción Herbal - 1 Baya");
-            currentRecipesToShow.add("Reproductor de música - 1 Baya");
-            currentRecipesToShow.add("Revivir Casero - 5 Bayas");
-        }
-    }
-
     private void handleGridNavigation() {
         if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT)) {
             indexSeleccionado++;
+            int totalItems = (selectedIndex == 3) ? explorador.getEquipo().size() : visibleItems.size();
             if (currentState == InventoryState.SELECT_POKEMON_TARGET) {
                 if (indexSeleccionado >= 6)
                     indexSeleccionado = 0;
             } else {
-                if (indexSeleccionado >= visibleItems.size())
+                if (indexSeleccionado >= totalItems)
                     indexSeleccionado = 0;
             }
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT)) {
             indexSeleccionado--;
+            int totalItems = (selectedIndex == 3) ? explorador.getEquipo().size() : visibleItems.size();
             if (currentState == InventoryState.SELECT_POKEMON_TARGET) {
                 if (indexSeleccionado < 0)
                     indexSeleccionado = 5;
             } else {
                 if (indexSeleccionado < 0)
-                    indexSeleccionado = Math.max(0, visibleItems.size() - 1);
+                    indexSeleccionado = Math.max(0, totalItems - 1);
             }
         }
 
         // UP/DOWN Navigation (Grid 3 columns)
         int columns = 3;
-        int totalItems = (currentState == InventoryState.SELECT_POKEMON_TARGET) ? 6 : visibleItems.size();
+        int totalItems;
+        if (currentState == InventoryState.SELECT_POKEMON_TARGET || selectedIndex == 3) {
+            totalItems = explorador.getEquipo().size();
+            if (currentState == InventoryState.SELECT_POKEMON_TARGET)
+                totalItems = 6; // Fixed grid for target selection
+        } else {
+            totalItems = visibleItems.size();
+        }
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.DOWN)) {
             if (totalItems > 0) {
@@ -799,31 +854,6 @@ public class MochilaScreen extends BaseScreen {
         game.font.setColor(Color.WHITE);
     }
 
-    private void drawRecipesList(com.badlogic.gdx.graphics.g2d.SpriteBatch batch) {
-        float rx = 200;
-        float ry = VIRTUAL_HEIGHT - 200;
-
-        batch.setColor(0, 0, 0, 0.9f);
-        batch.draw(whitePixel, rx - 20, ry - 300, 400, 350);
-        batch.setColor(Color.WHITE);
-
-        game.font.setColor(Color.ORANGE);
-        game.font.draw(batch, "RECETAS:", rx, ry + 30);
-        game.font.setColor(Color.WHITE);
-
-        float y = ry;
-        for (String line : currentRecipesToShow) {
-            game.font.draw(batch, line, rx, y);
-            y -= 30;
-        }
-
-        game.font.setColor(Color.GRAY);
-        game.font.getData().setScale(0.8f);
-        game.font.draw(batch, "[Press ESC]", rx, y - 20);
-        game.font.getData().setScale(1.0f);
-        game.font.setColor(Color.WHITE);
-    }
-
     private void drawPokemonSelectionPrompt(com.badlogic.gdx.graphics.g2d.SpriteBatch batch) {
         game.font.setColor(Color.YELLOW);
         game.font.getData().setScale(1.5f);
@@ -845,7 +875,7 @@ public class MochilaScreen extends BaseScreen {
 
             Item baya = inventory.getItem("baya");
             if (baya != null && baya.getCantidad() > 0)
-                visibleItems.add(new ItemData("Baya Aranja", "Restaura 10 HP cuando la vida del Pokémon baja.",
+                visibleItems.add(new ItemData("Baya Aranja", "Restaura el 10% de los PS del Pokémon.",
                         texBaya, baya.getCantidad(), baya));
 
             Item guijarro = inventory.getItem("guijarro");
@@ -867,7 +897,7 @@ public class MochilaScreen extends BaseScreen {
         } else if (selectedIndex == 2) { // Yellow Button: Pociones + Crafteo + Lure
             Item pocion = inventory.getItem("pocion");
             if (pocion != null && pocion.getCantidad() > 0)
-                visibleItems.add(new ItemData("Poción Herbal", "Cura 20 HP.",
+                visibleItems.add(new ItemData("Poción Herbal", "Restaura el 20% de los PS del Pokémon.",
                         texPocionHerbal, pocion.getCantidad(), pocion));
 
             Item elixir = inventory.getItem("elixir");
@@ -878,7 +908,7 @@ public class MochilaScreen extends BaseScreen {
 
             Item revivir = inventory.getItem("revivir");
             if (revivir != null && revivir.getCantidad() > 0)
-                visibleItems.add(new ItemData("Revivir Casero", "Revive con 50% HP a un Pokémon debilitado.",
+                visibleItems.add(new ItemData("Revivir Casero", "Restaura el 50% de los PS del Pokémon.",
                         texRevivir, revivir.getCantidad(), revivir));
 
             Item reproductor = inventory.getItem("reproductor");
@@ -894,7 +924,7 @@ public class MochilaScreen extends BaseScreen {
 
             Item frijol = inventory.getItem("frijol");
             if (frijol != null && frijol.getCantidad() > 0)
-                visibleItems.add(new ItemData("Frijol mágico", "Restaura el 100% de HP de un Pokémon.",
+                visibleItems.add(new ItemData("Frijol mágico", "Restaura el 100% de los PS del Pokémon.",
                         texFrijol, frijol.getCantidad(), frijol));
 
         } else if (selectedIndex == 3) { // Brown Button

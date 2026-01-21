@@ -25,8 +25,31 @@ public class BattleScreen extends ScreenAdapter {
     private final PokemonMain game;
     private final com.badlogic.gdx.Screen parentScreen;
     private final Explorador explorador;
-    private final Pokemon pokemonJugador;
+    private Pokemon pokemonJugador; // Removed final to allow switching
     private final Pokemon pokemonEnemigo;
+
+    // ...
+
+    public void cambiarPokemon(Pokemon nuevo) {
+        this.pokemonJugador = nuevo;
+        updateInfo("¡Adelante " + nuevo.getNombre() + "!");
+
+        // Reload textures for new pokemon
+        try {
+            if (playerBackTexture != null)
+                playerBackTexture.dispose();
+
+            String name = nuevo.getNombre().toLowerCase().replace(" h.", "").replace(" jr.", "-jr").replace(" ", "-");
+            String path = name + " atras.png";
+            if (Gdx.files.internal(path).exists()) {
+                playerBackTexture = new Texture(Gdx.files.internal(path));
+            } else {
+                if (Gdx.files.internal(name + ".png").exists())
+                    playerBackTexture = new Texture(Gdx.files.internal(name + ".png"));
+            }
+        } catch (Exception e) {
+        }
+    }
 
     private BitmapFont font;
     private OrthographicCamera camera;
@@ -99,6 +122,12 @@ public class BattleScreen extends ScreenAdapter {
             // Revertido a Piplup como se solicitó para simulación
             this.pokemonJugador = new Pokemon("Piplup", 5, 20, false, "Agua");
         }
+
+        // Resetear modificadores temporales al iniciar batalla (Elixir)
+        if (pokemonJugador != null)
+            pokemonJugador.resetModificadoresTemporales();
+        if (pokemonEnemigo != null)
+            pokemonEnemigo.resetModificadoresTemporales();
 
         // Registrar avistamiento solo con encontrarlo
         explorador.getRegistro().registrarAvistamiento(enemigo.getNombre());
@@ -441,6 +470,10 @@ public class BattleScreen extends ScreenAdapter {
         }
     }
 
+    public Pokemon getPokemonJugador() {
+        return pokemonJugador;
+    }
+
     private void performEnemyTurnWithDelay() {
         Gdx.app.postRunnable(() -> {
             try {
@@ -452,20 +485,10 @@ public class BattleScreen extends ScreenAdapter {
     }
 
     private void abrirPokemon() {
-        // Mostrar información del equipo
-        updateInfo("Consultando equipo...");
-        // Por ahora mostrar info básica, luego se puede crear una pantalla dedicada
-        StringBuilder info = new StringBuilder("Equipo:\n");
-        for (int i = 0; i < explorador.getEquipo().size(); i++) {
-            Pokemon p = explorador.getEquipo().get(i);
-            info.append((i + 1)).append(". ").append(p.getNombre())
-                    .append(" - PS: ").append((int) p.getHpActual()).append("/").append((int) p.getHpMaximo());
-            if (p.isDebilitado()) {
-                info.append(" [DEBILITADO]");
-            }
-            info.append("\n");
-        }
-        updateInfo(info.toString());
+        // Redirigir a MochilaScreen en la pestaña de Pokémon (índice 3)
+        MochilaScreen mochila = new MochilaScreen(game, this, explorador);
+        mochila.setSelectedIndex(3); // Método que añadiremos en MochilaScreen
+        game.setScreen(mochila);
     }
 
     private void handleHuir() {
@@ -644,6 +667,13 @@ public class BattleScreen extends ScreenAdapter {
 
     private void endBattle(final boolean victory) {
         currentState = BattleState.END_BATTLE;
+
+        // Resetear modificadores temporales (Elixir)
+        if (pokemonJugador != null)
+            pokemonJugador.resetModificadoresTemporales();
+        if (pokemonEnemigo != null)
+            pokemonEnemigo.resetModificadoresTemporales();
+
         Gdx.app.postRunnable(() -> {
             try {
                 Thread.sleep(2000);
@@ -702,7 +732,7 @@ public class BattleScreen extends ScreenAdapter {
         // Draw Player Back Sprite (Bottom Left corner area)
         if (playerBackTexture != null) {
             float pX = 20;
-            float pY = 190;
+            float pY = 203;
             float pSize = 280;
             game.batch.draw(playerBackTexture, pX, pY, pSize, pSize);
         }

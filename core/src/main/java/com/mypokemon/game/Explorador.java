@@ -21,6 +21,7 @@ public class Explorador implements Serializable {
     private Pokedex registro;
     private List<Pokemon> equipo;
     private int misionesCompletadas;
+    private float tiempoGuanteRestante; // Tiempo restante en segundos para el Guante de Reflejo
 
     public Explorador(String nombreUsuario, String nombrePartida, int capacidadInicial, String genero) {
         this.nombreUsuario = nombreUsuario;
@@ -30,6 +31,7 @@ public class Explorador implements Serializable {
         this.registro = new Pokedex();
         this.equipo = new ArrayList<>();
         this.misionesCompletadas = 0;
+        this.tiempoGuanteRestante = 0;
     }
 
     public Explorador(String nombreUsuario, String nombrePartida, int capacidadInicial) {
@@ -132,5 +134,46 @@ public class Explorador implements Serializable {
             crafteoSystem = new com.mypokemon.game.inventario.Crafteo();
         }
         return crafteoSystem;
+    }
+
+    public boolean isGuanteEquipado() {
+        return tiempoGuanteRestante > 0;
+    }
+
+    public void activarGuante(float segundos) {
+        this.tiempoGuanteRestante = segundos;
+    }
+
+    public float getTiempoGuanteRestante() {
+        return tiempoGuanteRestante;
+    }
+
+    public boolean isReproductorMusicaActivo() {
+        com.mypokemon.game.inventario.Item item = mochila.getItem("reproductor");
+        if (item instanceof com.mypokemon.game.inventario.objetoscrafteados.ReproductorMusica) {
+            return ((com.mypokemon.game.inventario.objetoscrafteados.ReproductorMusica) item).isActivo();
+        }
+        return false;
+    }
+
+    public void setReproductorMusicaActivo(boolean activo) {
+        com.mypokemon.game.inventario.Item item = mochila.getItem("reproductor");
+        if (item instanceof com.mypokemon.game.inventario.objetoscrafteados.ReproductorMusica) {
+            ((com.mypokemon.game.inventario.objetoscrafteados.ReproductorMusica) item).setActivo(activo);
+        }
+    }
+
+    /**
+     * Actualiza los temporizadores activos (Glove, etc.)
+     * 
+     * @param delta Tiempo transcurrido
+     */
+    public void actualizarTemporizadores(float delta) {
+        if (tiempoGuanteRestante > 0) {
+            tiempoGuanteRestante -= delta;
+            if (tiempoGuanteRestante < 0) {
+                tiempoGuanteRestante = 0;
+            }
+        }
     }
 }

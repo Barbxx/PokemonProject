@@ -18,21 +18,24 @@ public class ElixirPielPiedra extends ItemConsumible {
 
     @Override
     public boolean puedeUsar(Pokemon pokemon) {
-        return !pokemon.isDebilitado();
+        return pokemon != null && !pokemon.isDebilitado();
     }
 
     @Override
     public ResultadoUso usar(Pokemon pokemon, Inventario inventario) {
-        if (!puedeUsar(pokemon)) {
-            return ResultadoUso.fallo("No tiene efecto.");
+        if (pokemon == null) {
+            return ResultadoUso.fallo("No se especificó un Pokémon.");
         }
 
+        // Sumamos +3 al modificador temporal
+        pokemon.setModificadorAtaqueTemporal(pokemon.getModificadorAtaqueTemporal() + 3);
+
         inventario.consumirItem(id, 1);
-        return ResultadoUso.exito("Ataque subió +3 (Efecto visual)");
+        return ResultadoUso.exito("¡Elixir tomado! Ahora tu ataque subirá +3 en la batalla.");
     }
 
     @Override
     public List<String> getOpciones() {
-        return Arrays.asList("Usar", "Tirar");
+        return Arrays.asList("Tomar", "Tirar");
     }
 }

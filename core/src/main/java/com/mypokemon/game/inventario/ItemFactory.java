@@ -19,6 +19,9 @@ public class ItemFactory {
                 return new Recurso(id, "Planta Medicinal", cantidad);
             case "guijarro":
                 return new Recurso(id, "Guijarro", cantidad);
+            case "baya":
+                // Baya Aranja (ahora es Recurso con IUsable)
+                return new BayaAranja(cantidad);
             default:
                 return new Recurso(id, id, cantidad);
         }
@@ -45,9 +48,6 @@ public class ItemFactory {
                 return new GuanteReflejo(cantidad);
             case "frijol":
                 return new FrijolMagico(cantidad);
-            case "baya":
-                // Baya puede ser creada como crafteada también
-                return new BayaAranja(cantidad);
             default:
                 // Fallback para ítems desconocidos - crear clase genérica temporal
                 return new ObjetoCrafteadoGenerico(id, id, "Descripción no disponible.", cantidad);

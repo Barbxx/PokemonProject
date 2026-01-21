@@ -142,6 +142,7 @@ public class GameScreen extends BaseScreen {
 
     // NPC Music Logic
     private com.badlogic.gdx.audio.Music currentNpcMusic = null;
+    private com.badlogic.gdx.audio.Music backgroundPlayerMusic = null;
 
     private int frameCols;
     private int frameRows;
@@ -481,6 +482,14 @@ public class GameScreen extends BaseScreen {
         regions.add(new RegionTrigger(spawnX + 50, spawnY + 850, regionSize, regionSize,
                 Color.PURPLE, texTundra, "Tundra Alba"));
 
+        // Initialize Reproductor Music
+        try {
+            backgroundPlayerMusic = Gdx.audio.newMusic(Gdx.files.internal("audioReproductor.mp3"));
+            backgroundPlayerMusic.setLooping(true);
+            backgroundPlayerMusic.setVolume(0.5f);
+        } catch (Exception e) {
+            Gdx.app.log("GameScreen", "Could not load audioReproductor.mp3");
+        }
     }
 
     // Fade State
@@ -607,6 +616,7 @@ public class GameScreen extends BaseScreen {
     @Override
     public void render(float delta) {
         // --- 1. UPDATE AND LOGIC ---
+        explorador.actualizarTemporizadores(delta);
 
         // FADE IN LOGIC
         if (fadingIn) {
@@ -843,14 +853,24 @@ public class GameScreen extends BaseScreen {
                                 mousePos.y >= ry - tileH / 2 && mousePos.y <= ry + tileH / 2) {
 
                             try {
+                                int cantidadFinal = r.cantidad;
+                                if (explorador.isGuanteEquipado()) {
+                                    cantidadFinal *= 2;
+                                }
+
                                 explorador.getMochila().agregarItem(
-                                        com.mypokemon.game.inventario.ItemFactory.crearRecurso(r.tipo, r.cantidad));
+                                        com.mypokemon.game.inventario.ItemFactory.crearRecurso(r.tipo, cantidadFinal));
                                 r.recolectado = true;
                                 r.timerRespawn = r.TIEMPO_RESPAWN;
                                 // Remove from layers
                                 for (TiledMapTileLayer layer : r.cellsPorCapa.keySet())
                                     layer.setCell(r.cellX, r.cellY, null);
-                                notificationMessage = "Recogiste " + r.tipo;
+
+                                if (explorador.isGuanteEquipado()) {
+                                    notificationMessage = "¡Doble Recurso! Recogiste " + cantidadFinal + " " + r.tipo;
+                                } else {
+                                    notificationMessage = "Recogiste " + r.tipo;
+                                }
                                 notificationTimer = NOTIFICATION_DURATION;
 
                                 // Network Send
@@ -1037,6 +1057,11 @@ public class GameScreen extends BaseScreen {
                 }
             }
 
+            // REPRODUCTOR DE MÚSICA LOGIC
+            if (targetMusic == null && explorador.isReproductorMusicaActivo()) {
+                targetMusic = backgroundPlayerMusic;
+            }
+
             if (targetMusic != null) {
                 // If found music, play it
                 if (currentNpcMusic != targetMusic) {
@@ -1052,7 +1077,7 @@ public class GameScreen extends BaseScreen {
                     }
                 }
             } else {
-                // No music nearby
+                // No music nearby and Reproductor OFF
                 if (currentNpcMusic != null) {
                     currentNpcMusic.stop();
                     currentNpcMusic = null;
@@ -1305,6 +1330,8 @@ public class GameScreen extends BaseScreen {
             mapRenderer.dispose();
         if (grassSound != null)
             grassSound.dispose();
+        if (backgroundPlayerMusic != null)
+            backgroundPlayerMusic.dispose();
 
         if (npcManager != null)
             npcManager.dispose();

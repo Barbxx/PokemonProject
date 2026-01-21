@@ -2,6 +2,7 @@ package com.mypokemon.game.inventario;
 
 import com.mypokemon.game.inventario.exceptions.EspacioException;
 import com.mypokemon.game.inventario.exceptions.PokeballException;
+import com.mypokemon.game.inventario.objetoscrafteados.BayaAranja;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -28,10 +29,9 @@ public class Inventario implements Serializable {
         // Inicializar recursos básicos
         listRecursos.add(new Recurso("planta", "Planta Medicinal", 0));
         listRecursos.add(new Recurso("guijarro", "Guijarro", 0));
+        listRecursos.add(new BayaAranja(0)); // Baya moved to resources
 
         // Inicializar items crafteados
-        // Nota: Baya Aranja ahora se crea como crafteada ya que extiende ItemCurativo
-        listObjCrafteados.add(ItemFactory.crearCrafteado("baya", 0));
         listObjCrafteados.add(ItemFactory.crearCrafteado("pokeball", 0));
         listObjCrafteados.add(ItemFactory.crearCrafteado("heavyball", 0));
         listObjCrafteados.add(ItemFactory.crearCrafteado("pocion", 0));

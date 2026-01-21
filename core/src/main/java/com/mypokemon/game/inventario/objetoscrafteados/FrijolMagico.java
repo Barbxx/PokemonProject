@@ -12,13 +12,19 @@ import java.util.List;
 public class FrijolMagico extends ItemCurativo {
 
     public FrijolMagico(int cantidad) {
-        super("frijol", "Frijol mágico", "Restaura el 100% de HP de un Pokémon.", cantidad, 0);
+        super("frijol", "Frijol mágico", "Restaura el 100% de los PS del Pokémon.", cantidad, 0);
+    }
+
+    @Override
+    public boolean puedeUsar(Pokemon pokemon) {
+        // Se puede usar siempre que no esté FULL HP
+        return pokemon.getHpActual() < pokemon.getHpMaximo();
     }
 
     @Override
     public ResultadoUso usar(Pokemon pokemon, Inventario inventario) {
-        if (!puedeUsar(pokemon)) {
-            return ResultadoUso.fallo("No tiene efecto.");
+        if (pokemon.getHpActual() >= pokemon.getHpMaximo()) {
+            return ResultadoUso.fallo("El Pokémon ya está al máximo de salud.");
         }
 
         pokemon.recuperarSalud(pokemon.getHpMaximo());
@@ -28,6 +34,6 @@ public class FrijolMagico extends ItemCurativo {
 
     @Override
     public List<String> getOpciones() {
-        return Arrays.asList("Comer", "Tirar");
+        return Arrays.asList("Curar", "Tirar");
     }
 }

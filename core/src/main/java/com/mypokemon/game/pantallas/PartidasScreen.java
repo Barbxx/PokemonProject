@@ -15,14 +15,14 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 
 public class PartidasScreen extends BaseScreen {
 
-    Texture background;
-    FileHandle[] saveFiles;
-    int selectedIndex = 0;
-    boolean selectingAction = false;
-    int actionIndex = 0;
+    private Texture background;
+    private Texture btnJugarNormal, btnJugarSel;
+    private Texture btnBorrarNormal, btnBorrarSel;
 
-    // UI
-    com.badlogic.gdx.graphics.glutils.ShapeRenderer shapeRenderer;
+    private FileHandle[] saveFiles;
+    private int selectedIndex = 0;
+    private boolean selectingAction = false;
+    private int actionIndex = 0; // 0: Play, 1: Delete
 
     // Camera and Viewport for fixed aspect ratio
     private OrthographicCamera camera;
@@ -32,11 +32,14 @@ public class PartidasScreen extends BaseScreen {
 
     public PartidasScreen(PokemonMain game) {
         super(game);
-        shapeRenderer = new com.badlogic.gdx.graphics.glutils.ShapeRenderer();
         try {
-            background = new Texture("menu_bg.jpg");
+            background = new Texture("pantallaPartidas.png");
+            btnJugarNormal = new Texture("boton_jugarPartida_normal.png");
+            btnJugarSel = new Texture("boton_jugarPartida_seleccionado.png");
+            btnBorrarNormal = new Texture("boton_borrarPartida_normal.png");
+            btnBorrarSel = new Texture("boton_borrarPartida_seleccionado.png");
         } catch (Exception e) {
-            Gdx.app.log("PartidasScreen", "Could not load background: " + e.getMessage());
+            Gdx.app.log("PartidasScreen", "Could not load textures: " + e.getMessage());
         }
 
         // Find Save Files
@@ -57,30 +60,10 @@ public class PartidasScreen extends BaseScreen {
 
     @Override
     public void render(float delta) {
-        float screenWidth = VIRTUAL_WIDTH;
-        float screenHeight = VIRTUAL_HEIGHT;
-
-        // Geometry Calculations
-        float panelW = 600;
-        float panelH = 350;
-        float panelX = (screenWidth - panelW) / 2;
-        float panelY = (screenHeight - panelH) / 2 - 50;
-
-        float btnW = 120;
-        float btnH = 40;
-        float btnY = panelY + 20;
-        float btnPlayX = panelX + (panelW / 2) - btnW - 20;
-        float btnDelX = panelX + (panelW / 2) + 20;
-
-        float listStartY = panelY + panelH - 100;
-        float spacing = 35;
-
         // Input Handling
         if (saveFiles.length > 0) {
-            String gameNameForLogic = saveFiles[selectedIndex].nameWithoutExtension();
-
             if (!selectingAction) {
-                // FILE SELECTION PHASE (Keyboard)
+                // FILE SELECTION PHASE
                 if (Gdx.input.isKeyJustPressed(Input.Keys.UP) || Gdx.input.isKeyJustPressed(Input.Keys.W)) {
                     selectedIndex--;
                     if (selectedIndex < 0)
@@ -109,19 +92,12 @@ public class PartidasScreen extends BaseScreen {
                     selectingAction = false;
                 }
 
-                // Execute Logic (Only Enter key, removed mouse clicks)
-                boolean actionTriggered = Gdx.input.isKeyJustPressed(Input.Keys.ENTER);
-
-                if (actionTriggered) {
+                if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
                     if (actionIndex == 0) {
                         // PLAY
                         FileHandle selectedFile = saveFiles[selectedIndex];
                         String fullFileName = selectedFile.name();
-
-                        // Pass FULL filename so Explorador.cargarProgreso can find it.
-                        Gdx.app.log("PartidasScreen", "Loading: " + fullFileName);
-                        game.setScreen(new GameScreen(game, "protagonistaMasculino1.png", 4, 4, "",
-                                fullFileName));
+                        game.setScreen(new GameScreen(game, "protagonistaMasculino1.png", 4, 4, "", fullFileName));
                         dispose();
                         return;
                     } else {
@@ -138,22 +114,78 @@ public class PartidasScreen extends BaseScreen {
 
                         selectedIndex = 0;
                         selectingAction = false;
-                        if (saveFiles.length == 0) {
-                            // No files left
-                        }
                     }
                 }
             }
         }
+
         if (!selectingAction && Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             game.setScreen(new MainMenuScreen(game));
             dispose();
             return;
         }
 
-        // Draw Background
-        ScreenUtils.clear(0, 0, 0, 1);
+        // Mouse Support for Selection and Buttons
+        com.badlogic.gdx.math.Vector3 mousePos = new com.badlogic.gdx.math.Vector3(Gdx.input.getX(), Gdx.input.getY(),
+                0);
+        viewport.unproject(mousePos);
 
+        if (saveFiles.length > 0) {
+            float startY = VIRTUAL_HEIGHT / 2 + 100;
+            float spacing = 50;
+
+            // Mouse selection for list
+            if (!selectingAction) {
+                for (int i = 0; i < saveFiles.length; i++) {
+                    float y = startY - (i * spacing);
+                    // Approximation of text bounds for hover
+                    if (mousePos.x > 300 && mousePos.x < 980 && mousePos.y < y + 10 && mousePos.y > y - 40) {
+                        selectedIndex = i;
+                        if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
+                            selectingAction = true;
+                            actionIndex = 0;
+                        }
+                    }
+                }
+            } else {
+                // Mouse hover/click for buttons
+                float btnW = 340;
+                float btnH = 100;
+                float btnY = 100;
+                float centerX = VIRTUAL_WIDTH / 2;
+                float gap = 40;
+
+                // Jugar Button bounds
+                if (mousePos.x > centerX - btnW - gap / 2 && mousePos.x < centerX - gap / 2 &&
+                        mousePos.y > btnY && mousePos.y < btnY + btnH) {
+                    actionIndex = 0;
+                    if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
+                        FileHandle selectedFile = saveFiles[selectedIndex];
+                        game.setScreen(
+                                new GameScreen(game, "protagonistaMasculino1.png", 4, 4, "", selectedFile.name()));
+                        dispose();
+                        return;
+                    }
+                }
+                // Borrar Button bounds
+                if (mousePos.x > centerX + gap / 2 && mousePos.x < centerX + btnW + gap / 2 &&
+                        mousePos.y > btnY && mousePos.y < btnY + btnH) {
+                    actionIndex = 1;
+                    if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
+                        saveFiles[selectedIndex].delete();
+                        saveFiles = Gdx.files.local(".")
+                                .list((dir, name) -> name.contains(" - ") && name.endsWith(".dat"));
+                        if (saveFiles == null)
+                            saveFiles = new FileHandle[0];
+                        selectedIndex = 0;
+                        selectingAction = false;
+                    }
+                }
+            }
+        }
+
+        // Render
+        ScreenUtils.clear(0, 0, 0, 1);
         camera.update();
         game.batch.setProjectionMatrix(camera.combined);
 
@@ -161,112 +193,54 @@ public class PartidasScreen extends BaseScreen {
         if (background != null) {
             game.batch.draw(background, 0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
         }
-        game.batch.end();
 
-        // Draw UI Panel (Glassmorphism / Dark Box)
-        Gdx.gl.glEnable(com.badlogic.gdx.graphics.GL20.GL_BLEND);
-        Gdx.gl.glBlendFunc(com.badlogic.gdx.graphics.GL20.GL_SRC_ALPHA,
-                com.badlogic.gdx.graphics.GL20.GL_ONE_MINUS_SRC_ALPHA);
-
-        shapeRenderer.setProjectionMatrix(camera.combined);
-        shapeRenderer.begin(com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType.Filled);
-
-        // Shadow/Border
-        shapeRenderer.setColor(0f, 0f, 0f, 0.5f);
-        shapeRenderer.rect(panelX + 5, panelY - 5, panelW, panelH);
-
-        // Main Body
-        shapeRenderer.setColor(0.1f, 0.1f, 0.1f, 0.85f);
-        shapeRenderer.rect(panelX, panelY, panelW, panelH);
-
-        // Header Strip
-        shapeRenderer.setColor(0.8f, 0.2f, 0.2f, 0.9f);
-        shapeRenderer.rect(panelX, panelY + panelH - 60, panelW, 60);
-
-        // Action Buttons Backgrounds (Visual cues)
-        if (saveFiles.length > 0) {
-            // Jugar Btn (Left)
-            if (selectingAction && actionIndex == 0)
-                shapeRenderer.setColor(0.8f, 0.8f, 0.2f, 1f); // Active Yellow
-            else
-                shapeRenderer.setColor(0.3f, 0.3f, 0.3f, 1f); // Inactive Gray
-            shapeRenderer.rect(btnPlayX, btnY, btnW, btnH);
-
-            // Borrar Btn (Right)
-            if (selectingAction && actionIndex == 1)
-                shapeRenderer.setColor(0.8f, 0.2f, 0.2f, 1f); // Active Red
-            else
-                shapeRenderer.setColor(0.3f, 0.3f, 0.3f, 1f); // Inactive Gray
-            shapeRenderer.rect(btnDelX, btnY, btnW, btnH);
-        }
-
-        shapeRenderer.end();
-        Gdx.gl.glDisable(com.badlogic.gdx.graphics.GL20.GL_BLEND);
-
-        // Draw Text
-        game.batch.begin();
-
-        // Title
-        game.font.setColor(Color.WHITE);
-        game.font.getData().setScale(1.5f);
-        float titleY = panelY + panelH - 18;
-        game.font.draw(game.batch, "PARTIDAS GUARDADAS", panelX, titleY, panelW, com.badlogic.gdx.utils.Align.center,
-                false);
-
-        // List
-        game.font.getData().setScale(1.1f);
-
+        // Draw Save Files Centered
         if (saveFiles.length == 0) {
             game.font.setColor(Color.GRAY);
-            game.font.draw(game.batch, "No hay partidas guardadas.", panelX, panelY + panelH / 2, panelW,
+            game.font.getData().setScale(1.5f);
+            game.font.draw(game.batch, "No hay partidas guardadas.", 0, VIRTUAL_HEIGHT / 2, VIRTUAL_WIDTH,
                     com.badlogic.gdx.utils.Align.center, false);
         } else {
-            int maxItems = 7;
-            int startIdx = Math.max(0, Math.min(selectedIndex - 3, saveFiles.length - maxItems));
-            int endIdx = Math.min(saveFiles.length, startIdx + maxItems);
+            game.font.getData().setScale(1.2f);
+            float startY = VIRTUAL_HEIGHT / 2 + 100;
+            float spacing = 50;
 
-            for (int i = startIdx; i < endIdx; i++) {
-                FileHandle file = saveFiles[i];
-                String nameDisplay = file.nameWithoutExtension(); // Display filename directly
-                float textY = listStartY - ((i - startIdx) * spacing);
+            for (int i = 0; i < saveFiles.length; i++) {
+                String nameDisplay = saveFiles[i].nameWithoutExtension();
+                float y = startY - (i * spacing);
 
                 if (i == selectedIndex) {
                     if (selectingAction)
-                        game.font.setColor(Color.LIME); // Selected but locked
+                        game.font.setColor(Color.LIME);
                     else
-                        game.font.setColor(Color.YELLOW); // Active selection
+                        game.font.setColor(Color.YELLOW);
                     nameDisplay = "> " + nameDisplay + " <";
                 } else {
-                    game.font.setColor(Color.LIGHT_GRAY);
+                    game.font.setColor(Color.WHITE);
                 }
 
-                game.font.draw(game.batch, nameDisplay, panelX, textY, panelW, com.badlogic.gdx.utils.Align.center,
+                game.font.draw(game.batch, nameDisplay, 0, y, VIRTUAL_WIDTH, com.badlogic.gdx.utils.Align.center,
                         false);
             }
 
-            // Draw Button Labels
-            game.font.getData().setScale(1.0f);
+            // Draw Buttons
+            float btnW = 340;
+            float btnH = 100;
+            float btnY = 100;
+            float centerX = VIRTUAL_WIDTH / 2;
+            float gap = 40;
 
-            // JUGAR Text
-            game.font.setColor(Color.WHITE);
-            // Centering text roughly inside button
-            game.font.draw(game.batch, "JUGAR", btnPlayX, btnY + 28, btnW, com.badlogic.gdx.utils.Align.center, false);
-            // BORRAR Text
-            game.font.draw(game.batch, "BORRAR", btnDelX, btnY + 28, btnW, com.badlogic.gdx.utils.Align.center, false);
-        }
+            // Play Button
+            Texture playTex = (selectingAction && actionIndex == 0) ? btnJugarSel : btnJugarNormal;
+            if (playTex != null) {
+                game.batch.draw(playTex, centerX - btnW - gap / 2, btnY, btnW, btnH);
+            }
 
-        // Instruction Footer (Moved down)
-        // Only show if NOT selecting action
-        if (!selectingAction) {
-            game.font.getData().setScale(0.8f);
-            game.font.setColor(Color.GRAY);
-            game.font.draw(game.batch, "ESC: Volver   ENTER: Seleccionar", panelX, panelY - 10, panelW,
-                    com.badlogic.gdx.utils.Align.center, false);
-        } else {
-            game.font.getData().setScale(0.8f);
-            game.font.setColor(Color.GRAY);
-            game.font.draw(game.batch, "<- -> : Elegir   ENTER: Confirmar   ESC: Cancelar", panelX, panelY - 10, panelW,
-                    com.badlogic.gdx.utils.Align.center, false);
+            // Delete Button
+            Texture delTex = (selectingAction && actionIndex == 1) ? btnBorrarSel : btnBorrarNormal;
+            if (delTex != null) {
+                game.batch.draw(delTex, centerX + gap / 2, btnY, btnW, btnH);
+            }
         }
 
         game.batch.end();
@@ -282,7 +256,13 @@ public class PartidasScreen extends BaseScreen {
     public void dispose() {
         if (background != null)
             background.dispose();
-        if (shapeRenderer != null)
-            shapeRenderer.dispose();
+        if (btnJugarNormal != null)
+            btnJugarNormal.dispose();
+        if (btnJugarSel != null)
+            btnJugarSel.dispose();
+        if (btnBorrarNormal != null)
+            btnBorrarNormal.dispose();
+        if (btnBorrarSel != null)
+            btnBorrarSel.dispose();
     }
 }

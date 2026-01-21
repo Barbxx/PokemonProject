@@ -25,7 +25,7 @@ public class GuanteReflejo extends ItemConsumible {
     @Override
     public ResultadoUso usar(Pokemon pokemon, Inventario inventario) {
         inventario.consumirItem(id, 1);
-        return ResultadoUso.exito("Guante EQUIPADO");
+        return ResultadoUso.exito("¡Guante Equipado! Por 5 minutos podrás recolectar doble recurso.");
     }
 
     @Override

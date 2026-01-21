@@ -31,8 +31,9 @@ public class Movimiento implements Serializable {
                 return -1; // Código especial para inmunidad
             }
 
-            // El daño es directamente el poder del ataque
-            int daño = this.poder;
+            // El daño es el poder del ataque + el modificador temporal del atacante
+            // (Elixir)
+            int daño = this.poder + (int) atacante.getModificadorAtaqueTemporal();
 
             // Asegurar que el daño sea al menos 1 si el ataque conecta
             if (daño < 1) {

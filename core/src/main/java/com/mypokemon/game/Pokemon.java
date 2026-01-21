@@ -18,6 +18,7 @@ public class Pokemon implements Serializable {
     private boolean debilitado;
     private String tipo;
     private List<Movimiento> movimientos;
+    private transient float modificadorAtaqueTemporal = 0; // Para el Elixir de Piel de Piedra (No se guarda)
 
     // Para LibGDX (marcar como transient para que no intente serializar la imagen)
     private transient TextureRegion sprite;
@@ -106,7 +107,19 @@ public class Pokemon implements Serializable {
     }
 
     public float getAtaque() {
-        return ataque;
+        return ataque + modificadorAtaqueTemporal;
+    }
+
+    public float getModificadorAtaqueTemporal() {
+        return modificadorAtaqueTemporal;
+    }
+
+    public void setModificadorAtaqueTemporal(float mod) {
+        this.modificadorAtaqueTemporal = mod;
+    }
+
+    public void resetModificadoresTemporales() {
+        this.modificadorAtaqueTemporal = 0;
     }
 
     public float getVelocidad() {

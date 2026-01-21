@@ -13,27 +13,28 @@ import java.util.List;
 public class RevivirCasero extends ItemConsumible {
 
     public RevivirCasero(int cantidad) {
-        super("revivir", "Revivir Casero", "Revive con 50% HP a un Pokémon debilitado.", cantidad);
+        super("revivir", "Revivir Casero", "Restaura el 50% de los PS del Pokémon.", cantidad);
     }
 
     @Override
     public boolean puedeUsar(Pokemon pokemon) {
-        return pokemon.isDebilitado();
+        // Se puede usar siempre que no esté FULL HP
+        return pokemon.getHpActual() < pokemon.getHpMaximo();
     }
 
     @Override
     public ResultadoUso usar(Pokemon pokemon, Inventario inventario) {
-        if (!puedeUsar(pokemon)) {
-            return ResultadoUso.fallo("No está debilitado.");
+        if (pokemon.getHpActual() >= pokemon.getHpMaximo()) {
+            return ResultadoUso.fallo("El Pokémon ya está al máximo de salud.");
         }
 
         pokemon.recuperarSalud(pokemon.getHpMaximo() * 0.5f);
         inventario.consumirItem(id, 1);
-        return ResultadoUso.exito("¡" + pokemon.getNombre() + " revivió!");
+        return ResultadoUso.exito("¡" + pokemon.getNombre() + " recuperó energía!");
     }
 
     @Override
     public List<String> getOpciones() {
-        return Arrays.asList("Revivir", "Tirar");
+        return Arrays.asList("Curar", "Tirar");
     }
 }
