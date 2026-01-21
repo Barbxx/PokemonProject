@@ -3,7 +3,7 @@ package com.mypokemon.game;
 import java.io.Serializable;
 
 public class EspeciePokemon implements Serializable {
-    private static final long serialVersionUID = 3L; // Para serialización consistente
+    private static final long serialVersionUID = 3L; 
 
     private String nombre;
     private int nivelInvestigacion;

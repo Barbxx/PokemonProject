@@ -97,7 +97,12 @@ public class PartidasScreen extends BaseScreen {
                         // PLAY
                         FileHandle selectedFile = saveFiles[selectedIndex];
                         String fullFileName = selectedFile.name();
-                        game.setScreen(new GameScreen(game, "protagonistaMasculino1.png", 4, 4, "", fullFileName));
+                        Explorador exp = Explorador.cargarProgreso(fullFileName);
+                        String skin = "protagonistaMasculino1.png";
+                        if (exp != null && "CHICA".equals(exp.getGenero())) {
+                            skin = "protagonistaFemenino.png";
+                        }
+                        game.setScreen(new GameScreen(game, skin, 4, 4, "", fullFileName));
                         dispose();
                         return;
                     } else {
@@ -161,8 +166,13 @@ public class PartidasScreen extends BaseScreen {
                     actionIndex = 0;
                     if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
                         FileHandle selectedFile = saveFiles[selectedIndex];
+                        Explorador exp = Explorador.cargarProgreso(selectedFile.name());
+                        String skin = "protagonistaMasculino1.png";
+                        if (exp != null && "CHICA".equals(exp.getGenero())) {
+                            skin = "protagonistaFemenino.png";
+                        }
                         game.setScreen(
-                                new GameScreen(game, "protagonistaMasculino1.png", 4, 4, "", selectedFile.name()));
+                                new GameScreen(game, skin, 4, 4, "", selectedFile.name()));
                         dispose();
                         return;
                     }
@@ -206,17 +216,28 @@ public class PartidasScreen extends BaseScreen {
             float spacing = 50;
 
             for (int i = 0; i < saveFiles.length; i++) {
+                String fileName = saveFiles[i].name();
                 String nameDisplay = saveFiles[i].nameWithoutExtension();
                 float y = startY - (i * spacing);
+
+                // Load Explorador for info
+                Explorador exp = Explorador.cargarProgreso(fileName);
+                String info = "";
+                if (exp != null) {
+                    int dexCount = exp.getRegistro().verificarProgreso();
+                    int invCount = exp.getMochila().getEspacioOcupado();
+                    info = String.format(" [%s - Dex: %d - Items: %d]", exp.getNombre(), dexCount, invCount);
+                }
 
                 if (i == selectedIndex) {
                     if (selectingAction)
                         game.font.setColor(Color.LIME);
                     else
                         game.font.setColor(Color.YELLOW);
-                    nameDisplay = "> " + nameDisplay + " <";
+                    nameDisplay = "> " + nameDisplay + info + " <";
                 } else {
                     game.font.setColor(Color.WHITE);
+                    nameDisplay = nameDisplay + info;
                 }
 
                 game.font.draw(game.batch, nameDisplay, 0, y, VIRTUAL_WIDTH, com.badlogic.gdx.utils.Align.center,

@@ -529,17 +529,20 @@ public class GameScreen extends BaseScreen {
         nextScreen = null;
 
         // Network Init
+        // Network Init
         this.client = game.networkClient;
         if (this.client != null) {
+            // 1. Set Listener FIRST to catch the immediate response (PEER_INFO)
+            this.client.setListener(msg -> {
+                Gdx.app.postRunnable(() -> handleNetworkMessage(msg));
+            });
+
+            // 2. Identify ourselves to update server's knowledge of name/gender
             String genderStr = "CHICO";
             if (myTexturePath != null && myTexturePath.toLowerCase().contains("fem")) {
                 genderStr = "CHICA";
             }
             client.sendMessage("IDENTITY:" + playerName + ":" + genderStr);
-
-            this.client.setListener(msg -> {
-                Gdx.app.postRunnable(() -> handleNetworkMessage(msg));
-            });
         }
     }
 
@@ -552,9 +555,8 @@ public class GameScreen extends BaseScreen {
                     float ty = Float.parseFloat(parts[2]);
                     String dir = parts[3];
 
-                    if (otherPlayer == null && playerSheet != null) {
-                        otherPlayer = new RemotePlayer(playerSheet, frameCols, frameRows);
-                    }
+                    // ONLY update if we already know who the other player is (via PEER_INFO)
+                    // We removed the automatic creation with local sprite here
                     if (otherPlayer != null) {
                         otherPlayer.update(Gdx.graphics.getDeltaTime(), tx, ty, dir);
                     }
@@ -713,7 +715,7 @@ public class GameScreen extends BaseScreen {
                     if (saveSuccess) {
                         if (client != null) {
                             client.sendMessage("SAVE_GAME");
-                            notificationMessage = "Esperando al otro jugador...";
+                            notificationMessage = "¡Progreso Guardado!";
                         } else {
                             notificationMessage = "¡Partida Guardada!";
                         }

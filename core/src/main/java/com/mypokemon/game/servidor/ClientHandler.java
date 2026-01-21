@@ -78,6 +78,14 @@ public class ClientHandler extends Thread {
                     checkAndCreateSave();
                     // Sync request
                     server.syncClientState(this);
+                } else if (msg.startsWith("CHECK_NAME:")) {
+                    String nameToCheck = msg.substring(11);
+                    boolean isTaken = server.isNameTaken(nameToCheck, this);
+                    if (isTaken) {
+                        sendMessage("NAME_TAKEN");
+                    } else {
+                        sendMessage("NAME_OK");
+                    }
                 } else if (msg.startsWith("NAME:")) {
                     this.playerName = msg.substring(5);
                     System.out.println("Jugador " + playerId + " nombre recibido: " + playerName);

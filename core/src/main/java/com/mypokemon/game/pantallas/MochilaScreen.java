@@ -513,7 +513,7 @@ public class MochilaScreen extends BaseScreen {
                     game.setScreen(battle);
                 }
             } else {
-                showFeedback("No puedes lanzar una pokebola, no estas en batalla.");
+                showFeedback("No puedes lanzar una poke ball, no estas en batalla.");
                 currentState = InventoryState.BROWSING;
             }
             return;
@@ -876,7 +876,7 @@ public class MochilaScreen extends BaseScreen {
 
             Item baya = inventory.getItem("baya");
             if (baya != null && baya.getCantidad() > 0)
-                visibleItems.add(new ItemData("Baya Aranja", "Restaura el 10% de los PS del Pokémon.",
+                visibleItems.add(new ItemData("Baya Aranja", "Restaura el 10% de HP del Pokémon.",
                         texBaya, baya.getCantidad(), baya));
 
             Item guijarro = inventory.getItem("guijarro");
@@ -898,7 +898,7 @@ public class MochilaScreen extends BaseScreen {
         } else if (selectedIndex == 2) { // Yellow Button: Pociones + Crafteo + Lure
             Item pocion = inventory.getItem("pocion");
             if (pocion != null && pocion.getCantidad() > 0)
-                visibleItems.add(new ItemData("Poción Herbal", "Restaura el 20% de los PS del Pokémon.",
+                visibleItems.add(new ItemData("Poción Herbal", "Restaura el 20% de HP del Pokémon.",
                         texPocionHerbal, pocion.getCantidad(), pocion));
 
             Item elixir = inventory.getItem("elixir");
@@ -909,12 +909,12 @@ public class MochilaScreen extends BaseScreen {
 
             Item revivir = inventory.getItem("revivir");
             if (revivir != null && revivir.getCantidad() > 0)
-                visibleItems.add(new ItemData("Revivir Casero", "Restaura el 50% de los PS del Pokémon.",
+                visibleItems.add(new ItemData("Revivir Casero", "Restaura el 50% de HP del Pokémon.",
                         texRevivir, revivir.getCantidad(), revivir));
 
             Item reproductor = inventory.getItem("reproductor");
             if (reproductor != null && reproductor.getCantidad() > 0)
-                visibleItems.add(new ItemData("Reproductor de música", "Permite escuchar música de fondo.",
+                visibleItems.add(new ItemData("Reproductor de música", "Permite escuchar música de fondo durante el viaje.",
                         texReproductor, reproductor.getCantidad(), reproductor));
 
             Item guante = inventory.getItem("guante");
@@ -925,7 +925,7 @@ public class MochilaScreen extends BaseScreen {
 
             Item frijol = inventory.getItem("frijol");
             if (frijol != null && frijol.getCantidad() > 0)
-                visibleItems.add(new ItemData("Frijol mágico", "Restaura el 100% de los PS del Pokémon.",
+                visibleItems.add(new ItemData("Frijol mágico", "Restaura el 100% de HP del Pokémon.",
                         texFrijol, frijol.getCantidad(), frijol));
 
         } else if (selectedIndex == 3) { // Brown Button

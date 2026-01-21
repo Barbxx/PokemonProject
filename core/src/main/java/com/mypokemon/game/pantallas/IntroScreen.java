@@ -37,6 +37,7 @@ public class IntroScreen extends BaseScreen {
     private String gameName;
     private String playerName = "";
     private boolean isMale = true; // Default
+    private boolean statusNameTaken = false;
     // Timer for blink effects
     private float stateTime = 0;
 
@@ -65,6 +66,7 @@ public class IntroScreen extends BaseScreen {
     private static final String TEXT_2 = "Yo soy el Profesor Ferxxo, el que pone a todas estas chimbitas a vacilar. Este mundo está lleno de Pokémon; unos son para parchar y otros para dar lora peleando. Yo me encargo de estudiarlos para que todo esté bien chimba pues.";
     private static final String TEXT_3 = "Pero antes de empezar el vacile... mor, dime, ¿eres un parcero o una parcera? ¡Hágale pues!";
     private static final String TEXT_NAME_Q = "Y dígame mor... ¿cuál es tu nombre, nea?";
+    private static final String TEXT_NAME_TAKEN = "Mor, me parece que ya hay alguien aquí con ese nombre.";
     private static final String TEXT_CLOSING_FMT = "¡Ah, listo! Un gusto conocerte, %s. ¡Vea pues, que te espera un mundo de aventuras bien chimbas! ¡Vacílatela, nea!";
 
     // Botones/Rectángulos (Usados para comprobaciones de ratón, dibujos separados)
@@ -280,6 +282,7 @@ public class IntroScreen extends BaseScreen {
                 break;
             case ASK_NAME:
                 currentState = State.ENTER_NAME;
+                statusNameTaken = false; // Reset error when moving to typing
                 break;
             case ENTER_NAME:
                 if (playerName.trim().isEmpty())
@@ -289,7 +292,31 @@ public class IntroScreen extends BaseScreen {
                 break;
             case CONFIRM_NAME:
                 if (isNameConfirmed) {
-                    currentState = State.PRE_CLOSING;
+                    if ("SharedGame".equals(gameName)) {
+                        // Check if name is taken via Network
+                        if (game.networkClient != null) {
+                            game.networkClient.setListener(msg -> {
+                                if (msg.equals("NAME_OK")) {
+                                    Gdx.app.postRunnable(() -> {
+                                        this.currentState = State.PRE_CLOSING;
+                                    });
+                                } else if (msg.equals("NAME_TAKEN")) {
+                                    Gdx.app.postRunnable(() -> {
+                                        this.statusNameTaken = true;
+                                        this.currentState = State.ASK_NAME;
+                                        this.playerName = "";
+                                        this.caretPosition = 0;
+                                    });
+                                }
+                            });
+                            game.networkClient.sendMessage("CHECK_NAME:" + playerName);
+                        } else {
+                            // Fallback if no network (shouldn't happen in SharedGame)
+                            currentState = State.PRE_CLOSING;
+                        }
+                    } else {
+                        currentState = State.PRE_CLOSING;
+                    }
                 } else {
                     currentState = State.ENTER_NAME;
                     playerName = ""; // Clear name
@@ -564,10 +591,18 @@ public class IntroScreen extends BaseScreen {
                 currentText = TEXT_3;
                 break;
             case ASK_NAME:
-                currentText = TEXT_NAME_Q;
+                if (statusNameTaken) {
+                    currentText = TEXT_NAME_TAKEN;
+                } else {
+                    currentText = TEXT_NAME_Q;
+                }
                 break;
             case ENTER_NAME:
-                currentText = TEXT_NAME_Q;
+                if (statusNameTaken) {
+                    currentText = TEXT_NAME_TAKEN;
+                } else {
+                    currentText = TEXT_NAME_Q;
+                }
                 // Draw entered name
                 float nameY = boxY + 65;
                 float nameX = boxX + 110;

@@ -36,10 +36,11 @@ public class LaboratorioScreen extends BaseScreen {
 
     // Default Introduction Text
     private final String[] INTRO_TEXT = {
-            "¡Hágale, mor! Llegó a la parte más firme. Aquí tengo estos tres candidatos que están listos para salir a rumbear y a batallar por todo Hisui.",
+            "¡Hágale, mor! Llegó a la parte más firme. Aquí tengo estos tres candidatos que están listos para acompañarte en tu aventura por todo OneFerxxo.",
             "Están guardaditos en las Poké Balls pa' que no se alboroten.",
-            "Vea, yo cuando estaba más pelado era un buen entrenador de Pokémon.",
-            "Pero ya hoy solo me quedan estos tres... se los presento pa' que escoja uno."
+            "Vea, desde que Arceus me trajo acá me he convertido en un buen entrenador de estas chimbitas...",
+            "lo va a necesitar si lo quiere poner en su lugar... se lo digo yo",
+            "Vea, hay que ver que tipo de Pokemón le gusta...agarrese uno"
     };
 
     private final String[] ROWLET_TEXT = {

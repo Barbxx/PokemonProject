@@ -14,8 +14,6 @@ public class GameServer {
     private ServerSocket serverSocket;
     private ClientHandler player1;
     private ClientHandler player2;
-    private boolean p1Saved = false;
-    private boolean p2Saved = false;
 
     public static void main(String[] args) {
         new GameServer().start();
@@ -100,22 +98,19 @@ public class GameServer {
         }
 
         if (assigned) {
-            handler.start();
-
-            // Check if we can start match
+            // Check if we can start match and LINK peers BEFORE starting threads
             if (player1 != null && player2 != null) {
-                // Ambos conectados -> Emparejar
                 player1.setPeer(player2);
                 player2.setPeer(player1);
 
                 createSharedSave();
 
                 // Send Start Signal
-                // Note: If a player was already waiting, they receive START signal again.
-                // The client should handle duplicate START signals (idempotent transition).
                 player1.sendMessage("MATCH_START:1");
                 player2.sendMessage("MATCH_START:2");
             }
+
+            handler.start();
         } else {
             try {
                 socket.close();
@@ -127,13 +122,11 @@ public class GameServer {
     public synchronized void removeClient(ClientHandler client) {
         if (player1 == client) {
             player1 = null;
-            p1Saved = false;
             System.out.println("Jugador 1 desconectado. Slot liberado.");
             if (player2 != null)
                 player2.setPeer(null); // Unlink
         } else if (player2 == client) {
             player2 = null;
-            p2Saved = false;
             System.out.println("Jugador 2 desconectado. Slot liberado.");
             if (player1 != null)
                 player1.setPeer(null); // Unlink
@@ -159,38 +152,8 @@ public class GameServer {
             if (player2 != null)
                 player2.sendMessage(cmd);
         } else if (msg.equals("SAVE_GAME")) {
-            if (sender == player1)
-                p1Saved = true;
-            if (sender == player2)
-                p2Saved = true;
-
-            System.out.println("Jugador " + sender.getPlayerName() + " quiere guardar.");
-
-            if (p1Saved && p2Saved) {
-                performSharedSave();
-                p1Saved = false;
-                p2Saved = false;
-                if (player1 != null)
-                    player1.sendMessage("SAVE_CONFIRMED");
-                if (player2 != null)
-                    player2.sendMessage("SAVE_CONFIRMED");
-            }
-        }
-    }
-
-    private void performSharedSave() {
-        if (player1 != null && player2 != null) {
-            String fileName = player1.getPlayerName() + " - " + player2.getPlayerName() + ".save";
-            try {
-                java.io.File saveFile = new java.io.File("saves/" + fileName);
-                if (saveFile.getParentFile() != null)
-                    saveFile.getParentFile().mkdirs();
-                if (saveFile.createNewFile()) {
-                    System.out.println("PARTIDA COMPARTIDA GUARDADA: " + fileName);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            System.out.println("Jugador " + sender.getPlayerName() + " guardó su progreso individualmente.");
+            sender.sendMessage("SAVE_CONFIRMED");
         }
     }
 
@@ -204,23 +167,28 @@ public class GameServer {
             client.sendMessage(sb.toString());
         }
 
-        // Sync Peer Identification (Name)
+        // 1. Sync Peer Info TO the Client (Let the client know who the other person is)
         if (client.getPeer() != null && client.getPeer().getPlayerName() != null) {
             String pName = client.getPeer().getPlayerName();
             String pGen = client.getPeer().getGender();
             if (pGen == null)
                 pGen = "CHICO";
 
-            // Tell this client who the peer is
+            System.out
+                    .println("[Server] Informando a " + client.getPlayerName() + " sobre " + pName + " (" + pGen + ")");
             client.sendMessage("PEER_INFO:" + pName + ":" + pGen);
+        }
 
-            // Tell the peer who this client is
+        // 2. Sync Client Info TO the Peer (Let the other person know this client is
+        // ready)
+        if (client.getPeer() != null && client.getPlayerName() != null) {
             String myName = client.getPlayerName();
             String myGen = client.getGender();
             if (myGen == null)
                 myGen = "CHICO";
 
-            // (We do this here to ensure mutual visibility as soon as both are ready)
+            System.out.println("[Server] Informando a " + client.getPeer().getPlayerName() + " sobre " + myName + " ("
+                    + myGen + ")");
             client.getPeer().sendMessage("PEER_INFO:" + myName + ":" + myGen);
         }
     }
@@ -230,5 +198,15 @@ public class GameServer {
     }
 
     public synchronized void notifyPlayerName(int playerId, String name) {
+    }
+
+    public synchronized boolean isNameTaken(String name, ClientHandler requester) {
+        if (player1 != null && player1 != requester && name.equalsIgnoreCase(player1.getPlayerName())) {
+            return true;
+        }
+        if (player2 != null && player2 != requester && name.equalsIgnoreCase(player2.getPlayerName())) {
+            return true;
+        }
+        return false;
     }
 }
