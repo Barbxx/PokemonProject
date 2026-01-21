@@ -188,19 +188,34 @@ public class GameScreen extends BaseScreen {
             genderStr = "CHICA";
         }
 
-        // Check for saved progress (using the FULL FILENAME passed as gameName)
-        this.explorador = Explorador.cargarProgreso(gameName);
+        // Check for saved progress
+        // Intento 1: Formato Solitario "NombrePartida - NombreJugador.dat"
+        String soloFilename = gameName + " - " + playerName + ".dat";
+        this.explorador = Explorador.cargarProgreso(soloFilename);
+
+        if (this.explorador == null) {
+            // Intento 2: Formato Compartida "NombreJugador - NombrePartida.dat"
+            String sharedFilename = playerName + " - " + gameName + ".dat";
+            this.explorador = Explorador.cargarProgreso(sharedFilename);
+        }
+
+        // Intento 3: Nombre exacto (Legacy o carga directa)
+        if (this.explorador == null) {
+            this.explorador = Explorador.cargarProgreso(gameName);
+        }
 
         if (this.explorador == null) {
             // New Game: Create with Explorer Name, Game Name, Capacity, and Gender
             this.explorador = new Explorador(playerName, gameName, 80, genderStr);
         } else {
-            // Loaded Game: Ensure texture matches saved gender
+            // Loaded Game: Ensure texture matches saved gender and name
             if ("CHICA".equals(this.explorador.getGenero())) {
                 this.myTexturePath = "protagonistaFemenino.png";
             } else {
                 this.myTexturePath = "protagonistaMasculino1.png";
             }
+            // Sync current player name with loaded name just in case
+            this.playerName = this.explorador.getNombre();
         }
 
         // Initialize Camera and Viewport
@@ -675,7 +690,7 @@ public class GameScreen extends BaseScreen {
                 } else if (selected.equals("GUARDAR")) {
                     String pName = explorador.getNombre();
                     String gName = explorador.getNombrePartida();
-                    boolean canSave = true;
+                    boolean saveSuccess = false;
 
                     if (client != null) {
                         // Check for duplicate names
@@ -683,27 +698,28 @@ public class GameScreen extends BaseScreen {
                                 && otherPlayer.name.trim().equalsIgnoreCase(pName.trim())) {
                             notificationMessage = "No deben haber nombres iguales";
                             notificationTimer = NOTIFICATION_DURATION;
-                            canSave = false;
+                            saveSuccess = false;
                         } else {
                             // SHARED MODE: PlayerName - GameName
                             String filename = pName + " - " + gName + ".dat";
-                            explorador.guardarProgreso(filename);
+                            saveSuccess = explorador.guardarProgreso(filename);
                         }
                     } else {
                         // SOLO MODE: GameName - PlayerName
                         String filename = gName + " - " + pName + ".dat";
-                        explorador.guardarProgreso(filename);
+                        saveSuccess = explorador.guardarProgreso(filename);
                     }
 
-                    if (canSave) {
+                    if (saveSuccess) {
                         if (client != null) {
                             client.sendMessage("SAVE_GAME");
-                            notificationMessage = "Esperando al otro jugador..."; // Keep original message logic
+                            notificationMessage = "Esperando al otro jugador...";
                         } else {
                             notificationMessage = "¡Partida Guardada!";
                         }
-                    } else {
-                        // If save failed due to name conflict, message is already set
+                    } else if (notificationMessage.isEmpty()
+                            || !notificationMessage.equals("No deben haber nombres iguales")) {
+                        notificationMessage = "¡Error al guardar partida!";
                     }
 
                     notificationTimer = NOTIFICATION_DURATION;

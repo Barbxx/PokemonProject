@@ -426,6 +426,11 @@ public class BattleScreen extends ScreenAdapter {
             } else {
                 updateInfo(
                         "¡Fallo la captura! " + (tipo.equals("heavyball") ? "¡Casi!" : "Debe estar mas debilitado."));
+                // Show 'FALLÓ' text on screen
+                damageText = "¡FALLASTE!";
+                damageTextX = 350; // Center
+                damageTextY = 400;
+                damageTextTimer = 2.0f;
                 currentState = BattleState.ENEMY_TURN;
                 performEnemyTurnWithDelay();
             }
@@ -463,7 +468,12 @@ public class BattleScreen extends ScreenAdapter {
             explorador.agregarAlEquipo(pokemonEnemigo);
             endBattle(true);
         } else {
-            updateInfo("¡El Pokémon escapó!");
+            updateInfo("¡Fallaste la captura!");
+            // Show 'FALLÓ' text on screen
+            damageText = "¡FALLASTE!";
+            damageTextX = 350; // Center
+            damageTextY = 400;
+            damageTextTimer = 2.0f;
             animState = AnimState.NONE;
             currentState = BattleState.ENEMY_TURN;
             performEnemyTurnWithDelay();

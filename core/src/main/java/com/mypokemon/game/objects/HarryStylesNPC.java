@@ -2,10 +2,12 @@ package com.mypokemon.game.objects;
 
 public class HarryStylesNPC extends NPC {
     private static final String[] DIALOG = {
-            "¡Hola, cariño! Bienvenido a la región de Hisui. Es un lugar verdaderamente maravilloso, ¿no te parece? Pero también tiene su lado salvaje, y me gustaría que te sientas seguro y con mucha confianza allá afuera.",
-            "Me encantaría que trabajaras en tu propia autonomía. Tu inventario es donde sucede la magia, pero por favor, sé cuidadoso con el espacio; queremos que todo fluya con orden.",
-            "¿Por qué no vas a buscar algunos Guijarros y Plantas? Podrás crear unas Poké Balls realmente encantadoras.\n¡Vamos, adelante!",
-            "Trata a todos con amabilidad... ¡ese Pokédex no se va a completar solo! Con amor, H."
+            "¡Hola, cariño! Bienvenido a la región OneFerxxo. Es un lugar verdaderamente maravilloso, ¿no te parece? Tiene una energía mágic, distinta a de donde vengo. Pero también tiene su lado salvaje, como habrás podido notar.",
+            "Supongo que ya te encontraste con algunos pequeños amiguitos en el pasto... son criaturas adorables, ¿verdad? La mayoría de las veces son totalmente inofensivos, solo buscan un poco de amor.",
+            "Oh, ¡pero mira eso! Veo que ya tienes uno acompañándote... se ven fantásticos juntos. Si quieres capturar más amigos para que se unan a nuestra familia, tengo un par de recomendaciones para ti.",
+            "El inventario es donde sucede toda la magia, cielo. Allí podrás craftear objetos que te ayudarán en esta aventura, como Poké Balls, pociones de recuperación y otras cositas que te mantendrán entretenido y con el espíritu en alto durante tu viaje.",
+            "¡Vamos, adelante! Y nunca lo olvides: trata a todos con amabilidad... ¡esa misión no se va a completar sola!",
+            "Con todo mi amor, H."
     };
 
     public HarryStylesNPC(float startX, float startY) {

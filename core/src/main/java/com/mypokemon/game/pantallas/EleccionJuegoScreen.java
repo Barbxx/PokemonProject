@@ -4,6 +4,7 @@ import com.mypokemon.game.PokemonMain;
 import com.mypokemon.game.Explorador;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -257,8 +258,11 @@ public class EleccionJuegoScreen extends BaseScreen {
             return;
         }
 
-        // Check if file already exists
-        if (Gdx.files.local(inputName + "_save.dat").exists()) {
+        // Check if file already exists (pattern: GameName - PlayerName.dat)
+        FileHandle[] existing = Gdx.files.local(".")
+                .list((dir, name) -> name.startsWith(inputName + " - ") && name.endsWith(".dat"));
+
+        if (existing != null && existing.length > 0) {
             statusMessage = "nombre de partida ya existe";
             return;
         }

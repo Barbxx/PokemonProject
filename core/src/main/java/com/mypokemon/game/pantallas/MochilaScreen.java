@@ -242,6 +242,7 @@ public class MochilaScreen extends BaseScreen {
         fontContador.getData().setScale(1.5f);
 
         Gdx.app.log("MochilaScreen", "Positions and assets initialized");
+        updateVisibleItems();
     }
 
     @Override
@@ -960,6 +961,14 @@ public class MochilaScreen extends BaseScreen {
                 Pokemon p = equipo.get(indexSeleccionado);
                 titulo = p.getNombre() + " Nv." + p.getNivel();
                 desc = "HP: " + (int) p.getHpActual() + "/" + (int) p.getHpMaximo() + " | Tipo: " + p.getTipo();
+
+                // Añadir nivel de investigación
+                com.mypokemon.game.EspeciePokemon especie = explorador.getRegistro().getRegistro().get(p.getNombre());
+                if (especie != null) {
+                    desc += "\nInv: " + especie.getNivelInvestigacion() + "/10";
+                } else {
+                    desc += "\nInv: 0/10";
+                }
             } else {
                 // Nothing
             }

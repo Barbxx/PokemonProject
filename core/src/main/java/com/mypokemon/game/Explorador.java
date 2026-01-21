@@ -38,21 +38,23 @@ public class Explorador implements Serializable {
         this(nombreUsuario, nombrePartida, capacidadInicial, "CHICO");
     }
 
-    public void guardarProgreso(String filename) {
+    public boolean guardarProgreso(String filename) {
         // Guarda el objeto Explorador completo en el archivo especificado
         try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(filename))) {
             out.writeObject(this);
             System.out.println("Progreso guardado exitosamente en " + filename);
+            return true;
         } catch (IOException e) {
             System.err.println("Error al guardar el progreso: " + e.getMessage());
             e.printStackTrace();
+            return false;
         }
     }
 
-    public void guardarProgreso() {
+    public boolean guardarProgreso() {
         // Fallback for default behavior if needed, generally shouldn't be used with new
         // logic
-        guardarProgreso(nombrePartida + "_" + nombreUsuario + ".dat");
+        return guardarProgreso(nombrePartida + "_" + nombreUsuario + ".dat");
     }
 
     public static Explorador cargarProgreso(String filename) {
@@ -127,7 +129,7 @@ public class Explorador implements Serializable {
     }
 
     // Sistema de Crafteo Centralizado
-    private com.mypokemon.game.inventario.Crafteo crafteoSystem;
+    private transient com.mypokemon.game.inventario.Crafteo crafteoSystem;
 
     public com.mypokemon.game.inventario.Crafteo getCrafteoSystem() {
         if (crafteoSystem == null) {

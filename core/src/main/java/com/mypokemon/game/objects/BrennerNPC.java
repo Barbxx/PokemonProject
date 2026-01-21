@@ -2,11 +2,13 @@ package com.mypokemon.game.objects;
 
 public class BrennerNPC extends NPC {
     private static final String[] DIALOG = {
-            "Has llegado lejos, 'Once', o como sea que te llamen aquí.",
-            "Has recolectado datos de 5 especies diferentes, un progreso fascinante. Pero ahora debes completar una última misión.",
-            "El sujeto Arceus te espera en esta cavidad que me recuerda a la Cueva de Vecna; siento la misma oscuridad y el tic-tac de un reloj.",
-            "Si logras vencerlo, tu investigación será completada instantáneamente.",
-            "Recuerda: los errores tienen consecuencias, y si pierdes, el 'Upside Down' reclamará tus pertenencias."
+            "Has llegado lejos Once, siempre supe que eras especial.",
+            "Si ya has llegado hasta este punto, es porque deberías tener tus cinco especies al máximo nivel de investigación… ¿cierto? No me decepciones, sabes que no me gusta que me ocultes progresos.",
+            "Si es así, el Sujeto Arceus te espera en esa cueva de allá… me recuerda mucho a la Cueva de Vecna. Puedo sentirlo desde aquí, es fascinante, pero extremadamente peligroso si no estás preparada…",
+            "Si no has alcanzado el potencial que espero de ti, te recomiendo que regreses a las otras zonas para seguir subiendo de nivel. No podemos permitirnos un fallo en la fase de pruebas.",
+            "Si logras vencerlo, su investigación será completada instantáneamente. Sería un logro científico sin precedentes, hija mía.",
+            "Y recuerda, en este experimento los errores tienen consecuencias muy reales… si pierdes, el 'Upside Down' reclamará tus pertenencias… quizás varios objetos de tu inventario…",
+            "No dejes que el mundo se desmorone por un descuido."
     };
 
     public BrennerNPC(float startX, float startY) {
@@ -15,3 +17,4 @@ public class BrennerNPC extends NPC {
         loadMusic("MusicaDrBrenner.mp3");
     }
 }
+
