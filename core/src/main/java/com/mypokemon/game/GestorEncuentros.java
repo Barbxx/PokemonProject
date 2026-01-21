@@ -1,6 +1,6 @@
 package com.mypokemon.game;
 
-import java.util.HashMap;
+import java.util.TreeMap;
 import java.util.Map;
 import java.util.Random;
 
@@ -8,7 +8,7 @@ public class GestorEncuentros {
     private static final Random random = new Random();
 
     // Probabilidades por nivel
-    private static final Map<Integer, Float> PROBABILIDADES = new HashMap<>();
+    private static final Map<Integer, Float> PROBABILIDADES = new TreeMap<>();
     static {
         PROBABILIDADES.put(1, 0.15f);
         PROBABILIDADES.put(2, 0.25f);
@@ -18,7 +18,7 @@ public class GestorEncuentros {
     }
 
     // Pokémon por nivel
-    private static final Map<Integer, String[]> POKEMON_POR_ZONA = new HashMap<>();
+    private static final Map<Integer, String[]> POKEMON_POR_ZONA = new TreeMap<>();
     static {
         POKEMON_POR_ZONA.put(1, new String[] { "Stantler", "Pichu", "Mime Jr.", "Chimchar", "Scyther", "Oshawott" });
         POKEMON_POR_ZONA.put(2, new String[] { "Turtwig", "Gastly", "Goomy", "Togepi", "Rowlet" });

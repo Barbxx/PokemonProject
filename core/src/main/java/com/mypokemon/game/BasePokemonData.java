@@ -1,6 +1,6 @@
 package com.mypokemon.game;
 
-import java.util.HashMap;
+import java.util.TreeMap;
 import java.util.Map;
 
 /**
@@ -61,7 +61,7 @@ public class BasePokemonData {
                 this.inmunidades = inmunidades;
         }
 
-        private static final Map<String, BasePokemonData> DATABASE = new HashMap<>();
+        private static final Map<String, BasePokemonData> DATABASE = new TreeMap<>();
 
         static {
                 // ZONA 1 (Nivel de Dificultad 1)
@@ -283,28 +283,36 @@ public class BasePokemonData {
                                 new String[] { "Placaje", "Canto" },
                                 new String[] { "Mordisco" },
                                 new String[] { "Normal" }));
-                
+
                 DATABASE.put("Rowlet",
-                                new BasePokemonData("Rowlet", "Utiliza fotosíntesis para acumular energía de día y ataca al anochecer.", 45, 55, 55, 50, 50, 42, 15, 5,
+                                new BasePokemonData("Rowlet",
+                                                "Utiliza fotosíntesis para acumular energía de día y ataca al anochecer.",
+                                                45, 55, 55, 50, 50, 42, 15, 5,
                                                 0,
                                                 0, 0, 5, "Planta / Volador",
                                                 new String[] { "Picotazo", "Follaje" },
                                                 new String[] { "Impresionar", "Hoja Afilada" },
                                                 new String[] { "Fuego", "Hielo", "Roca" }));
 
-                DATABASE.put("Cyndaquil", new BasePokemonData("Cyndaquil", "Suele enroscarse como una bola. Si se asusta, su espalda arde con fuerza.", 40, 52, 43, 60, 50,
+                DATABASE.put("Cyndaquil", new BasePokemonData("Cyndaquil",
+                                "Suele enroscarse como una bola. Si se asusta, su espalda arde con fuerza.", 40, 52, 43,
+                                60, 50,
                                 65, 20, 5, 0, 0, 0, 5, "Fuego",
                                 new String[] { "Placaje", "Ascuas" },
                                 new String[] { "Humareda", "Rueda Fuego" },
                                 new String[] { "Agua", "Tierra", "Roca" }));
 
-                DATABASE.put("Oshawott", new BasePokemonData("Oshawott", "Combate usando la vieira de su ombligo para cortar bayas o detener ataques.", 45, 55, 45, 63, 45, 45,
+                DATABASE.put("Oshawott", new BasePokemonData("Oshawott",
+                                "Combate usando la vieira de su ombligo para cortar bayas o detener ataques.", 45, 55,
+                                45, 63, 45, 45,
                                 22, 5, 0, 0, 0, 5, "Agua",
                                 new String[] { "Placaje", "Burbuja" },
                                 new String[] { "Aqua Jet", "Falsotortazo" },
                                 new String[] { "Planta", "Eléctrico" }));
 
-                DATABASE.put("Arceus", new BasePokemonData("Arceus", "Se dice que nació de un huevo en medio de la nada y dio forma al universo entero con sus mil brazos.", 130, 120, 120, 120, 120, 120,
+                DATABASE.put("Arceus", new BasePokemonData("Arceus",
+                                "Se dice que nació de un huevo en medio de la nada y dio forma al universo entero con sus mil brazos.",
+                                130, 120, 120, 120, 120, 120,
                                 0, 0, 0, 0, 0, 0, "Normal",
                                 new String[] { "Sentencia", "Paz Mental" },
                                 new String[] { "Recuperación", "Hiperrayo" },

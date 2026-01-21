@@ -79,7 +79,7 @@ public class GameServer {
         }
     }
 
-    private java.util.Set<String> collectedResources = java.util.concurrent.ConcurrentHashMap.newKeySet();
+    private java.util.Set<String> collectedResources = java.util.Collections.synchronizedSet(new java.util.TreeSet<>());
 
     private synchronized void handleConnection(Socket socket) {
         ClientHandler handler = new ClientHandler(socket, this);

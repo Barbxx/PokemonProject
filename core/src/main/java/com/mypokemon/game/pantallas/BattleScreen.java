@@ -102,6 +102,7 @@ public class BattleScreen extends ScreenAdapter {
     private Texture hpBarFill;
     private Texture baseCircleTexture;
     private Texture statusBarTexture;
+    private com.badlogic.gdx.audio.Music battleMusic;
 
     // Battle State
     private enum BattleState {
@@ -195,6 +196,18 @@ public class BattleScreen extends ScreenAdapter {
         }
 
         baseCircleTexture = createCircleTexture(new Color(0.3f, 0.6f, 0.2f, 0.8f));
+
+        // Musica de batalla
+        if (!pokemonEnemigo.getNombre().equalsIgnoreCase("Arceus")) {
+            try {
+                battleMusic = Gdx.audio.newMusic(Gdx.files.internal("batallaPokemon.mp3"));
+                battleMusic.setLooping(true);
+                battleMusic.setVolume(0.5f);
+                battleMusic.play();
+            } catch (Exception e) {
+                Gdx.app.log("BattleScreen", "No se pudo cargar batallaPokemon.mp3");
+            }
+        }
     }
 
     private Texture createCircleTexture(Color color) {
@@ -711,6 +724,9 @@ public class BattleScreen extends ScreenAdapter {
     }
 
     private void endBattle(final boolean victory) {
+        if (battleMusic != null) {
+            battleMusic.stop();
+        }
         currentState = BattleState.END_BATTLE;
 
         // Resetear modificadores temporales (Elixir)
@@ -985,5 +1001,8 @@ public class BattleScreen extends ScreenAdapter {
             playerBackTexture.dispose();
         if (statusBarTexture != null)
             statusBarTexture.dispose();
+        if (battleMusic != null) {
+            battleMusic.dispose();
+        }
     }
 }

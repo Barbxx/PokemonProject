@@ -1,7 +1,7 @@
 package com.mypokemon.game;
 
 import java.io.Serializable;
-import java.util.HashMap;
+import java.util.TreeMap;
 import java.util.Map;
 
 public class Pokedex implements Serializable {
@@ -12,7 +12,7 @@ public class Pokedex implements Serializable {
     private int especiesCompletas;
 
     public Pokedex() {
-        this.registro = new HashMap<>();
+        this.registro = new TreeMap<>();
         this.capturedOrder = new java.util.ArrayList<>();
         this.encounterOrder = new java.util.ArrayList<>();
         this.especiesCompletas = 0;

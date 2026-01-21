@@ -3,7 +3,7 @@ package com.mypokemon.game.utils;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.TreeMap;
 import java.util.Map;
 import javax.imageio.ImageIO;
 import javax.xml.parsers.DocumentBuilder;
@@ -62,7 +62,7 @@ public class AssetSplitter {
             doc.getDocumentElement().normalize();
 
             // Extract all tile properties
-            Map<Integer, Node> tileProperties = new HashMap<>();
+            Map<Integer, Node> tileProperties = new TreeMap<>();
             NodeList tiles = doc.getElementsByTagName("tile");
 
             for (int i = 0; i < tiles.getLength(); i++) {

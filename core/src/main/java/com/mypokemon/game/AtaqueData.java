@@ -1,6 +1,6 @@
 package com.mypokemon.game;
 
-import java.util.HashMap;
+import java.util.TreeMap;
 import java.util.Map;
 
 /**
@@ -24,7 +24,7 @@ public class AtaqueData {
         this.efecto = efecto;
     }
 
-    private static final Map<String, AtaqueData> DATABASE = new HashMap<>();
+    private static final Map<String, AtaqueData> DATABASE = new TreeMap<>();
 
     static {
         // Ataques Normales

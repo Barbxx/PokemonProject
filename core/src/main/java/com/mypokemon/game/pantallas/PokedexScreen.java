@@ -16,7 +16,7 @@ import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
-import java.util.HashMap;
+import java.util.TreeMap;
 import java.util.List;
 import java.util.Map;
 
@@ -29,7 +29,7 @@ public class PokedexScreen extends NavigableScreen {
     private BitmapFont fontStats;
 
     private List<String> capturedNames;
-    private Map<String, Texture> textureCache = new HashMap<>();
+    private Map<String, Texture> textureCache = new TreeMap<>();
     private int selectedIndex = 0;
 
     private OrthographicCamera camera;

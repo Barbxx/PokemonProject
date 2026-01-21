@@ -53,7 +53,7 @@ public class MochilaScreen extends BaseScreen {
     private Texture texMarcoVerde;
 
     // Pokemon Texture Cache
-    private java.util.Map<String, Texture> pokemonTextureCache = new java.util.HashMap<>();
+    private java.util.Map<String, Texture> pokemonTextureCache = new java.util.TreeMap<>();
 
     // Helper class for grid items
     // Data Model
@@ -914,8 +914,9 @@ public class MochilaScreen extends BaseScreen {
 
             Item reproductor = inventory.getItem("reproductor");
             if (reproductor != null && reproductor.getCantidad() > 0)
-                visibleItems.add(new ItemData("Reproductor de música", "Permite escuchar música de fondo durante el viaje.",
-                        texReproductor, reproductor.getCantidad(), reproductor));
+                visibleItems
+                        .add(new ItemData("Reproductor de música", "Permite escuchar música de fondo durante el viaje.",
+                                texReproductor, reproductor.getCantidad(), reproductor));
 
             Item guante = inventory.getItem("guante");
             if (guante != null && guante.getCantidad() > 0)

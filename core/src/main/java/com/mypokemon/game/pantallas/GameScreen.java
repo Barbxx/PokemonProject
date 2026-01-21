@@ -32,8 +32,8 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 
 import com.mypokemon.game.utils.TextureUtils;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
+import java.util.TreeMap;
 import java.util.Map;
 import com.badlogic.gdx.audio.Sound;
 import com.mypokemon.game.colisiones.GestorColisiones;
@@ -1000,7 +1000,17 @@ public class GameScreen extends BaseScreen {
                                     inEncounter = true;
                                     String pName = GestorEncuentros.obtenerPokemonAleatorio(nivelDificultad);
                                     Gdx.app.log("GameScreen", "Encounter: " + pName);
-                                    Pokemon salvaje = new Pokemon(pName, 0, 0, false, "Normal");
+
+                                    // Obtener nivel de investigación actual de la Pokedex
+                                    int currentResearchLevel = 0;
+                                    if (explorador.getRegistro().getRegistro().containsKey(pName)) {
+                                        currentResearchLevel = explorador.getRegistro().getRegistro().get(pName)
+                                                .getNivelInvestigacion();
+                                    }
+
+                                    // Crear Pokemon con el nivel de investigación correcto (esto ajusta su HP
+                                    // Máximo)
+                                    Pokemon salvaje = new Pokemon(pName, currentResearchLevel, 0, false, "Normal");
                                     salvaje.agregarMovimiento(new Movimiento("Tackle", 0, "Normal", 40));
                                     game.setScreen(new BattleScreen(game, this, explorador, salvaje));
                                 }
@@ -1366,7 +1376,11 @@ public class GameScreen extends BaseScreen {
         boolean recolectado = false;
         float timerRespawn = 0;
         final float TIEMPO_RESPAWN = 120.0f;
-        Map<TiledMapTileLayer, TiledMapTileLayer.Cell> cellsPorCapa = new HashMap<>();
+        Map<TiledMapTileLayer, TiledMapTileLayer.Cell> cellsPorCapa = new TreeMap<>((a, b) -> {
+            // Simple comparator based on hash code or name to satisfy TreeMap requirement
+            // for keys
+            return Integer.compare(System.identityHashCode(a), System.identityHashCode(b));
+        });
 
         public RecursoMapa(int x, int y, String tipo, int cantidad) {
             this.cellX = x;
