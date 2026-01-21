@@ -116,12 +116,6 @@ public class PokedexScreen extends NavigableScreen {
         // Overlay darkening REMOVED
         game.batch.setColor(Color.WHITE);
 
-        // Sin registros text position
-        if (capturedNames.isEmpty()) {
-            fontText.setColor(Color.LIGHT_GRAY);
-            fontText.draw(game.batch, "Sin registros...", 80, VIRTUAL_HEIGHT - 500);
-        }
-
         // Info Panel (Left side - Lowered to match background "INFO PKMN" box)
         float infoX = 70;
         float infoY = 50;
@@ -160,24 +154,12 @@ public class PokedexScreen extends NavigableScreen {
             fontTitle.draw(game.batch, currentPokemonName.toUpperCase(), infoX + 20, infoY + infoH - 30);
 
             // Region determination
-            String region = "Sinnoh";
-            if (currentPokemonName.contains("H.")) {
-                region = "Hisui";
-            }
+            String region = "OneFerxxo";
 
             fontText.setColor(Color.CYAN);
             fontText.getData().setScale(1.3f);
-            // Display Region instead of Type or along with Type? User said "su region...
-            // nombre unicamente. (quita lo demas)" but typically "lo demas" refers to
-            // stats.
-            // The prompt says "nivel de investigacion, su descripcion, su region... y su
-            // nombre unicamente". It implies "Type" MIGHT be removed or maybe kept?
-            // "su nombre unicamente" usually means "no other stats".
-            // I will keep TIPO if it helps identification but user said "su region... y su
-            // nombre unicamente (quita lo demas)".
-            // "Nombré, Nivel Inv, Descripcion, Region". I will stick to these 4.
 
-            fontText.draw(game.batch, "REGION: " + region, infoX + 20, infoY + infoH - 70);
+            fontText.draw(game.batch, "REGIÓN: " + region, infoX + 20, infoY + infoH - 70);
 
             fontText.setColor(Color.ORANGE);
             int nivelInv = (registro != null ? registro.getNivelInvestigacion() : 0);

@@ -217,10 +217,6 @@ public class MainMenuScreen extends BaseScreen {
     public void dispose() {
         if (background != null)
             background.dispose();
-        // Since we are creating new screens, we might not want to dispose everything
-        // immediately if we plan to come back?
-        // But usually in LibGDX screen switching, we dispose the old one or keep it.
-        // For now, standard dispose.
         if (normalTextures != null) {
             for (Texture t : normalTextures)
                 if (t != null)

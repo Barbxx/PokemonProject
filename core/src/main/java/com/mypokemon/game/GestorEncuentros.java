@@ -20,11 +20,11 @@ public class GestorEncuentros {
     // Pokémon por nivel
     private static final Map<Integer, String[]> POKEMON_POR_ZONA = new HashMap<>();
     static {
-        POKEMON_POR_ZONA.put(1, new String[] { "Stantler", "Pichu", "Mime Jr.", "Chimchar", "Scyther" });
-        POKEMON_POR_ZONA.put(2, new String[] { "Turtwig", "Gastly", "Goomy", "Togepi" });
+        POKEMON_POR_ZONA.put(1, new String[] { "Stantler", "Pichu", "Mime Jr.", "Chimchar", "Scyther", "Oshawott" });
+        POKEMON_POR_ZONA.put(2, new String[] { "Turtwig", "Gastly", "Goomy", "Togepi", "Rowlet" });
         POKEMON_POR_ZONA.put(3, new String[] { "Growlithe H.", "Qwilfish H.", "Piplup", "Basculin Red-Striped" });
         POKEMON_POR_ZONA.put(4, new String[] { "Sneasel H.", "Gible", "Voltorb H.", "Cleffa" });
-        POKEMON_POR_ZONA.put(5, new String[] { "Bergmite", "Snorunt", "Zorua H." });
+        POKEMON_POR_ZONA.put(5, new String[] { "Bergmite", "Snorunt", "Zorua H.", "Cyndaquil H." });
     }
 
     public static boolean verificarEncuentro(int nivel) {
