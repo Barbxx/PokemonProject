@@ -3,11 +3,8 @@ package com.mypokemon.game.client;
 import java.io.*;
 import java.net.*;
 
-/**
- * Cliente de red que maneja la comunicación TCP/UDP con el servidor del juego.
- * Implementa descubrimiento automático de servidor mediante UDP (Beacon) y
- * comunicación persistente mediante TCP.
- */
+//Cliente de red que maneja la comunicación TCP/UDP con el servidor del juego.
+
 public class NetworkClient {
     private static final int TCP_PORT = 54321;
     private static final int UDP_PORT = 54777;
@@ -19,9 +16,6 @@ public class NetworkClient {
     private volatile boolean listening = true;
 
     // Interfaz para callbacks
-    /**
-     * Interfaz para recibir callbacks cuando llegan mensajes del servidor.
-     */
     public interface NetworkListener {
         /**
          * Se invoca cuando llega un mensaje del servidor.
@@ -38,40 +32,28 @@ public class NetworkClient {
     }
 
     /**
-     * Listens for the Server's UDP Beacon to auto-discover IP.
-     * Blocking call (should be run in a separate thread).
-     */
-    /**
      * Escucha la señal del faro (Beacon) UDP del servidor para auto-descubrir su
      * IP.
      * Esta llamada es bloqueante y debería ejecutarse en un hilo separado.
      * 
-     * @return La dirección IP del servidor descubierto o "127.0.0.1" si falla o hay
-     *         timeout.
+     * @return La dirección IP del servidor descubierto o "127.0.0.1" si falla.
      */
     public String discoverServerIP() {
         DatagramSocket socket = null;
         try {
             // Enlazar al puerto UDP
-            // IMPORTANTE: NO usar setReuseAddress(true) aquí para que la lógica de pruebas
-            // locales
-            // funcione fiablemente.
-            // QUEREMOS que la segunda instancia falle al enlazar o agote el tiempo para que
-            // recurra a
-            // localhost.
+
             socket = new DatagramSocket(null);
 
             try {
                 socket.bind(new InetSocketAddress(UDP_PORT));
             } catch (SocketException bindEx) {
-                // Puerto ocupado - probablemente otra instancia local (Jugador 1) se está
-                // ejecutando.
-                // Recurrir a localhost para pruebas locales.
+                // Puerto ocupado - Recurrir a localhost para pruebas locales.
                 System.out.println("[Client] Puerto 54777 ocupado. Asumiendo jugadora 2 en misma PC (Localhost).");
                 return "127.0.0.1";
             }
 
-            socket.setSoTimeout(1000); // Comprobar cada 1s
+            socket.setSoTimeout(1000); // Para comprobar cada 1s
 
             byte[] buffer = new byte[1024];
             int retries = 0;
@@ -151,10 +133,8 @@ public class NetworkClient {
         }
     }
 
-    /**
-     * Bucle de escucha TCP que se ejecuta en su propio hilo.
-     * Recibe mensajes entrantes y notifica al listener registrado.
-     */
+    // Bucle de escucha TCP que se ejecuta en su propio hilo. Recibe mensajes
+    // entrantes y notifica al listener registrado.
     private void listenTcp() {
         try {
             while (listening && !tcpSocket.isClosed()) {
@@ -168,9 +148,7 @@ public class NetworkClient {
         }
     }
 
-    /**
-     * Detiene el cliente de red, cerrando sockets y terminando hilos de escucha.
-     */
+    // Detiene el cliente de red, cerrando sockets y terminando hilos de escucha.
     public void stop() {
         listening = false;
         try {
