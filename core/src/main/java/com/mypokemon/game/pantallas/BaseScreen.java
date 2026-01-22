@@ -11,9 +11,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Abstract base class for screens with automatic texture management.
- * All screens should extend this class to benefit from resource management and
- * helper methods.
+ * Clase base abstracta para pantallas con gestión automática de texturas.
+ * Todas las pantallas deben extender esta clase para beneficiarse de la gestión
+ * de recursos
+ * y métodos auxiliares.
  */
 public abstract class BaseScreen implements Screen, ITextureManager {
 
@@ -26,10 +27,10 @@ public abstract class BaseScreen implements Screen, ITextureManager {
     }
 
     /**
-     * Loads a texture and registers it for automatic disposal.
+     * Carga una textura y la registra para su eliminación automática.
      * 
-     * @param path Path to the texture file
-     * @return Loaded texture, or null if loading fails
+     * @param path Ruta al archivo de textura.
+     * @return Textura cargada, o null si falla la carga.
      */
     @Override
     public Texture loadTexture(String path) {
@@ -44,9 +45,9 @@ public abstract class BaseScreen implements Screen, ITextureManager {
     }
 
     /**
-     * Registers a texture for automatic disposal.
+     * Registra una textura para eliminación automática.
      * 
-     * @param texture Texture to register
+     * @param texture Textura a registrar.
      */
     @Override
     public void addTexture(Texture texture) {
@@ -56,7 +57,7 @@ public abstract class BaseScreen implements Screen, ITextureManager {
     }
 
     /**
-     * Disposes all registered textures.
+     * Elimina todas las texturas registradas.
      */
     @Override
     public void disposeTextures() {
@@ -69,18 +70,18 @@ public abstract class BaseScreen implements Screen, ITextureManager {
     }
 
     /**
-     * Gets the current screen width.
+     * Obtiene el ancho actual de la pantalla.
      * 
-     * @return Screen width in pixels
+     * @return Ancho de la pantalla en píxeles.
      */
     protected float getScreenWidth() {
         return Gdx.graphics.getWidth();
     }
 
     /**
-     * Gets the current screen height.
+     * Obtiene el alto actual de la pantalla.
      * 
-     * @return Screen height in pixels
+     * @return Alto de la pantalla en píxeles.
      */
     protected float getScreenHeight() {
         return Gdx.graphics.getHeight();
@@ -91,27 +92,27 @@ public abstract class BaseScreen implements Screen, ITextureManager {
 
     @Override
     public void show() {
-        // Optional override
+        // Sobrescritura opcional
     }
 
     @Override
     public void resize(int width, int height) {
-        // Optional override
+        // Sobrescritura opcional
     }
 
     @Override
     public void pause() {
-        // Optional override
+        // Sobrescritura opcional
     }
 
     @Override
     public void resume() {
-        // Optional override
+        // Sobrescritura opcional
     }
 
     @Override
     public void hide() {
-        // Optional override
+        // Sobrescritura opcional
     }
 
     @Override

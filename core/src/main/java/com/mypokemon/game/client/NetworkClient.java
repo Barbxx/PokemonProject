@@ -18,7 +18,7 @@ public class NetworkClient {
     private DataOutputStream out;
     private volatile boolean listening = true;
 
-    // Interface for callbacks
+    // Interfaz para callbacks
     /**
      * Interfaz para recibir callbacks cuando llegan mensajes del servidor.
      */
@@ -52,27 +52,30 @@ public class NetworkClient {
     public String discoverServerIP() {
         DatagramSocket socket = null;
         try {
-            // Bind to UDP port
-            // IMPORTANT: Do NOT use setReuseAddress(true) here for local testing logic to
-            // work reliably.
-            // We WANT the second instance to fail binding or timeout so it falls back to
+            // Enlazar al puerto UDP
+            // IMPORTANTE: NO usar setReuseAddress(true) aquí para que la lógica de pruebas
+            // locales
+            // funcione fiablemente.
+            // QUEREMOS que la segunda instancia falle al enlazar o agote el tiempo para que
+            // recurra a
             // localhost.
             socket = new DatagramSocket(null);
 
             try {
                 socket.bind(new InetSocketAddress(UDP_PORT));
             } catch (SocketException bindEx) {
-                // Port is busy - likely another local instance (Player 1) is running.
-                // Fallback to localhost for local testing.
+                // Puerto ocupado - probablemente otra instancia local (Jugador 1) se está
+                // ejecutando.
+                // Recurrir a localhost para pruebas locales.
                 System.out.println("[Client] Puerto 54777 ocupado. Asumiendo jugadora 2 en misma PC (Localhost).");
                 return "127.0.0.1";
             }
 
-            socket.setSoTimeout(1000); // Check every 1s
+            socket.setSoTimeout(1000); // Comprobar cada 1s
 
             byte[] buffer = new byte[1024];
             int retries = 0;
-            int maxRetries = 3; // 3 seconds max wait
+            int maxRetries = 3; // Espera máxima de 3 segundos
 
             System.out.println("[Client] Buscando señal Faro...");
             while (listening && retries < maxRetries) {
@@ -91,13 +94,13 @@ public class NetworkClient {
                     System.out.println("[Client] Buscando... (" + retries + "/" + maxRetries + ")");
                 }
             }
-            // If we timed out or loop ended
+            // Si se agotó el tiempo o terminó el bucle
             System.out.println("[Client] Timeout buscando faro. Probando Localhost por defecto.");
             return "127.0.0.1";
 
         } catch (Exception e) {
             e.printStackTrace();
-            // Safe fallback
+            // Fallback seguro
             return "127.0.0.1";
         } finally {
             if (socket != null && !socket.isClosed())
@@ -120,10 +123,10 @@ public class NetworkClient {
             in = new DataInputStream(tcpSocket.getInputStream());
             out = new DataOutputStream(tcpSocket.getOutputStream());
 
-            // Initial Handshake
+            // Handshake inicial
             sendMessage("NAME:" + playerName);
 
-            // Start listening for TCP messages
+            // Iniciar escucha de mensajes TCP
             new Thread(this::listenTcp, "Client-TCP-Listener").start();
 
             return true;

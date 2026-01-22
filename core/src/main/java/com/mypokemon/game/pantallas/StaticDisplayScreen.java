@@ -12,18 +12,18 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 /**
- * Abstract base class for static display screens (screens that just show an
- * image).
- * Provides automatic background rendering, orthographic camera with fixed
- * viewport,
- * and ESC key handling to return.
+ * Clase base abstracta para pantallas estáticas (pantallas que solo muestran
+ * una imagen).
+ * Proporciona renderizado automático de fondo, cámara ortográfica con viewport
+ * fijo
+ * y manejo de tecla ESC para regresar.
  */
 public abstract class StaticDisplayScreen extends BaseScreen implements INavigable {
 
     protected Texture background;
     protected final Screen returnScreen;
 
-    // Camera and Viewport for fixed aspect ratio
+    // Cámara y Viewport para relación de aspecto fija
     protected OrthographicCamera camera;
     protected Viewport viewport;
     protected static final float VIRTUAL_WIDTH = 1280f;
@@ -34,7 +34,7 @@ public abstract class StaticDisplayScreen extends BaseScreen implements INavigab
         this.returnScreen = returnScreen;
         this.background = loadTexture(backgroundPath);
 
-        // Setup camera and viewport
+        // Configurar cámara y viewport
         camera = new OrthographicCamera();
         viewport = new FitViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, camera);
         viewport.apply();
@@ -44,7 +44,7 @@ public abstract class StaticDisplayScreen extends BaseScreen implements INavigab
 
     @Override
     public void render(float delta) {
-        // Handle ESC to go back
+        // Manejar ESC para volver atrás
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE) || Gdx.input.isKeyJustPressed(Input.Keys.BACKSPACE)) {
             navigateBack();
             return;
@@ -62,7 +62,7 @@ public abstract class StaticDisplayScreen extends BaseScreen implements INavigab
     }
 
     /**
-     * Renders the background image to fill the virtual screen.
+     * Renderiza la imagen de fondo para llenar la pantalla virtual.
      */
     protected void renderBackground() {
         if (background != null) {
@@ -71,12 +71,12 @@ public abstract class StaticDisplayScreen extends BaseScreen implements INavigab
     }
 
     /**
-     * Override this to render additional content on top of the background.
+     * Sobrescribe esto para renderizar contenido adicional sobre el fondo.
      * 
-     * @param delta Time since last frame
+     * @param delta Tiempo desde el último frame
      */
     protected void renderContent(float delta) {
-        // Override in subclasses if needed
+        // Sobrescribir en subclases si es necesario
     }
 
     @Override

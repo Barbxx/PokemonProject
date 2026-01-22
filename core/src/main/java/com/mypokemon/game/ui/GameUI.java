@@ -27,17 +27,17 @@ public class GameUI {
      * Constructor que inicializa los recursos gráficos de la UI.
      */
     public GameUI() {
-        this.font = new BitmapFont(); // Or pass in a font if shared
+        this.font = new BitmapFont(); // O pasar una fuente si se comparte
         this.uiWhitePixel = TextureUtils.createSolidTexture(1, 1, Color.WHITE);
         try {
             this.dialogFrameTexture = new Texture(Gdx.files.internal("marcoDialogo.png"));
         } catch (Exception e) {
-            // Handle error or ignore
+            // Manejar error o ignorar
         }
         try {
             this.menuHintTexture = new Texture(Gdx.files.internal("indicacionMenu.png"));
         } catch (Exception e) {
-            // Ignore if missing
+            // Ignorar si falta
         }
     }
 
@@ -53,7 +53,7 @@ public class GameUI {
             font.setColor(Color.WHITE);
             font.setColor(Color.WHITE);
 
-            // Draw Menu Hint Image (Bottom Right)
+            // Dibujar imagen de indicación de menú (Abajo Derecha)
             if (menuHintTexture != null && !showMenu) {
                 batch.draw(menuHintTexture, screenWidth - menuHintTexture.getWidth() - 10, 10);
             }
@@ -88,20 +88,20 @@ public class GameUI {
         float menuY = screenHeight - menuH - 20;
         float borderSize = 4;
 
-        // Draw Menu Border (Reddish / Orange)
+        // Dibujar borde del menú (Rojizo / Naranja)
         batch.setColor(new Color(0.8f, 0.2f, 0.1f, 1f));
         if (uiWhitePixel != null) {
             batch.draw(uiWhitePixel, menuX, menuY, menuW, menuH);
         }
 
-        // Draw Menu Background (White)
+        // Dibujar fondo del menú (Blanco)
         batch.setColor(Color.WHITE);
         if (uiWhitePixel != null) {
             batch.draw(uiWhitePixel, menuX + borderSize, menuY + borderSize, menuW - borderSize * 2,
                     menuH - borderSize * 2);
         }
 
-        // Draw Options
+        // Dibujar opciones
         font.setColor(Color.DARK_GRAY);
         font.getData().setScale(0.85f);
         float startY = menuY + menuH - 40;
@@ -111,7 +111,7 @@ public class GameUI {
             float optY = startY - (i * spacing);
             font.draw(batch, options[i], menuX + 45, optY);
 
-            // Draw Selection Arrow
+            // Dibujar flecha de selección
             if (i == selectedIndex) {
                 font.draw(batch, ">", menuX + 20, optY);
             }
@@ -119,7 +119,7 @@ public class GameUI {
 
         font.getData().setScale(1.0f);
         font.setColor(Color.WHITE);
-        batch.setColor(Color.WHITE); // Reset Batch color
+        batch.setColor(Color.WHITE); // Restablecer color del Batch
     }
 
     /**
@@ -134,20 +134,21 @@ public class GameUI {
     public void renderDialog(SpriteBatch batch, String npcName, String text, Texture portrait, boolean showNextHint) {
         float dialogHeight = 110;
         float portraitSize = 250;
-        // Basic logic to determine portrait size if needed, but standardizing is better
+        // Lógica básica para determinar el tamaño del retrato si es necesario, pero
+        // estandarizar es mejor
         // if (npcName.contains("Harry Potter")) portraitSize = 320;
 
         if (portrait != null)
             batch.draw(portrait, screenWidth - portraitSize - 20, dialogHeight - 20, portraitSize, portraitSize);
 
-        // Draw Box
+        // Dibujar cuadro
         batch.setColor(Color.DARK_GRAY);
         if (uiWhitePixel != null)
             batch.draw(uiWhitePixel, 20, 20, screenWidth - 40, dialogHeight);
         batch.setColor(Color.WHITE);
         if (uiWhitePixel != null)
             batch.draw(uiWhitePixel, 23, 23, screenWidth - 46, dialogHeight - 6);
-        // Name Tag
+        // Etiqueta de nombre
         float nameTagY = dialogHeight + 10;
         batch.setColor(Color.DARK_GRAY);
         if (uiWhitePixel != null)

@@ -55,12 +55,10 @@ public class MapFixer {
 
         long problematicGid = 268430755L;
 
-        // 1. Remove the problematic tileset line
-        // <tileset firstgid="268430755" source="Tilesets_ambiente_2.tsx"/>
         String tilesetRegex = "\\s*<tileset firstgid=\"" + problematicGid + "\" source=\"Tilesets_ambiente_2\\.tsx\"/>";
         content = content.replaceAll(tilesetRegex, "");
 
-        // 2. Remap GIDs in the <data encoding="csv"> sections
+        // 2. Remapear GIDs en las secciones
         Pattern dataPattern = Pattern.compile("(<data encoding=\"csv\">)(.*?)(</data>)", Pattern.DOTALL);
         Matcher matcher = dataPattern.matcher(content);
         StringBuilder sb = new StringBuilder();
@@ -79,10 +77,8 @@ public class MapFixer {
                     continue;
 
                 try {
-                    // Tiles GID can be large due to flip flags, so use long
                     long val = Long.parseLong(trimmed);
 
-                    // Mask for the actual GID (lower 28 bits)
                     long mask = 0x0FFFFFFFL;
                     long baseGid = val & mask;
                     long flags = val & ~mask;
@@ -101,7 +97,7 @@ public class MapFixer {
             }
 
             String remappedData = String.join(",", newGids);
-            // Reconstruct the data tag
+            // Reconstruir la etiqueta de datos
             matcher.appendReplacement(sb, Matcher.quoteReplacement(prefix + remappedData + suffix));
         }
         matcher.appendTail(sb);
