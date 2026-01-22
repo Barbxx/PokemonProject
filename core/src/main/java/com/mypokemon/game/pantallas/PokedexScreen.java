@@ -20,6 +20,11 @@ import java.util.TreeMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Pantalla de la Pokédex.
+ * Muestra la información de los Pokémon avistados y capturados, con navegación
+ * en cuadrícula.
+ */
 public class PokedexScreen extends NavigableScreen {
     private Texture background;
     private Texture entryBg;
@@ -43,6 +48,14 @@ public class PokedexScreen extends NavigableScreen {
     private final int GRID_COLS = 6;
     private final int GRID_ROWS = 4; // Changed to 4 rows
 
+    /**
+     * Constructor de la pantalla de Pokédex.
+     * Carga fuentes y texturas necesarias.
+     * 
+     * @param game         Juego principal.
+     * @param returnScreen Pantalla anterior.
+     * @param explorador   Datos del jugador para acceder al registro de la Pokédex.
+     */
     public PokedexScreen(PokemonMain game, Screen returnScreen, Explorador explorador) {
         super(game, returnScreen);
         this.explorador = explorador;
@@ -74,6 +87,12 @@ public class PokedexScreen extends NavigableScreen {
         pixmap.dispose();
     }
 
+    /**
+     * Renderiza la interfaz de la Pokédex.
+     * Muestra la lista de Pokémon en cuadrícula y el detalle del seleccionado.
+     * 
+     * @param delta Tiempo transcurrido.
+     */
     @Override
     public void render(float delta) {
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE) || Gdx.input.isKeyJustPressed(Input.Keys.K)) {
@@ -230,6 +249,9 @@ public class PokedexScreen extends NavigableScreen {
         viewport.update(width, height, true);
     }
 
+    /**
+     * Libera recursos.
+     */
     @Override
     public void dispose() {
         super.dispose(); // Automatically disposes registered textures

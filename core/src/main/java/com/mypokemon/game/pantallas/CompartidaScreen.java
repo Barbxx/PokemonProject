@@ -12,6 +12,10 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.mypokemon.game.client.NetworkClient;
 
+/**
+ * Pantalla para la conexión en modo multijugador compartido (Red Local).
+ * Busca servidores automáticamente y gestiona la conexión.
+ */
 public class CompartidaScreen extends BaseScreen {
 
     private String playerName;
@@ -24,6 +28,12 @@ public class CompartidaScreen extends BaseScreen {
     private static final float VIRTUAL_WIDTH = 1280f;
     private static final float VIRTUAL_HEIGHT = 720f;
 
+    /**
+     * Constructor de la pantalla compartida.
+     * 
+     * @param game       Juego principal.
+     * @param playerName Nombre del jugador local.
+     */
     public CompartidaScreen(PokemonMain game, String playerName) {
         super(game);
         this.playerName = playerName;
@@ -41,6 +51,10 @@ public class CompartidaScreen extends BaseScreen {
         startDiscovery();
     }
 
+    /**
+     * Inicia el proceso de descubrimiento de servidores en un hilo separado.
+     * Utiliza UDP para encontrar el servidor y luego TCP para conectar.
+     */
     private void startDiscovery() {
         statusText = "Buscando Servidor en RED LOCAL...";
         isConnecting = true;
@@ -89,6 +103,12 @@ public class CompartidaScreen extends BaseScreen {
         }).start();
     }
 
+    /**
+     * Renderiza la pantalla con el estado de la conexión.
+     * Muestra mensajes informativos y permite cancelar con ESC.
+     * 
+     * @param delta Tiempo transcurrido del frame.
+     */
     @Override
     public void render(float delta) {
         ScreenUtils.clear(0, 0, 0, 1);

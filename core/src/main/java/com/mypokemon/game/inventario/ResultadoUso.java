@@ -17,9 +17,9 @@ public class ResultadoUso implements Serializable {
     /**
      * Constructor para crear un resultado de uso.
      * 
-     * @param exito        true si el uso fue exitoso
-     * @param mensaje      Mensaje descriptivo del resultado
-     * @param consumirItem true si el ítem debe ser consumido
+     * @param exito        true si el uso fue exitoso.
+     * @param mensaje      Mensaje descriptivo del resultado.
+     * @param consumirItem true si el ítem debe ser consumido.
      */
     public ResultadoUso(boolean exito, String mensaje, boolean consumirItem) {
         this.exito = exito;
@@ -28,42 +28,57 @@ public class ResultadoUso implements Serializable {
     }
 
     /**
-     * @return true si el uso fue exitoso
+     * Indica si el uso del ítem fue exitoso.
+     * 
+     * @return true si tuvo éxito.
      */
     public boolean isExito() {
         return exito;
     }
 
     /**
-     * @return Mensaje descriptivo del resultado
+     * Obtiene el mensaje descriptivo del resultado.
+     * 
+     * @return Mensaje de texto.
      */
     public String getMensaje() {
         return mensaje;
     }
 
     /**
-     * @return true si el ítem debe ser consumido
+     * Indica si el ítem debe ser consumido tras el uso.
+     * 
+     * @return true si se debe reducir la cantidad del ítem.
      */
     public boolean isConsumirItem() {
         return consumirItem;
     }
 
     /**
-     * Crea un resultado exitoso.
+     * Crea un resultado exitoso que consume el ítem.
+     * 
+     * @param mensaje Detalle del éxito.
+     * @return Instancia de ResultadoUso.
      */
     public static ResultadoUso exito(String mensaje) {
         return new ResultadoUso(true, mensaje, true);
     }
 
     /**
-     * Crea un resultado fallido.
+     * Crea un resultado fallido (no consume el ítem).
+     * 
+     * @param mensaje Razón del fallo.
+     * @return Instancia de ResultadoUso.
      */
     public static ResultadoUso fallo(String mensaje) {
         return new ResultadoUso(false, mensaje, false);
     }
 
     /**
-     * Crea un resultado exitoso sin consumir el ítem.
+     * Crea un resultado exitoso que NO consume el ítem.
+     * 
+     * @param mensaje Detalle del éxito.
+     * @return Instancia de ResultadoUso.
      */
     public static ResultadoUso exitoSinConsumir(String mensaje) {
         return new ResultadoUso(true, mensaje, false);

@@ -9,8 +9,10 @@ import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.graphics.Texture;
 
 /**
- * Abstract base class for menu screens with keyboard and mouse navigation.
- * Provides common menu functionality like option selection and hover effects.
+ * Clase base abstracta para pantallas de menú con navegación por teclado y
+ * ratón.
+ * Proporciona funcionalidad común como selección de opciones y efectos
+ * visuales.
  */
 public abstract class MenuScreen extends BaseScreen implements IInputHandler {
 
@@ -24,10 +26,11 @@ public abstract class MenuScreen extends BaseScreen implements IInputHandler {
     }
 
     /**
-     * Initializes menu options and loads their textures.
+     * Inicializa las opciones del menú y carga sus texturas.
      * 
-     * @param options      Array of option names
-     * @param filePrefixes Array of file prefixes for textures (e.g., "boton_jugar")
+     * @param options      Array de nombres de opciones.
+     * @param filePrefixes Array de prefijos de archivo para las texturas (ej:
+     *                     "boton_jugar").
      */
     protected void initializeMenuOptions(String[] options, String[] filePrefixes) {
         this.options = options;
@@ -41,7 +44,7 @@ public abstract class MenuScreen extends BaseScreen implements IInputHandler {
     }
 
     /**
-     * Handles keyboard navigation through menu options.
+     * Gestiona la navegación por menú mediante teclado (Flechas y WASD).
      */
     protected void handleMenuNavigation() {
         if (Gdx.input.isKeyJustPressed(Input.Keys.UP) || Gdx.input.isKeyJustPressed(Input.Keys.W)) {
@@ -68,13 +71,13 @@ public abstract class MenuScreen extends BaseScreen implements IInputHandler {
     }
 
     /**
-     * Checks which menu option is being hovered by the mouse.
+     * Comprueba qué opción del menú está bajo el ratón.
      * 
-     * @param buttonX      X position of buttons
-     * @param buttonY      Array of Y positions for each button
-     * @param buttonWidth  Width of buttons
-     * @param buttonHeight Height of buttons
-     * @return Index of hovered option, or -1 if none
+     * @param buttonX      Posición X de los botones.
+     * @param buttonY      Array de posiciones Y de cada botón.
+     * @param buttonWidth  Ancho de los botones.
+     * @param buttonHeight Alto de los botones.
+     * @return Índice de la opción bajo el ratón, o -1 si ninguna.
      */
     protected int getHoveredOption(float buttonX, float[] buttonY, float buttonWidth, float buttonHeight) {
         float mouseX = Gdx.input.getX();
@@ -90,9 +93,9 @@ public abstract class MenuScreen extends BaseScreen implements IInputHandler {
     }
 
     /**
-     * Called when a menu option is selected (clicked or Enter pressed).
+     * Se llama cuando se selecciona una opción (clic o Enter).
      * 
-     * @param optionIndex Index of the selected option
+     * @param optionIndex Índice de la opción seleccionada.
      */
     protected abstract void handleOptionSelected(int optionIndex);
 

@@ -22,13 +22,18 @@ public class GestorColisiones {
 
     /**
      * Establece la capa de colisión del terreno del mapa.
+     * 
+     * @param capa Capa de tiles que contiene las propiedades de colisión.
      */
     public void establecerCapaColisionTerreno(TiledMapTileLayer capa) {
         this.capaColisionTerreno = capa;
     }
 
     /**
-     * Agrega una colisión al gestor.
+     * Agrega un objeto colisionable al gestor.
+     * Si el objeto también es interactivo, se registra para interacciones.
+     * 
+     * @param colision Objeto que implementa IColisionable.
      */
     public void agregarColision(IColisionable colision) {
         colisiones.add(colision);
@@ -39,6 +44,13 @@ public class GestorColisiones {
 
     /**
      * Verifica colisión con el terreno del mapa.
+     * Comprueba si el rectángulo especificado solapa con algún tile sólido.
+     * 
+     * @param x     Posición X central.
+     * @param y     Posición Y central.
+     * @param ancho Ancho del área.
+     * @param alto  Alto del área.
+     * @return true si hay colisión con terreno.
      */
     public boolean verificarColisionTerreno(float x, float y, float ancho, float alto) {
         if (capaColisionTerreno == null)
@@ -70,7 +82,13 @@ public class GestorColisiones {
     }
 
     /**
-     * Verifica colisión con NPCs.
+     * Verifica colisión con NPCs registrados.
+     * 
+     * @param x     Posición X.
+     * @param y     Posición Y.
+     * @param ancho Ancho.
+     * @param alto  Alto.
+     * @return true si hay colisión.
      */
     public boolean verificarColisionNPCs(float x, float y, float ancho, float alto) {
         for (IColisionable colision : colisiones) {
@@ -84,7 +102,13 @@ public class GestorColisiones {
     }
 
     /**
-     * Verifica todas las colisiones (terreno + objetos).
+     * Verifica todas las colisiones posibles (terreno y objetos).
+     * 
+     * @param x     Posición X.
+     * @param y     Posición Y.
+     * @param ancho Ancho.
+     * @param alto  Alto.
+     * @return true si hay alguna colisión.
      */
     public boolean verificarTodasLasColisiones(float x, float y, float ancho, float alto) {
         // Verificar terreno
@@ -142,7 +166,7 @@ public class GestorColisiones {
     }
 
     /**
-     * Limpia todas las colisiones.
+     * Limpia todas las colisiones y objetos interactivos registrados.
      */
     public void limpiar() {
         colisiones.clear();

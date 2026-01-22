@@ -10,25 +10,25 @@ public interface IColisionable {
     /**
      * Verifica si hay colisión con el área especificada.
      * 
-     * @param x     Posición X
-     * @param y     Posición Y
-     * @param ancho Ancho del área
-     * @param alto  Alto del área
-     * @return true si hay colisión, false en caso contrario
+     * @param x     Posición X del centro.
+     * @param y     Posición Y del centro.
+     * @param ancho Ancho del área.
+     * @param alto  Alto del área.
+     * @return true si hay colisión, false en caso contrario.
      */
     boolean verificarColision(float x, float y, float ancho, float alto);
 
     /**
-     * Obtiene los límites del objeto colisionable.
+     * Obtiene los límites geométricos del objeto colisionable.
      * 
-     * @return Rectangle con los límites
+     * @return Rectangle con los límites.
      */
     Rectangle obtenerLimites();
 
     /**
-     * Obtiene el tipo de colisión.
+     * Obtiene el tipo de colisión para identificar el objeto.
      * 
-     * @return "NPC", "ZONA", "TERRENO"
+     * @return Tipo como cadena (ej: "NPC", "ZONA", "TERRENO").
      */
     String obtenerTipo();
 }

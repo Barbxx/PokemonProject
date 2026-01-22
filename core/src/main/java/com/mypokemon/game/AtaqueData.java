@@ -15,6 +15,16 @@ public class AtaqueData {
     public boolean esEstado; // true si es un ataque de estado (no hace daño directo)
     public String efecto; // Descripción del efecto de estado
 
+    /**
+     * Constructor de datos de ataque.
+     * 
+     * @param nombre    Nombre del movimiento.
+     * @param poder     Potencia del ataque (0 si es de estado).
+     * @param tipo      Tipo elemental del ataque (Fuego, Agua, etc).
+     * @param precision Precisión del ataque (0-100).
+     * @param esEstado  Indica si es un movimiento de estado (sin daño directo).
+     * @param efecto    Descripción del efecto secundario si lo tiene.
+     */
     public AtaqueData(String nombre, int poder, String tipo, int precision, boolean esEstado, String efecto) {
         this.nombre = nombre;
         this.poder = poder;
@@ -107,10 +117,22 @@ public class AtaqueData {
         DATABASE.put("Mofa", new AtaqueData("Mofa", 0, "Siniestro", 100, true, "Provoca al objetivo"));
     }
 
+    /**
+     * Obtiene los datos de un ataque por su nombre.
+     * 
+     * @param nombre Nombre del ataque.
+     * @return Objeto AtaqueData o null si no existe.
+     */
     public static AtaqueData get(String nombre) {
         return DATABASE.get(nombre);
     }
 
+    /**
+     * Verifica si un ataque existe en la base de datos.
+     * 
+     * @param nombre Nombre del ataque.
+     * @return true si el ataque está registrado, false en caso contrario.
+     */
     public static boolean existe(String nombre) {
         return DATABASE.containsKey(nombre);
     }

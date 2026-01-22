@@ -6,8 +6,8 @@ import java.util.List;
 import java.io.Serializable;
 
 /**
- * Representa un Pokemon con sus estadisticas, movimientos y estado de batalla.
- * Incluye gestion de HP, ataques, nivel de investigacion y modificadores
+ * Representa un Pokémon con sus estadísticas, movimientos y estado de batalla.
+ * Incluye gestión de HP, ataques, nivel de investigación y modificadores
  * temporales.
  */
 public class Pokemon implements Serializable {
@@ -23,21 +23,21 @@ public class Pokemon implements Serializable {
     private boolean debilitado;
     private String tipo;
     private List<Movimiento> movimientos;
-    private transient float modificadorAtaqueTemporal = 0; // Para el Elixir de Piel de Piedra (No se guarda)
+    private transient float modificadorAtaqueTemporal = 0; // Para el Elixir de Piel de Piedra 
 
     // Para LibGDX (marcar como transient para que no intente serializar la imagen)
     private transient TextureRegion sprite;
 
     /**
-     * Constructor de Pokemon que inicializa sus estadisticas basadas en el nivel de
-     * investigacion.
+     * Constructor de Pokémon que inicializa sus estadísticas basadas en el nivel de
+     * investigación.
      * 
-     * @param nombre             Nombre del Pokemon
-     * @param nivelInvestigacion Nivel de investigacion del 0 al 10 que determina
-     *                           las estadisticas
-     * @param hpMaximo           HP maximo del Pokemon
-     * @param esLegendario       Indica si es un Pokemon legendario
-     * @param tipo               Tipo elemental del Pokemon
+     * @param nombre             Nombre del Pokémon
+     * @param nivelInvestigacion Nivel de investigación del 0 al 10 que determina
+     *                           las estadísticas
+     * @param hpMaximo           HP máximo del Pokémon
+     * @param esLegendario       Indica si es un Pokémon legendario
+     * @param tipo               Tipo elemental del Pokémon
      */
     public Pokemon(String nombre, int nivelInvestigacion, float hpMaximo, boolean esLegendario, String tipo) {
         this.nombre = nombre;
@@ -131,9 +131,9 @@ public class Pokemon implements Serializable {
     }
 
     /**
-     * Verifica si el Pokemon esta debilitado.
+     * Verifica si el Pokémon está debilitado.
      * 
-     * @return true si esta debilitado, false en caso contrario
+     * @return true si está debilitado, false en caso contrario
      */
     public boolean isDebilitado() {
         return debilitado;
@@ -158,16 +158,16 @@ public class Pokemon implements Serializable {
     }
 
     /**
-     * Obtiene el tipo elemental del Pokemon.
+     * Obtiene el tipo elemental del Pokémon.
      * 
-     * @return Tipo del Pokemon
+     * @return Tipo del Pokémon
      */
     public String getTipo() {
         return tipo;
     }
 
     /**
-     * Obtiene el ataque total del Pokemon incluyendo modificadores temporales.
+     * Obtiene el ataque total del Pokémon incluyendo modificadores temporales.
      * 
      * @return Valor de ataque total
      */
@@ -241,10 +241,10 @@ public class Pokemon implements Serializable {
     }
 
     /**
-     * Ejecuta un movimiento contra un Pokemon objetivo.
+     * Ejecuta un movimiento contra un Pokémon objetivo.
      * 
-     * @param indice   Indice del movimiento en la lista de movimientos
-     * @param objetivo Pokemon que recibira el ataque
+     * @param indice   Índice del movimiento en la lista de movimientos
+     * @param objetivo Pokémon que recibirá el ataque
      */
     public void usarMovimiento(int indice, Pokemon objetivo) {
         if (indice >= 0 && indice < movimientos.size()) {
@@ -267,7 +267,7 @@ public class Pokemon implements Serializable {
     }
 
     /**
-     * Intenta capturar el Pokemon basandose en su HP actual y el ratio de la
+     * Intenta capturar el Pokémon basándose en su HP actual y el ratio de la
      * Pokeball.
      * 
      * @param ratioBala Efectividad de la Pokeball usada
@@ -282,20 +282,14 @@ public class Pokemon implements Serializable {
                           // asumimos lógica estándar)
 
         float porcentajeVida = hpActual / hpMaximo;
-        // Si tiene 100% vida, dificultad es alta. Si tiene 1%, dificultad baja.
-        // Base chance: Si tiene 1 hp (casi 0), chance ~ 1.0 * ratio.
-        // Si tiene full hp, chance ~ 0.0 * ratio (imposible).
-        // Ajustemos para que siempre haya probabilidad.
 
         double chance = (1.0 - (porcentajeVida * 0.8)) * ratioBala;
-        // Ejemplo: Full HP (1.0) -> chance = 0.2 * ratio. Low HP (0.1) -> chance = 0.92
-        // * ratio.
 
         return Math.random() < chance;
     }
 
     /**
-     * Recupera HP del Pokemon y elimina el estado debilitado si aplica.
+     * Recupera HP del Pokémon y elimina el estado debilitado si aplica.
      * 
      * @param cantidad Cantidad de HP a recuperar
      */
@@ -312,7 +306,7 @@ public class Pokemon implements Serializable {
     }
 
     /**
-     * Calcula los puntos de investigacion ganados segun si fue capturado o
+     * Calcula los puntos de investigación ganados según si fue capturado o
      * derrotado.
      * 
      * @param fueCapturado true si fue capturado, false si solo fue derrotado

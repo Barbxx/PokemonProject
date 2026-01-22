@@ -49,11 +49,21 @@ public class StoryDialogScreen extends BaseScreen {
         }
     }
 
+    /**
+     * Se llama cuando esta pantalla se muestra.
+     * Puede usarse para inicializar lógica de entrada o reiniciar estados.
+     */
     @Override
     public void show() {
         // Configurar input processor si es necesario
     }
 
+    /**
+     * Renderiza el fondo y los diálogos.
+     * Gestiona la entrada para avanzar de página.
+     * 
+     * @param delta Tiempo transcurrido desde el último frame.
+     */
     @Override
     public void render(float delta) {
         // Limpiar pantalla
@@ -144,6 +154,12 @@ public class StoryDialogScreen extends BaseScreen {
         return texture;
     }
 
+    /**
+     * Se llama al cambiar el tamaño de la ventana.
+     * 
+     * @param width  Nuevo ancho.
+     * @param height Nuevo alto.
+     */
     @Override
     public void resize(int width, int height) {
         // Manejar redimensionamiento si es necesario
@@ -161,6 +177,9 @@ public class StoryDialogScreen extends BaseScreen {
     public void hide() {
     }
 
+    /**
+     * Libera los recursos de esta pantalla.
+     */
     @Override
     public void dispose() {
         super.dispose();

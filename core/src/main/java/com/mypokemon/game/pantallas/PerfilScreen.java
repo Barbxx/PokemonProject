@@ -11,6 +11,10 @@ import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.mypokemon.game.PokemonMain;
 import com.mypokemon.game.Explorador;
 
+/**
+ * Pantalla que muestra el perfil del entrenador.
+ * Incluye nombre, género, estadísticas de mochila y Pokémon capturados.
+ */
 public class PerfilScreen extends ScreenAdapter {
 
     private final PokemonMain game;
@@ -22,6 +26,15 @@ public class PerfilScreen extends ScreenAdapter {
     private BitmapFont font;
     private BitmapFont titleFont;
 
+    /**
+     * Constructor de la pantalla de perfil.
+     * Carga el fondo correspondiente al género y prepara las fuentes.
+     * 
+     * @param game         Referencia al juego principal.
+     * @param parentScreen Pantalla desde la que se accedió (para volver).
+     * @param explorador   Datos del jugador a mostrar.
+     * @param esChico      Indica el género del jugador para seleccionar el fondo.
+     */
     public PerfilScreen(PokemonMain game, BaseScreen parentScreen, Explorador explorador, boolean esChico) {
         this.game = game;
         this.parentScreen = parentScreen;
@@ -49,6 +62,12 @@ public class PerfilScreen extends ScreenAdapter {
         }
     }
 
+    /**
+     * Renderiza la información del perfil del jugador.
+     * Muestra texto centrado y estadísticas.
+     * 
+     * @param delta Tiempo transcurrido desde el último frame.
+     */
     @Override
     public void render(float delta) {
         Gdx.gl.glClearColor(0, 0, 0, 1);
@@ -97,11 +116,21 @@ public class PerfilScreen extends ScreenAdapter {
         game.batch.end();
     }
 
+    /**
+     * Dibuja un texto centrado horizontalmente en la posición y indicada.
+     * 
+     * @param f    Fuente a utilizar.
+     * @param text Texto a dibujar.
+     * @param y    Posición vertical.
+     */
     private void drawCenteredText(BitmapFont f, String text, float y) {
         GlyphLayout layout = new GlyphLayout(f, text);
         f.draw(game.batch, text, (800 - layout.width) / 2, y);
     }
 
+    /**
+     * Libera los recursos gráficos.
+     */
     @Override
     public void dispose() {
         font.dispose();

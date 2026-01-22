@@ -9,12 +9,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Gestiona el almacenamiento de ítems.
- * Responsabilidades:
- * - Almacenar recursos y objetos crafteados
- * - Validar espacio disponible
- * - Añadir y consumir ítems
- * - Lanzar excepciones cuando hay problemas
+ * Gestiona el almacenamiento de ítems del jugador.
+ * Permite almacenar, añadir y consumir recursos y objetos crafteados.
+ * Valida la capacidad disponible mediante excepciones.
  */
 public class Inventario implements Serializable {
     private int capacidadMaxima;
@@ -100,9 +97,11 @@ public class Inventario implements Serializable {
     // ========== OPERACIONES CRUD ==========
 
     /**
-     * Añade un ítem al inventario.
+     * Añade un ítem (Recurso u ObjetoCrafteado) al inventario.
+     * Si ya existe, suma la cantidad.
      * 
-     * @throws EspacioException si no hay espacio
+     * @param item Ítem a agregar.
+     * @throws EspacioException Si no hay espacio suficiente.
      */
     public void agregarItem(Item item) throws EspacioException {
         if (!validarEspacio(item.getCantidad())) {
@@ -123,9 +122,12 @@ public class Inventario implements Serializable {
     }
 
     /**
-     * Consume una cantidad de un ítem.
+     * Consume una cantidad específica de un ítem por su ID.
      * 
-     * @return true si se consumió exitosamente, false si no había suficiente
+     * @param id       ID del ítem a consumir.
+     * @param cantidad Cantidad a restar.
+     * @return true si se consumió exitosamente, false si no existe o no hay
+     *         suficiente.
      */
     public boolean consumirItem(String id, int cantidad) {
         String idLower = id.toLowerCase();
@@ -170,6 +172,12 @@ public class Inventario implements Serializable {
 
     // ========== MÉTODOS DE VALIDACIÓN SIMPLE ==========
 
+    /**
+     * Verifica si se puede agregar una cantidad de ítems al inventario.
+     * 
+     * @param cantidad Cantidad a agregar.
+     * @return true si hay espacio, false si no.
+     */
     public boolean puedeAgregar(int cantidad) {
         return validarEspacio(cantidad);
     }
@@ -183,7 +191,7 @@ public class Inventario implements Serializable {
     }
 
     /**
-     * Elimina un objeto crafteado del inventario (por ejemplo, al perder una
+     * Elimina un objeto crafteado del inventario (ej: penalización por perder
      * batalla).
      * 
      * @return El nombre del objeto eliminado, o null si no se eliminó nada.
@@ -201,28 +209,29 @@ public class Inventario implements Serializable {
     // ========== MÉTODOS PARA ACCEDER A ÍTEMS REALES ==========
 
     /**
-     * Obtiene la lista de recursos del inventario.
+     * Obtiene la lista de recursos almacenados.
      * 
-     * @return Lista de recursos
+     * @return Lista de recursos.
      */
     public List<Recurso> getRecursos() {
         return listRecursos;
     }
 
     /**
-     * Obtiene la lista de objetos crafteados del inventario.
+     * Obtiene la lista de objetos crafteados almacenados.
      * 
-     * @return Lista de objetos crafteados
+     * @return Lista de objetos crafteados.
      */
     public List<ObjetoCrafteado> getObjetosCrafteados() {
         return listObjCrafteados;
     }
 
     /**
-     * Busca un ítem específico por su ID en todo el inventario.
+     * Busca un ítem específico por su ID en todo el inventario (recursos y
+     * objetos).
      * 
-     * @param id ID del ítem a buscar
-     * @return El ítem encontrado, o null si no existe
+     * @param id ID del ítem a buscar.
+     * @return El ítem encontrado, o null si no existe.
      */
     public Item getItem(String id) {
         String idLower = id.toLowerCase();

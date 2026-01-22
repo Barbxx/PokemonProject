@@ -12,6 +12,11 @@ import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
+/**
+ * Pantalla del menú principal del juego.
+ * Permite iniciar nueva partida, cargar progreso, ver ayuda y configurar
+ * opciones.
+ */
 public class MainMenuScreen extends BaseScreen {
 
     Texture background;
@@ -40,6 +45,12 @@ public class MainMenuScreen extends BaseScreen {
     private static final float VIRTUAL_WIDTH = 1280f;
     private static final float VIRTUAL_HEIGHT = 720f;
 
+    /**
+     * Constructor del menú principal.
+     * Carga las texturas de los botones y configura la cámara.
+     * 
+     * @param game Referencia a la clase principal del juego.
+     */
     public MainMenuScreen(final PokemonMain game) {
         super(game);
 
@@ -72,11 +83,20 @@ public class MainMenuScreen extends BaseScreen {
         camera.update();
     }
 
+    /**
+     * Se llama cuando la pantalla se muestra.
+     * Desactiva el procesador de entrada global.
+     */
     @Override
     public void show() {
         Gdx.input.setInputProcessor(null);
     }
 
+    /**
+     * Renderiza el menú principal y maneja la navegación por teclado.
+     * 
+     * @param delta Tiempo transcurrido.
+     */
     @Override
     public void render(float delta) {
         // --- 1. Update Logic ---
@@ -190,12 +210,22 @@ public class MainMenuScreen extends BaseScreen {
         game.batch.end();
     }
 
+    /**
+     * Se llama cuando cambia el tamaño de la ventana.
+     * Mantiene la relación de aspecto usando un FitViewport.
+     * 
+     * @param width  Nuevo ancho.
+     * @param height Nuevo alto.
+     */
     @Override
     public void resize(int width, int height) {
         viewport.update(width, height, true);
         camera.position.set(VIRTUAL_WIDTH / 2, VIRTUAL_HEIGHT / 2, 0);
     }
 
+    /**
+     * Libera las texturas cargadas al cerrar el menú.
+     */
     @Override
     public void dispose() {
         if (background != null)

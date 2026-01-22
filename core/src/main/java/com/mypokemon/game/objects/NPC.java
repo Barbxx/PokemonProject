@@ -6,11 +6,11 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 
 /**
- * Abstract class representing an NPC.
- * Follows Open/Close Principle (OCP) as new NPCs can be created by extending
- * this class.
- * Implements Single Responsibility Principle (SRP) by handling only NPC state
- * and rendering.
+ * Clase abstracta que representa a un NPC (Personaje No Jugable).
+ * Sigue el Principio Abierto/Cerrado (OCP), permitiendo crear nuevos NPCs
+ * extendiendo esta clase.
+ * Implementa el Principio de Responsabilidad Única (SRP) manejando solo su
+ * estado y renderizado.
  */
 public abstract class NPC implements Interactable {
     protected Texture sprite;
@@ -21,6 +21,17 @@ public abstract class NPC implements Interactable {
     protected String[] dialogPages;
     protected float interactionDistance = 45f; // Reducido de 30 a 20 para permitir acercarse más de frente
 
+    /**
+     * Constructor para inicializar un NPC.
+     * 
+     * @param x           Coordenada X inicial.
+     * @param y           Coordenada Y inicial.
+     * @param width       Ancho del NPC.
+     * @param height      Alto del NPC.
+     * @param texturePath Ruta de la textura del sprite.
+     * @param name        Nombre del NPC.
+     * @param dialogPages Páginas de diálogo del NPC.
+     */
     public NPC(float x, float y, float width, float height, String texturePath, String name, String[] dialogPages) {
         this.x = x;
         this.y = y;
@@ -38,6 +49,11 @@ public abstract class NPC implements Interactable {
         }
     }
 
+    /**
+     * Establece el retrato del NPC para los diálogos.
+     * 
+     * @param portraitPath Ruta de la imagen del retrato.
+     */
     public void setPortrait(String portraitPath) {
         try {
             this.portrait = new Texture(Gdx.files.internal(portraitPath));
@@ -58,11 +74,23 @@ public abstract class NPC implements Interactable {
         return dialogPages;
     }
 
+    /**
+     * Verifica si el jugador está lo suficientemente cerca para interactuar.
+     * 
+     * @param playerX Posición X del jugador.
+     * @param playerY Posición Y del jugador.
+     * @return true si está dentro de la distancia de interacción.
+     */
     @Override
     public boolean isClose(float playerX, float playerY) {
         return Vector2.dst(playerX, playerY, x, y) < interactionDistance;
     }
 
+    /**
+     * Renderiza el sprite del NPC.
+     * 
+     * @param batch SpriteBatch utilizado para dibujar.
+     */
     @Override
     public void render(SpriteBatch batch) {
         if (sprite != null) {
@@ -83,6 +111,11 @@ public abstract class NPC implements Interactable {
     // Music Management
     protected com.badlogic.gdx.audio.Music music;
 
+    /**
+     * Carga y configura música asociada al NPC.
+     * 
+     * @param musicPath Ruta del archivo de música.
+     */
     public void loadMusic(String musicPath) {
         try {
             if (Gdx.files.internal(musicPath).exists()) {

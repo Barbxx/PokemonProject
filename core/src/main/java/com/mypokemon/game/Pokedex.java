@@ -53,8 +53,7 @@ public class Pokedex implements Serializable {
 
         EspeciePokemon especie = registro.get(nombre);
 
-        // Si es Arceus, investigación máxima inmediata al interactuar (derrotar o
-        // capturar)
+        // Si es Arceus, investigación máxima inmediata al interactuar (derrotar )
         if (nombre.equalsIgnoreCase("Arceus")) {
             boolean estabaCompleta = especie.isCompleta();
             especie.setInvestigacionMaxica();
@@ -97,16 +96,12 @@ public class Pokedex implements Serializable {
      */
     public int verificarProgreso() {
         // Recorre el mapa y cuenta cuántas especies han alcanzado el nivel 10.
-        // Opcionalmente podemos recalcularlo si queremos ser seguros,
-        // pero mantenemos el contador especiesCompletas actualizado en registrarAccion.
-        // Para adherirnos a la solicitud que dice "Recorre el mapa...":
         int completas = 0;
         for (EspeciePokemon e : registro.values()) {
             if (e.isCompleta()) {
                 completas++;
             }
         }
-        // Sincronizamos por si acaso
         this.especiesCompletas = completas;
         return completas;
     }

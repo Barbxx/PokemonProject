@@ -11,19 +11,21 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Utility class to fix GID issues in TMX maps, translated from update_map.py.
+ * Clase de utilidad para corregir problemas de GID en mapas TMX.
+ * 
  */
 public class MapFixer {
 
+    /**
+     * Punto de entrada principal para ejecutar la corrección del mapa.
+     * 
+     * @param args Argumentos de línea de comandos (no utilizados).
+     */
     public static void main(String[] args) {
-        // Path to the TMX file
         String tmxPath = "assets/Mapa_Hisui.tmx";
 
-        // If run from the root of the project, this path should work.
-        // Otherwise, absolute path can be used.
         Path path = Paths.get(tmxPath);
         if (!Files.exists(path)) {
-            // Fallback for some IDE environments where CWD is different
             path = Paths.get("c:/Users/User/PokemonProject/assets/Mapa_Hisui.tmx");
         }
 
@@ -36,6 +38,13 @@ public class MapFixer {
         }
     }
 
+    /**
+     * Corrige el archivo de mapa TMX especificado.
+     * Elimina referencias a tilesets problemáticos y remapea GIDs.
+     * 
+     * @param path Ruta al archivo TMX.
+     * @throws IOException Si ocurre un error de lectura/escritura.
+     */
     public static void fixMap(Path path) throws IOException {
         if (!Files.exists(path)) {
             throw new IOException("File not found: " + path.toAbsolutePath());

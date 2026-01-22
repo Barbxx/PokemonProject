@@ -10,18 +10,22 @@ import com.mypokemon.game.utils.TextureUtils;
 import com.badlogic.gdx.Gdx;
 
 /**
- * Handles all UI rendering for the GameScreen.
- * Implements Single Responsibility Principle (SRP) by isolating UI drawing
- * logic.
+ * Gestiona todo el renderizado de la Interfaz de Usuario (UI) para la pantalla
+ * de juego.
+ * Implementa el Principio de Responsabilidad Única (SRP) aislando la lógica de
+ * dibujo.
  */
 public class GameUI {
     private BitmapFont font;
     private Texture uiWhitePixel;
     private Texture dialogFrameTexture;
     private Texture menuHintTexture; // indicacionMenu
-    private float screenWidth = 800;
-    private float screenHeight = 480;
+    private float screenWidth = 800; // Ancho virtual para UI
+    private float screenHeight = 480; // Alto virtual para UI
 
+    /**
+     * Constructor que inicializa los recursos gráficos de la UI.
+     */
     public GameUI() {
         this.font = new BitmapFont(); // Or pass in a font if shared
         this.uiWhitePixel = TextureUtils.createSolidTexture(1, 1, Color.WHITE);
@@ -37,6 +41,13 @@ public class GameUI {
         }
     }
 
+    /**
+     * Renderiza el HUD (Heads-Up Display) básico.
+     * 
+     * @param batch      SpriteBatch para dibujar.
+     * @param explorador Datos del jugador.
+     * @param showMenu   true si el menú está abierto (oculta la indicación).
+     */
     public void renderHUD(SpriteBatch batch, Explorador explorador, boolean showMenu) {
         if (explorador != null) {
             font.setColor(Color.WHITE);
@@ -49,6 +60,12 @@ public class GameUI {
         }
     }
 
+    /**
+     * Renderiza una notificación en el centro de la pantalla.
+     * 
+     * @param batch   SpriteBatch para dibujar.
+     * @param message Mensaje a mostrar.
+     */
     public void renderNotification(SpriteBatch batch, String message) {
         if (message != null && !message.isEmpty()) {
             font.setColor(Color.YELLOW);
@@ -57,6 +74,13 @@ public class GameUI {
         }
     }
 
+    /**
+     * Renderiza el menú de opciones del juego.
+     * 
+     * @param batch         SpriteBatch.
+     * @param options       Array de strings con las opciones.
+     * @param selectedIndex Índice de la opción seleccionada.
+     */
     public void renderMenu(SpriteBatch batch, String[] options, int selectedIndex) {
         float menuW = 180;
         float menuH = 260;
@@ -98,6 +122,15 @@ public class GameUI {
         batch.setColor(Color.WHITE); // Reset Batch color
     }
 
+    /**
+     * Renderiza un cuadro de diálogo con un NPC.
+     * 
+     * @param batch        SpriteBatch.
+     * @param npcName      Nombre del NPC.
+     * @param text         Texto del diálogo.
+     * @param portrait     Retrato del NPC.
+     * @param showNextHint true para mostrar indicación de "Siguiente".
+     */
     public void renderDialog(SpriteBatch batch, String npcName, String text, Texture portrait, boolean showNextHint) {
         float dialogHeight = 110;
         float portraitSize = 250;
@@ -139,6 +172,12 @@ public class GameUI {
         font.getData().setScale(1.0f);
     }
 
+    /**
+     * Renderiza una pista o mensaje de ayuda.
+     * 
+     * @param batch SpriteBatch.
+     * @param text  Texto de la pista.
+     */
     public void renderHint(SpriteBatch batch, String text) {
         font.getData().setScale(0.8f);
         font.setColor(Color.YELLOW);
@@ -147,6 +186,9 @@ public class GameUI {
         font.setColor(Color.WHITE);
     }
 
+    /**
+     * Libera los recursos (fuentes y texturas).
+     */
     public void dispose() {
         if (font != null)
             font.dispose();

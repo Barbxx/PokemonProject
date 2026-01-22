@@ -13,6 +13,11 @@ import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
+/**
+ * Pantalla que permite al usuario elegir entre el modo Solitario y el modo
+ * Compartido (Multijugador).
+ * También maneja la entrada del nombre para nuevas partidas en solitario.
+ */
 public class EleccionJuegoScreen extends BaseScreen {
 
     Texture background;
@@ -38,6 +43,12 @@ public class EleccionJuegoScreen extends BaseScreen {
     private static final float VIRTUAL_WIDTH = 1280f;
     private static final float VIRTUAL_HEIGHT = 720f;
 
+    /**
+     * Constructor de la pantalla.
+     * Carga recursos y configura el procesador de entrada para texto.
+     * 
+     * @param game Instancia principal del juego.
+     */
     public EleccionJuegoScreen(PokemonMain game) {
         super(game);
         shapeRenderer = new com.badlogic.gdx.graphics.glutils.ShapeRenderer();
@@ -102,6 +113,12 @@ public class EleccionJuegoScreen extends BaseScreen {
         camera.update();
     }
 
+    /**
+     * Renderiza la pantalla, botones y el cuadro de entrada de nombre si es
+     * necesario.
+     * 
+     * @param delta Tiempo transcurrido del frame.
+     */
     @Override
     public void render(float delta) {
         // Clear Screen
@@ -252,6 +269,10 @@ public class EleccionJuegoScreen extends BaseScreen {
         }
     }
 
+    /**
+     * Inicia una partida en modo Solitario.
+     * Valida el nombre y transiciona a la pantalla de Introducción.
+     */
     private void startSoloGame() {
         if (inputName.trim().isEmpty()) {
             statusMessage = "¡El nombre no puede estar vacío!";
@@ -285,6 +306,9 @@ public class EleccionJuegoScreen extends BaseScreen {
         camera.position.set(VIRTUAL_WIDTH / 2, VIRTUAL_HEIGHT / 2, 0);
     }
 
+    /**
+     * Libera los recursos (texturas y renderer) de la pantalla.
+     */
     @Override
     public void dispose() {
         if (background != null)

@@ -16,6 +16,10 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.GL20;
 
+/**
+ * Pantalla del Laboratorio del Profesor Ferxxo.
+ * Permite al jugador elegir su Pokémon inicial (Rowlet, Cyndaquil, Oshawott).
+ */
 public class LaboratorioScreen extends BaseScreen {
     private GameScreen gameScreen;
     private com.badlogic.gdx.graphics.Texture backgroundTexture;
@@ -95,6 +99,13 @@ public class LaboratorioScreen extends BaseScreen {
     private float cyndaquilX = 445, cyndaquilY = 95;
     private float oshawottX = 480, oshawottY = 95;
 
+    /**
+     * Constructor de la pantalla del Laboratorio.
+     * Define la cámara y el texto inicial.
+     * 
+     * @param game       Referencia principal del juego.
+     * @param gameScreen Referencia a la pantalla de juego principal para volver.
+     */
     public LaboratorioScreen(PokemonMain game, GameScreen gameScreen) {
         super(game);
         this.gameScreen = gameScreen;
@@ -113,6 +124,10 @@ public class LaboratorioScreen extends BaseScreen {
         currentDialogText = INTRO_TEXT; // Default
     }
 
+    /**
+     * Carga los recursos gráficos necesarios al mostrar la pantalla:
+     * fondos, sprites de Pokémon y avatares de diálogo.
+     */
     @Override
     public void show() {
         try {
@@ -159,6 +174,12 @@ public class LaboratorioScreen extends BaseScreen {
         }
     }
 
+    /**
+     * Renderiza la escena del laboratorio, maneja input para selección y diálogos.
+     * Controla las transiciones (fades) de entrada y salida.
+     * 
+     * @param delta Tiempo desde el último frame.
+     */
     @Override
     public void render(float delta) {
         ScreenUtils.clear(0, 0, 0, 1); // Black background
@@ -386,6 +407,9 @@ public class LaboratorioScreen extends BaseScreen {
         }
     }
 
+    /**
+     * Dibuja el cuadro de diálogo, el texto y las opciones si hay selección activa.
+     */
     private void drawDialog() {
         float screenW = 800;
         float dialogHeight = 110;
@@ -491,6 +515,9 @@ public class LaboratorioScreen extends BaseScreen {
         viewport.update(width, height);
     }
 
+    /**
+     * Libera texturas y recursos gráficos al cerrar la pantalla.
+     */
     @Override
     public void dispose() {
         if (backgroundTexture != null)

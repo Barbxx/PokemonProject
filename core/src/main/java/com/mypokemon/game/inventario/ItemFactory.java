@@ -9,9 +9,13 @@ import com.mypokemon.game.inventario.objetoscrafteados.*;
 public class ItemFactory {
 
     /**
-     * Crea un recurso básico con su nombre correcto.
-     * Solo para recursos verdaderamente básicos (Planta, Guijarro).
-     * Otros ítems como Baya Aranja se crean mediante crearCrafteado().
+     * Crea un recurso básico a partir de su ID.
+     * Solo para recursos simples (Planta, Guijarro) y algunos especiales como
+     * BayaAranja.
+     * 
+     * @param id       Identificador del recurso.
+     * @param cantidad Cantidad a crear.
+     * @return Instancia de Recurso (o subclase apropiada).
      */
     public static Recurso crearRecurso(String id, int cantidad) {
         switch (id.toLowerCase()) {
@@ -28,7 +32,12 @@ public class ItemFactory {
     }
 
     /**
-     * Crea un ítem crafteado con la clase concreta apropiada.
+     * Crea un objeto crafteado instanciando la clase concreta correspondiente al
+     * ID.
+     * 
+     * @param id       Identificador del objeto (ej: "pokeball", "pocion").
+     * @param cantidad Cantidad a crear.
+     * @return Instancia específica de ObjetoCrafteado.
      */
     public static ObjetoCrafteado crearCrafteado(String id, int cantidad) {
         switch (id.toLowerCase()) {

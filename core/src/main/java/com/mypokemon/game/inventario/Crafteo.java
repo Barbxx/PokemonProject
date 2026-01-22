@@ -7,12 +7,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Maneja toda la lógica de crafteo.
- * Responsabilidades:
- * - Validar si se puede craftear
- * - Consumir materiales del inventario
- * - Crear objetos usando ItemFactory
- * - Añadir resultados al inventario
+ * Maneja la lógica de crafteo (creación de objetos).
+ * Responsable de validar requisitos, consumir materiales y producir nuevos
+ * ítems.
  */
 public class Crafteo {
     private List<Receta> recetas;
@@ -22,13 +19,16 @@ public class Crafteo {
     }
 
     /**
-     * Intenta craftear un ítem.
+     * Intenta craftear un ítem especificado por el ID de la receta.
+     * Consume los materiales del inventario si es posible.
      * 
-     * @param idReceta   ID de la receta a craftear
-     * @param inventario Inventario del jugador
-     * @return ObjetoCrafteado creado
-     * @throws IllegalArgumentException si no existe la receta o faltan materiales
-     * @throws EspacioException         si no hay espacio en el inventario
+     * @param idReceta   ID de la receta a utilizar.
+     * @param inventario Inventario del jugador donde se consumirán recursos y
+     *                   guardará el resultado.
+     * @return El objeto crafteado exitosamente.
+     * @throws IllegalArgumentException Si la receta no existe o faltan materiales.
+     * @throws EspacioException         Si no hay espacio suficiente en el
+     *                                  inventario.
      */
     public ObjetoCrafteado craftear(String idReceta, Inventario inventario) throws EspacioException {
         Receta receta = obtenerReceta(idReceta);
@@ -78,11 +78,11 @@ public class Crafteo {
     }
 
     /**
-     * Verifica si se puede craftear una receta.
+     * Verifica si es posible craftear una receta específica.
      * 
-     * @param idReceta   ID de la receta
-     * @param inventario Inventario del jugador
-     * @return true si se puede craftear
+     * @param idReceta   ID de la receta.
+     * @param inventario Inventario para verificar materiales.
+     * @return true si hay suficientes materiales y espacio.
      */
     public boolean puedeCrear(String idReceta, Inventario inventario) {
         Receta receta = obtenerReceta(idReceta);
@@ -94,10 +94,11 @@ public class Crafteo {
     }
 
     /**
-     * Obtiene todas las recetas que se pueden craftear actualmente.
+     * Obtiene una lista de recetas que el jugador puede craftear con su inventario
+     * actual.
      * 
-     * @param inventario Inventario del jugador
-     * @return Lista de recetas disponibles
+     * @param inventario Inventario del jugador.
+     * @return Lista de recetas realizables.
      */
     public List<Receta> obtenerRecetasDisponibles(Inventario inventario) {
         List<Receta> disponibles = new ArrayList<>();
@@ -110,7 +111,9 @@ public class Crafteo {
     }
 
     /**
-     * Obtiene todas las recetas del juego.
+     * Retorna la lista completa de todas las recetas del juego.
+     * 
+     * @return Lista de recetas.
      */
     public List<Receta> obtenerTodasLasRecetas() {
         return new ArrayList<>(recetas);

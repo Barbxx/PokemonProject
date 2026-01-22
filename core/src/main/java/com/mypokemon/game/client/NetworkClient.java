@@ -3,6 +3,11 @@ package com.mypokemon.game.client;
 import java.io.*;
 import java.net.*;
 
+/**
+ * Cliente de red que maneja la comunicación TCP/UDP con el servidor del juego.
+ * Implementa descubrimiento automático de servidor mediante UDP (Beacon) y
+ * comunicación persistente mediante TCP.
+ */
 public class NetworkClient {
     private static final int TCP_PORT = 54321;
     private static final int UDP_PORT = 54777;
@@ -14,7 +19,15 @@ public class NetworkClient {
     private volatile boolean listening = true;
 
     // Interface for callbacks
+    /**
+     * Interfaz para recibir callbacks cuando llegan mensajes del servidor.
+     */
     public interface NetworkListener {
+        /**
+         * Se invoca cuando llega un mensaje del servidor.
+         * 
+         * @param msg El mensaje recibido como cadena de texto.
+         */
         void onMessageReceived(String msg);
     }
 
@@ -27,6 +40,14 @@ public class NetworkClient {
     /**
      * Listens for the Server's UDP Beacon to auto-discover IP.
      * Blocking call (should be run in a separate thread).
+     */
+    /**
+     * Escucha la señal del faro (Beacon) UDP del servidor para auto-descubrir su
+     * IP.
+     * Esta llamada es bloqueante y debería ejecutarse en un hilo separado.
+     * 
+     * @return La dirección IP del servidor descubierto o "127.0.0.1" si falla o hay
+     *         timeout.
      */
     public String discoverServerIP() {
         DatagramSocket socket = null;
@@ -84,6 +105,14 @@ public class NetworkClient {
         }
     }
 
+    /**
+     * Intenta establecer una conexión TCP con el servidor.
+     * Envía el mensaje inicial de handshake con el nombre del jugador.
+     * 
+     * @param ip         IP del servidor.
+     * @param playerName Nombre del jugador local.
+     * @return true si la conexión fue exitosa.
+     */
     public boolean connect(String ip, String playerName) {
         try {
             System.out.println("[Client] Conectando a TCP " + ip + ":" + TCP_PORT);
@@ -104,6 +133,11 @@ public class NetworkClient {
         }
     }
 
+    /**
+     * Envía un mensaje de texto al servidor conectado mediante TCP.
+     * 
+     * @param msg El mensaje a enviar.
+     */
     public void sendMessage(String msg) {
         try {
             if (out != null) {
@@ -114,6 +148,10 @@ public class NetworkClient {
         }
     }
 
+    /**
+     * Bucle de escucha TCP que se ejecuta en su propio hilo.
+     * Recibe mensajes entrantes y notifica al listener registrado.
+     */
     private void listenTcp() {
         try {
             while (listening && !tcpSocket.isClosed()) {
@@ -127,6 +165,9 @@ public class NetworkClient {
         }
     }
 
+    /**
+     * Detiene el cliente de red, cerrando sockets y terminando hilos de escucha.
+     */
     public void stop() {
         listening = false;
         try {

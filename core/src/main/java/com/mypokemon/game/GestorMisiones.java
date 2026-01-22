@@ -1,6 +1,9 @@
 package com.mypokemon.game;
 
 public class GestorMisiones {
+    /**
+     * Enumeración de estados posibles del juego principal.
+     */
     public enum EstadoJuego {
         EXPLORANDO,
         COMBATIENDO,
@@ -10,11 +13,20 @@ public class GestorMisiones {
     private EstadoJuego estadoActual;
     private Pokedex pokedex;
 
+    /**
+     * Constructor del gestor de misiones y estados.
+     * 
+     * @param pokedex Referencia a la Pokédex del jugador.
+     */
     public GestorMisiones(Pokedex pokedex) {
         this.estadoActual = EstadoJuego.EXPLORANDO;
         this.pokedex = pokedex;
     }
 
+    /**
+     * Verifica si se cumplen las condiciones para enfrentar al jefe final Arceus.
+     * Si se cumple, podría desencadenar eventos de historia.
+     */
     public void verificarHitoFinal() {
         // Si la Pokedex cumple los requisitos, dispara el diálogo del Dr. Brenner
         // y cambia la pantalla a la Cueva de Vecna.
@@ -25,6 +37,10 @@ public class GestorMisiones {
         }
     }
 
+    /**
+     * Ejecuta la lógica de finalización del juego tras vencer a Arceus.
+     * Inicia el proceso de guardado final.
+     */
     public void finalizarJuego() {
         // Al vencer a Arceus, llama a la Serialización para guardar todo el objeto
         // Explorador.
@@ -35,6 +51,9 @@ public class GestorMisiones {
         guardarProgreso();
     }
 
+    /**
+     * Guarda el progreso del juego en el almacenamiento persistente.
+     */
     private void guardarProgreso() {
         // Implementación dummy de serialización
         try {
@@ -45,10 +64,20 @@ public class GestorMisiones {
         }
     }
 
+    /**
+     * Establece el estado actual del juego.
+     * 
+     * @param estadoActual Nuevo estado.
+     */
     public void setEstadoActual(EstadoJuego estadoActual) {
         this.estadoActual = estadoActual;
     }
 
+    /**
+     * Obtiene el estado actual del juego.
+     * 
+     * @return Estado actual (Explorando, Combatiendo, etc).
+     */
     public EstadoJuego getEstadoActual() {
         return estadoActual;
     }

@@ -22,8 +22,10 @@ import com.badlogic.gdx.Screen;
 import com.mypokemon.game.inventario.Item;
 
 /**
- * Screen for the inventory (Mochila).
- * Pure SpriteBatch logic with robust texture loading and coordinate handling.
+ * Pantalla de inventario (Mochila).
+ * Gestiona la visualización de items, categorías y Pokémon, así como el uso de
+ * objetos.
+ * Utiliza lógica de SpriteBatch para renderizado robusto.
  */
 public class MochilaScreen extends BaseScreen {
     private final Explorador explorador;
@@ -119,6 +121,13 @@ public class MochilaScreen extends BaseScreen {
     private String feedbackMessage = "";
     private float feedbackTimer = 0;
 
+    /**
+     * Constructor de la pantalla de Mochila.
+     * 
+     * @param game         Juego principal.
+     * @param returnScreen Pantalla a la cual regresar al cerrar.
+     * @param explorador   Datos del jugador (inventario y equipo).
+     */
     public MochilaScreen(PokemonMain game, Screen returnScreen, Explorador explorador) {
         super(game);
         this.returnScreen = returnScreen;
@@ -250,6 +259,12 @@ public class MochilaScreen extends BaseScreen {
         Gdx.input.setInputProcessor(null); // Clear input processor to avoid previous screen interference
     }
 
+    /**
+     * Renderiza la interfaz de la mochila: fondo, pestañas, grilla de items y menús
+     * contextuales.
+     * 
+     * @param delta Tiempo transcurrido.
+     */
     @Override
     public void render(float delta) {
         // Feedback Timer
@@ -430,11 +445,21 @@ public class MochilaScreen extends BaseScreen {
 
     // -- LOGIC --
 
+    /**
+     * Cambia la pestaña seleccionada (categoría de items o Pokémon).
+     * 
+     * @param index Índice de la pestaña (0-3).
+     */
     public void setSelectedIndex(int index) {
         this.selectedIndex = index;
         updateVisibleItems();
     }
 
+    /**
+     * Despliega el menú de opciones para un ítem seleccionado.
+     * 
+     * @param item Datos del ítem seleccionado.
+     */
     private void openOptionsMenu(ItemData item) {
         currentOptions.clear();
 
@@ -458,6 +483,11 @@ public class MochilaScreen extends BaseScreen {
         currentState = InventoryState.OPTIONS_MENU;
     }
 
+    /**
+     * Ejecuta una opción seleccionada del menú (ej: Usar, Tirar).
+     * 
+     * @param option Nombre de la opción.
+     */
     private void executeOption(String option) {
         if (selectedItemForAction == null && selectedIndex != 3)
             return;
@@ -577,6 +607,11 @@ public class MochilaScreen extends BaseScreen {
         }
     }
 
+    /**
+     * Aplica el ítem seleccionado al Pokémon objetivo.
+     * 
+     * @param p Pokémon objetivo.
+     */
     private void applyItemToPokemon(Pokemon p) {
         if (selectedItemForAction == null || selectedItemForAction.itemReal == null) {
             showFeedback("Error: ítem no disponible");

@@ -42,7 +42,10 @@ import com.mypokemon.game.colisiones.ColisionPuertaLaboratorio;
 import com.mypokemon.game.colisiones.IInteractivo;
 import com.mypokemon.game.objects.NPC;
 
-// Main Game Screen
+/**
+ * Pantalla principal del juego donde ocurre la exploración y la aventura.
+ * Gestiona el mapa, el jugador, los NPCs, las colisiones y la lógica del mundo.
+ */
 public class GameScreen extends BaseScreen {
     // Atributos
     private OrthographicCamera camera;
@@ -169,6 +172,18 @@ public class GameScreen extends BaseScreen {
     private RegionTrigger currentActiveRegion = null; // Track which one is currently "on" to avoid re-triggering
                                                       // constantly
 
+    /**
+     * Constructor de GameScreen.
+     * Inicializa los gestores, carga el mapa y configura el estado inicial del
+     * jugador.
+     * 
+     * @param game        Instancia principal del juego.
+     * @param texturePath Ruta de la textura del jugador.
+     * @param cols        Columnas en la hoja de sprites.
+     * @param rows        Filas en la hoja de sprites.
+     * @param playerName  Nombre del jugador.
+     * @param gameName    Nombre de la partida.
+     */
     public GameScreen(final PokemonMain game, String texturePath, int cols, int rows, String playerName,
             String gameName) {
         super(game);
@@ -513,6 +528,11 @@ public class GameScreen extends BaseScreen {
     private boolean fadingOut = false;
     private BaseScreen nextScreen; // Screen to switch to after fade
 
+    /**
+     * Se llama cuando esta pantalla se convierte en la pantalla actual.
+     * Inicializa la entrada, el cliente de red y reinicia el estado de fundido
+     * (fade).
+     */
     @Override
     public void show() {
         inEncounter = false;
@@ -546,6 +566,13 @@ public class GameScreen extends BaseScreen {
         }
     }
 
+    // --- Métodos Privados de Lógica Interna ---
+
+    /**
+     * Procesa los mensajes recibidos del servidor multijugador.
+     * 
+     * @param msg Mensaje recibido.
+     */
     private void handleNetworkMessage(String msg) {
         try {
             if (msg.startsWith("MOVE:")) {
@@ -607,6 +634,12 @@ public class GameScreen extends BaseScreen {
         }
     }
 
+    /**
+     * Elimina un recurso del mapa basado en su ID único.
+     * Utilizado para sincronización en multijugador.
+     * 
+     * @param id Identificador del recurso (x_y).
+     */
     private void removeResourceById(String id) {
         try {
             String[] parts = id.split("_");
@@ -630,6 +663,13 @@ public class GameScreen extends BaseScreen {
 
     // ...
 
+    /**
+     * Método principal de renderizado y lógica del juego.
+     * Actualiza el estado del mundo, maneja la entrada y dibuja todos los
+     * elementos.
+     * 
+     * @param delta Tiempo transcurrido desde el último frame (en segundos).
+     */
     @Override
     public void render(float delta) {
         // --- 1. UPDATE AND LOGIC ---
@@ -1321,6 +1361,9 @@ public class GameScreen extends BaseScreen {
         game.batch.end();
     }
 
+    /**
+     * Dibuja al jugador en su posición actual.
+     */
     private void drawPlayer() {
         if (currentFrame != null) {
             game.batch.draw(currentFrame, posX - playerWidth / 2, posY - playerHeight / 2, playerWidth,
@@ -1336,6 +1379,15 @@ public class GameScreen extends BaseScreen {
         }
     }
 
+    /**
+     * Obtiene una propiedad entera de un mapa de propiedades, con un valor por
+     * defecto.
+     * 
+     * @param props        Propiedades del mapa.
+     * @param key          Clave de la propiedad.
+     * @param defaultValue Valor por defecto si no existe o no es válida.
+     * @return Valor entero.
+     */
     private int getIntProperty(com.badlogic.gdx.maps.MapProperties props, String key, int defaultValue) {
         Object val = props.get(key);
         if (val instanceof Integer)
@@ -1352,11 +1404,20 @@ public class GameScreen extends BaseScreen {
         return defaultValue;
     }
 
+    /**
+     * Se llama cuando cambia el tamaño de la ventana.
+     * 
+     * @param width  Nuevo ancho.
+     * @param height Nuevo alto.
+     */
     @Override
     public void resize(int width, int height) {
         viewport.update(width, height);
     }
 
+    /**
+     * Libera los recursos gráficos y de audio cuando la pantalla se cierra.
+     */
     @Override
     public void dispose() {
         if (playerSheet != null)
@@ -1403,12 +1464,23 @@ public class GameScreen extends BaseScreen {
             this.cantidad = cantidad;
         }
 
+        /**
+         * Registra una celda del mapa asociada a este recurso.
+         * 
+         * @param layer Capa del mapa.
+         * @param cell  Celda del mapa.
+         */
         public void registrarCapa(TiledMapTileLayer layer, TiledMapTileLayer.Cell cell) {
             cellsPorCapa.put(layer, cell);
         }
     }
 
     // Getter for Explorador
+    /**
+     * Obtiene el objeto Explorador (Jugador).
+     * 
+     * @return Instancia del explorador.
+     */
     public Explorador getExplorador() {
         return explorador;
     }
@@ -1429,6 +1501,11 @@ public class GameScreen extends BaseScreen {
         this.notificationTimer = NOTIFICATION_DURATION;
     }
 
+    /**
+     * Obtiene la textura del jugador.
+     * 
+     * @return Textura (Texture).
+     */
     public Texture getPlayerSheet() {
         return playerSheet;
     }

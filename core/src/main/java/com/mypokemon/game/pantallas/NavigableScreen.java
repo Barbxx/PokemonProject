@@ -7,9 +7,9 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 
 /**
- * Abstract base class for screens that support navigation back to a previous
- * screen.
- * Provides automatic ESC key handling to return to the previous screen.
+ * Clase base abstracta para pantallas que soportan navegación hacia atrás.
+ * Proporciona manejo automático de la tecla ESC para volver a la pantalla
+ * anterior.
  */
 public abstract class NavigableScreen extends BaseScreen implements INavigable {
 
@@ -21,8 +21,8 @@ public abstract class NavigableScreen extends BaseScreen implements INavigable {
     }
 
     /**
-     * Navigates back to the return screen.
-     * Automatically disposes this screen.
+     * Navega de regreso a la pantalla anterior definida.
+     * Libera los recursos de la pantalla actual automáticamente.
      */
     @Override
     public void navigateBack() {
@@ -30,15 +30,15 @@ public abstract class NavigableScreen extends BaseScreen implements INavigable {
             game.setScreen(returnScreen);
             dispose();
         } else {
-            Gdx.app.log(this.getClass().getSimpleName(), "Warning: No return screen set");
+            Gdx.app.log(this.getClass().getSimpleName(), "Advertencia: No hay pantalla de retorno configurada");
         }
     }
 
     /**
-     * Navigates to a new screen.
-     * Automatically disposes this screen.
+     * Navega hacia una nueva pantalla.
+     * Libera los recursos de la pantalla actual automáticamente.
      * 
-     * @param screen The screen to navigate to
+     * @param screen La pantalla a la cual navegar.
      */
     @Override
     public void navigateTo(Screen screen) {
@@ -47,9 +47,9 @@ public abstract class NavigableScreen extends BaseScreen implements INavigable {
     }
 
     /**
-     * Gets the screen to return to when navigating back.
+     * Obtiene la pantalla de retorno configurada.
      * 
-     * @return The return screen, or null if none is set
+     * @return La pantalla de retorno, o null si no se ha configurado.
      */
     @Override
     public Screen getReturnScreen() {
@@ -57,10 +57,10 @@ public abstract class NavigableScreen extends BaseScreen implements INavigable {
     }
 
     /**
-     * Handles the ESC key press to navigate back.
-     * Subclasses can override this to customize escape behavior.
+     * Maneja la pulsación de la tecla ESC para navegar hacia atrás.
+     * Las subclases pueden sobrescribir esto para personalizar el comportamiento.
      * 
-     * @return true if ESC was handled, false otherwise
+     * @return true si la tecla ESC fue manejada, false en caso contrario.
      */
     protected boolean handleEscapeKey() {
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {

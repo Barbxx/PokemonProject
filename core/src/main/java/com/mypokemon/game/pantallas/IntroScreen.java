@@ -19,6 +19,11 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
+/**
+ * Pantalla de introducción del juego.
+ * Muestra la narrativa inicial con el Profesor Ferxxo, selección de género y
+ * nombre.
+ */
 public class IntroScreen extends BaseScreen {
 
     // States
@@ -82,6 +87,13 @@ public class IntroScreen extends BaseScreen {
     private int caretPosition = 0;
     private boolean isNameConfirmed = true; // For SÍ/NO selection
 
+    /**
+     * Constructor de la pantalla de introducción.
+     * Carga recursos visuales y configura el procesador de entrada para el texto.
+     * 
+     * @param game     Juego principal.
+     * @param gameName Nombre de la partida que se creará.
+     */
     public IntroScreen(final PokemonMain game, String gameName) {
         super(game);
         this.gameName = gameName;
@@ -264,6 +276,11 @@ public class IntroScreen extends BaseScreen {
         });
     }
 
+    /**
+     * Avanza al siguiente estado de la introducción (siguiente diálogo o
+     * configuración).
+     * Gestiona la secuencia lógica desde la intro hasta el cierre.
+     */
     private void advanceState() {
         switch (currentState) {
             case INTRO_1:
@@ -363,6 +380,12 @@ public class IntroScreen extends BaseScreen {
         }
     }
 
+    /**
+     * Renderiza la secuencia de introducción.
+     * Dibuja los personajes, cuadros de texto y gestiona las animaciones.
+     * 
+     * @param delta Tiempo transcurrido.
+     */
     @Override
     public void render(float delta) {
         stateTime += delta;
@@ -719,6 +742,9 @@ public class IntroScreen extends BaseScreen {
         viewport.update(width, height, true);
     }
 
+    /**
+     * Limpia los recursos gráficos al cerrar la pantalla.
+     */
     @Override
     public void dispose() {
         shapeRenderer.dispose();

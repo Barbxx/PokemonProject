@@ -8,18 +8,33 @@ package com.mypokemon.game.inventario;
 public abstract class ObjetoCrafteado extends Item {
     protected String descripcion;
 
+    /**
+     * Constructor para un objeto crafteado.
+     * 
+     * @param id          Identificador único.
+     * @param nombre      Nombre legible.
+     * @param descripcion Descripción del ítem.
+     * @param cantidad    Cantidad inicial.
+     */
     public ObjetoCrafteado(String id, String nombre, String descripcion, int cantidad) {
         super(id, nombre, cantidad);
         this.descripcion = descripcion;
     }
 
+    /**
+     * Obtiene la descripción del ítem.
+     * 
+     * @return Texto descriptivo.
+     */
     public String getDescripcion() {
         return descripcion;
     }
 
     /**
-     * Cada subclase debe definir sus propias opciones.
-     * Este método es abstracto y debe ser implementado por las clases concretas.
+     * Obtiene las opciones disponibles para este objeto.
+     * Debe ser implementado por subclases concretas.
+     * 
+     * @return Lista de acciones disponibles (ej: "Usar", "Tirar").
      */
     @Override
     public abstract java.util.List<String> getOpciones();

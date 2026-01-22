@@ -37,6 +37,28 @@ public class BasePokemonData {
         // Para el sistema de investigación
         public int puntosInvestigacion = 2; // Por defecto: Victoria = +1, Captura = +2
 
+        /**
+         * Crea una nueva entrada de datos para una especie Pokémon.
+         * 
+         * @param nombre       Nombre de la especie.
+         * @param descripcion  Descripción de la Pokédex.
+         * @param ps0          Puntos de Salud base (Nivel 0).
+         * @param atq0         Ataque base (Nivel 0).
+         * @param def0         Defensa base (Nivel 0).
+         * @param ate0         Ataque Especial base (Nivel 0).
+         * @param dfe0         Defensa Especial base (Nivel 0).
+         * @param vel0         Velocidad base (Nivel 0).
+         * @param psB          Bonificación de PS (Nivel 5+).
+         * @param atqB         Bonificación de Ataque (Nivel 5+).
+         * @param defB         Bonificación de Defensa (Nivel 5+).
+         * @param ateB         Bonificación de Ataque Especial (Nivel 5+).
+         * @param dfeB         Bonificación de Defensa Especial (Nivel 5+).
+         * @param velB         Bonificación de Velocidad (Nivel 5+).
+         * @param tipo         Tipo elemental del Pokémon.
+         * @param movIniciales Movimientos disponibles desde el inicio.
+         * @param movNivel5    Movimientos desbloqueados a nivel 5.
+         * @param inmunidades  Tipos a los que es inmune.
+         */
         public BasePokemonData(String nombre, String descripcion,
                         int ps0, int atq0, int def0, int ate0, int dfe0, int vel0,
                         int psB, int atqB, int defB, int ateB, int dfeB, int velB,
@@ -319,40 +341,84 @@ public class BasePokemonData {
                                 new String[] { "Lucha" }));
         }
 
+        /**
+         * Obtiene los datos base de un Pokémon por su nombre.
+         * 
+         * @param nombre Nombre de la especie.
+         * @return Datos base del Pokémon o null si no existe.
+         */
         public static BasePokemonData get(String nombre) {
                 return DATABASE.get(nombre);
         }
 
+        /**
+         * Obtiene todos los nombres de las especies registradas.
+         * 
+         * @return Conjunto de nombres de Pokémon.
+         */
         public static java.util.Set<String> getNombres() {
                 return DATABASE.keySet();
         }
 
+        /**
+         * Obtiene el nombre de la especie.
+         * 
+         * @return Nombre del Pokémon.
+         */
         public String getNombre() {
                 return nombre;
         }
 
+        /**
+         * Obtiene la descripción de la Pokédex.
+         * 
+         * @return Descripción del Pokémon.
+         */
         public String getDescripcion() {
                 return descripcion;
         }
 
+        /**
+         * Obtiene los PS base (Nivel 0).
+         * 
+         * @return Puntos de Salud base.
+         */
         public double getHpBase() {
                 return psNivel0;
         }
 
+        /**
+         * Obtiene el Ataque base (Nivel 0).
+         * 
+         * @return Puntos de Ataque base.
+         */
         public double getAtqBase() {
                 return atqNivel0;
         }
 
+        /**
+         * Obtiene la Velocidad base (Nivel 0).
+         * 
+         * @return Puntos de Velocidad base.
+         */
         public double getVelBase() {
                 return velNivel0;
         }
 
+        /**
+         * Obtiene el tipo elemental.
+         * 
+         * @return Tipo del Pokémon.
+         */
         public String getTipo() {
                 return tipo;
         }
 
         /**
-         * Calcula las estadísticas de un Pokémon según su nivel de investigación (0-10)
+         * Calcula las estadísticas de PS según el nivel de investigación.
+         * 
+         * @param nivelInvestigacion Nivel de investigación (0-10).
+         * @return Puntos de Salud calculados.
          */
         public int calcularPS(int nivelInvestigacion) {
                 if (nivelInvestigacion < 5) {
@@ -362,6 +428,12 @@ public class BasePokemonData {
                 }
         }
 
+        /**
+         * Calcula las estadísticas de Ataque según el nivel de investigación.
+         * 
+         * @param nivelInvestigacion Nivel de investigación (0-10).
+         * @return Puntos de Ataque calculados.
+         */
         public int calcularAtaque(int nivelInvestigacion) {
                 if (nivelInvestigacion < 5) {
                         return atqNivel0;
@@ -370,6 +442,12 @@ public class BasePokemonData {
                 }
         }
 
+        /**
+         * Calcula las estadísticas de Defensa según el nivel de investigación.
+         * 
+         * @param nivelInvestigacion Nivel de investigación (0-10).
+         * @return Puntos de Defensa calculados.
+         */
         public int calcularDefensa(int nivelInvestigacion) {
                 if (nivelInvestigacion < 5) {
                         return defNivel0;
@@ -378,6 +456,12 @@ public class BasePokemonData {
                 }
         }
 
+        /**
+         * Calcula las estadísticas de Ataque Especial según el nivel de investigación.
+         * 
+         * @param nivelInvestigacion Nivel de investigación (0-10).
+         * @return Puntos de Ataque Especial calculados.
+         */
         public int calcularAtaqueEspecial(int nivelInvestigacion) {
                 if (nivelInvestigacion < 5) {
                         return ateNivel0;
@@ -386,6 +470,12 @@ public class BasePokemonData {
                 }
         }
 
+        /**
+         * Calcula las estadísticas de Defensa Especial según el nivel de investigación.
+         * 
+         * @param nivelInvestigacion Nivel de investigación (0-10).
+         * @return Puntos de Defensa Especial calculados.
+         */
         public int calcularDefensaEspecial(int nivelInvestigacion) {
                 if (nivelInvestigacion < 5) {
                         return dfeNivel0;
@@ -394,6 +484,12 @@ public class BasePokemonData {
                 }
         }
 
+        /**
+         * Calcula las estadísticas de Velocidad según el nivel de investigación.
+         * 
+         * @param nivelInvestigacion Nivel de investigación (0-10).
+         * @return Puntos de Velocidad calculados.
+         */
         public int calcularVelocidad(int nivelInvestigacion) {
                 if (nivelInvestigacion < 5) {
                         return velNivel0;

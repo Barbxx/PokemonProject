@@ -20,6 +20,11 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import java.util.List;
 
+/**
+ * Pantalla de combate entre el jugador y un Pokémon salvaje (o Boss).
+ * Gestiona turnos, estados (captura, huida, victoria), animaciones simples y la
+ * interfaz de batalla.
+ */
 public class BattleScreen extends ScreenAdapter {
 
     private final PokemonMain game;
@@ -30,6 +35,12 @@ public class BattleScreen extends ScreenAdapter {
 
     // ...
 
+    /**
+     * Cambia el Pokémon activo del jugador durante la batalla.
+     * Actualiza la textura trasera y el mensaje de log.
+     * 
+     * @param nuevo Nuevo Pokémon a sacar al combate.
+     */
     public void cambiarPokemon(Pokemon nuevo) {
         this.pokemonJugador = nuevo;
         updateInfo("¡Adelante " + nuevo.getNombre() + "!");
@@ -111,6 +122,16 @@ public class BattleScreen extends ScreenAdapter {
 
     private BattleState currentState;
 
+    /**
+     * Constructor de BattleScreen.
+     * Inicializa la batalla, las texturas, música y la lógica de turnos.
+     * 
+     * @param game         Instancia principal del juego.
+     * @param parentScreen Pantalla anterior (usualmente GameScreen) para volver al
+     *                     finalizar.
+     * @param explorador   Datos del jugador (equipo, inventario).
+     * @param enemigo      Pokémon contra el que se lucha.
+     */
     public BattleScreen(PokemonMain game, com.badlogic.gdx.Screen parentScreen, Explorador explorador,
             Pokemon enemigo) {
         this.game = game;
@@ -121,7 +142,7 @@ public class BattleScreen extends ScreenAdapter {
         if (!explorador.getEquipo().isEmpty()) {
             this.pokemonJugador = explorador.getEquipo().get(0);
         } else {
-            // Revertido a Piplup como se solicitó para simulación
+            // Se coloca a piplup por si falla en encontrar uno
             this.pokemonJugador = new Pokemon("Piplup", 5, 20, false, "Agua");
         }
 
@@ -228,15 +249,16 @@ public class BattleScreen extends ScreenAdapter {
         return t;
     }
 
+    /**
+     * Inicializa la interfaz de usuario y registra el procesador de entrada.
+     * Define los rectángulos de los botones y el menú de batalla.
+     */
     @Override
     public void show() {
         // Disposición de botones en cuadrícula 2x2 centrada en el cuadro de acciones
         float btnWidth = 140;
         float btnHeight = 40;
         float spacing = 15;
-        // El cuadro de acciones está en el lado derecho (400 a 800)
-        // Ancho total de la cuadrícula = 140 * 2 + 15 = 295
-        // StartX para centrar en 400-800: 400 + (400 - 295) / 2 = 452.5
         float startX = 452.5f;
         // StartY para centrar verticalmente en relación al cuadro de mensajes
         float startY = 40;
@@ -260,10 +282,7 @@ public class BattleScreen extends ScreenAdapter {
         Gdx.input.setInputProcessor(new InputAdapter() {
             @Override
             public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-                // Convertir coordenadas de pantalla a coordenadas del mundo (viewport)
-                // unproject espera un Vector3, pero podemos hacerlo a mano o usar
-                // camera.unproject
-                // La forma correcta con viewport:
+
                 com.badlogic.gdx.math.Vector3 touchPos = new com.badlogic.gdx.math.Vector3(screenX, screenY, 0);
                 viewport.unproject(touchPos);
 
@@ -382,6 +401,9 @@ public class BattleScreen extends ScreenAdapter {
         updateInfo("¡Un " + pokemonEnemigo.getNombre() + " salvaje apareció!");
     }
 
+    /**
+     * Maneja la acción seleccionada en el menú principal (Atacar, Mochila, etc).
+     */
     private void handleSelectedAction() {
         switch (selectedOption) {
             case 0: // Atacar
@@ -405,6 +427,13 @@ public class BattleScreen extends ScreenAdapter {
         game.setScreen(new MochilaScreen(game, this, explorador));
     }
 
+    /**
+     * Intenta usar un ítem desde la mochila durante la batalla.
+     * Maneja la lógica de captura (Pokéballs) y curación (Pociones).
+     * 
+     * @param tipo Identificador del tipo de ítem ("pokeball", "heavyball",
+     *             "pocion").
+     */
     public void usarItemEnBatalla(String tipo) {
         if (tipo.equals("pokeball") || tipo.equals("heavyball")) {
             if (pokemonEnemigo.getNombre().equalsIgnoreCase("Arceus")) {
@@ -517,6 +546,11 @@ public class BattleScreen extends ScreenAdapter {
         }
     }
 
+    /**
+     * Obtiene el Pokémon actual del jugador en combate.
+     * 
+     * @return El objeto Pokemon activo.
+     */
     public Pokemon getPokemonJugador() {
         return pokemonJugador;
     }
@@ -543,6 +577,12 @@ public class BattleScreen extends ScreenAdapter {
         endBattle(false);
     }
 
+    /**
+     * Ejecuta un movimiento del jugador.
+     * Calcula daño, verifica velocidad para orden de turnos y actualiza interfaz.
+     * 
+     * @param moveIndex Índice del movimiento en la lista del Pokémon (0-3).
+     */
     private void performMove(int moveIndex) {
         showMoveMenu = false;
         List<Movimiento> movs = pokemonJugador.getMovimientos();
@@ -562,7 +602,7 @@ public class BattleScreen extends ScreenAdapter {
             } else if (dano > 0) {
                 updateInfo(pokemonJugador.getNombre() + " usó " + mov.getNombre() + ". Daño: " + dano);
                 damageText = "-" + dano;
-                damageTextX = 500; // Over Enemy
+                damageTextX = 500;
                 damageTextY = 400;
                 damageTextTimer = 2.0f;
             } else {
@@ -611,6 +651,10 @@ public class BattleScreen extends ScreenAdapter {
         }
     }
 
+    /**
+     * Lógica del turno del enemigo (IA simple).
+     * Selecciona un ataque aleatorio y lo ejecuta contra el jugador.
+     */
     private void performEnemyTurn() {
         if (currentState != BattleState.ENEMY_TURN)
             return;
@@ -649,6 +693,10 @@ public class BattleScreen extends ScreenAdapter {
         }
     }
 
+    /**
+     * Verifica si algún Pokémon se ha debilitado.
+     * Otorga recompensas y decide si termina la batalla.
+     */
     private void checkBattleStatus() {
         if (pokemonEnemigo.getHpActual() <= 0) {
             updateInfo("¡" + pokemonEnemigo.getNombre() + " se debilitó!");
@@ -773,6 +821,13 @@ public class BattleScreen extends ScreenAdapter {
         System.out.println("[BATTLE] " + text);
     }
 
+    /**
+     * Actualiza el viewport y la disposición de los botones al cambiar el tamaño de
+     * ventana.
+     * 
+     * @param width  Nuevo ancho.
+     * @param height Nuevo alto.
+     */
     @Override
     public void resize(int width, int height) {
         // Actualizar el viewport cuando cambia el tamaño de la ventana
@@ -780,6 +835,13 @@ public class BattleScreen extends ScreenAdapter {
         updateLayout(); // Update button positions on resize
     }
 
+    /**
+     * Ciclo principal de renderizado.
+     * Dibuja el fondo, combatientes, interfaz y maneja animaciones y
+     * temporizadores.
+     * 
+     * @param delta Tiempo desde el último frame.
+     */
     @Override
     public void render(float delta) {
         // Actualizar timer de texto de daño
@@ -1000,6 +1062,9 @@ public class BattleScreen extends ScreenAdapter {
         font.draw(game.batch, text, textX, textY);
     }
 
+    /**
+     * Libera las texturas, fuentes y música al cerrar la batalla.
+     */
     @Override
     public void dispose() {
         font.dispose();

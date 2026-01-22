@@ -13,6 +13,10 @@ import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
+/**
+ * Pantalla que lista las partidas guardadas.
+ * Permite seleccionar una partida para cargarla o borrarla.
+ */
 public class PartidasScreen extends BaseScreen {
 
     private Texture background;
@@ -30,6 +34,12 @@ public class PartidasScreen extends BaseScreen {
     private static final float VIRTUAL_WIDTH = 1280f;
     private static final float VIRTUAL_HEIGHT = 720f;
 
+    /**
+     * Constructor de la pantalla de partidas.
+     * Carga las partidas guardadas (.dat) del directorio local.
+     * 
+     * @param game Instancia principal del juego.
+     */
     public PartidasScreen(PokemonMain game) {
         super(game);
         try {
@@ -58,6 +68,12 @@ public class PartidasScreen extends BaseScreen {
         camera.update();
     }
 
+    /**
+     * Renderiza la lista de partidas y maneja la interacción del usuario.
+     * Permite navegar con teclado o ratón y seleccionar acciones.
+     * 
+     * @param delta Tiempo transcurrido del frame actual.
+     */
     @Override
     public void render(float delta) {
         // Input Handling
@@ -273,6 +289,9 @@ public class PartidasScreen extends BaseScreen {
         camera.position.set(VIRTUAL_WIDTH / 2, VIRTUAL_HEIGHT / 2, 0);
     }
 
+    /**
+     * Libera los recursos (texturas) utilizados por la pantalla.
+     */
     @Override
     public void dispose() {
         if (background != null)

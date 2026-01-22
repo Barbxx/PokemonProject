@@ -9,7 +9,8 @@ import com.mypokemon.game.pantallas.GameScreen;
 import com.mypokemon.game.pantallas.LaboratorioScreen;
 
 /**
- * Colisión específica para la puerta del laboratorio.
+ * Maneja la interacción específica con la puerta del laboratorio.
+ * Permite al jugador entrar al seleccionar esta zona.
  */
 public class ColisionPuertaLaboratorio extends ZonaInteractiva {
 
@@ -19,6 +20,16 @@ public class ColisionPuertaLaboratorio extends ZonaInteractiva {
     private GameScreen pantallaJuego;
     private Explorador explorador;
 
+    /**
+     * Constructor de la colisión de la puerta del laboratorio.
+     * 
+     * @param x             Posición X.
+     * @param y             Posición Y.
+     * @param letrero       Textura del letrero indicador.
+     * @param juego         Instancia principal del juego.
+     * @param pantallaJuego Pantalla de juego actual.
+     * @param explorador    Jugador explorador.
+     */
     public ColisionPuertaLaboratorio(float x, float y, Texture letrero,
             PokemonMain juego, GameScreen pantallaJuego,
             Explorador explorador) {
@@ -36,6 +47,10 @@ public class ColisionPuertaLaboratorio extends ZonaInteractiva {
         this.explorador = explorador;
     }
 
+    /**
+     * Ejecuta la lógica al entrar al laboratorio.
+     * Cambia la pantalla a LaboratorioScreen si el equipo está vacío (inicio).
+     */
     @Override
     public void interactuar() {
         if (explorador.getEquipo().isEmpty()) {
@@ -48,7 +63,9 @@ public class ColisionPuertaLaboratorio extends ZonaInteractiva {
     }
 
     /**
-     * Renderiza el letrero del laboratorio con tamaño reducido.
+     * Renderiza el letrero indicador del laboratorio.
+     * 
+     * @param batch SpriteBatch para dibujar.
      */
     public void renderizarLetrero(SpriteBatch batch) {
         if (texturaLetrero != null) {

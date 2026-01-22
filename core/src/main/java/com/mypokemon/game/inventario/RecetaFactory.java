@@ -10,7 +10,9 @@ import java.util.List;
 public class RecetaFactory {
 
     /**
-     * Crea y retorna todas las recetas del juego.
+     * Crea y retorna todas las recetas disponibles en el juego.
+     * 
+     * @return Lista de todas las recetas.
      */
     public static List<Receta> crearTodasLasRecetas() {
         List<Receta> recetas = new ArrayList<>();
@@ -43,7 +45,10 @@ public class RecetaFactory {
     }
 
     /**
-     * Crea una receta específica por su ID.
+     * Crea una receta específica basada en su identificador.
+     * 
+     * @param id Identificador de la receta (ej: "pokeball").
+     * @return La receta correspondiente o null si no existe.
      */
     public static Receta crearReceta(String id) {
         switch (id.toLowerCase()) {

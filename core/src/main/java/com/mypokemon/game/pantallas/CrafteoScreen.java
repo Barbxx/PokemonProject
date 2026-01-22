@@ -19,6 +19,10 @@ import com.badlogic.gdx.math.Vector3;
 
 import java.util.List;
 
+/**
+ * Pantalla de crafteo de objetos.
+ * Permite al jugador crear nuevos items combinando recursos (Recetas).
+ */
 public class CrafteoScreen extends BaseScreen {
 
     private Texture background;
@@ -53,6 +57,12 @@ public class CrafteoScreen extends BaseScreen {
     private String craftingMessage = "";
     private float craftingMessageTimer = 0;
 
+    /**
+     * Constructor de la pantalla de crafteo.
+     * 
+     * @param game         Juego principal.
+     * @param returnScreen Pantalla de juego para regresar.
+     */
     public CrafteoScreen(PokemonMain game, GameScreen returnScreen) {
         super(game);
         this.returnScreen = returnScreen;
@@ -115,6 +125,10 @@ public class CrafteoScreen extends BaseScreen {
         }
     }
 
+    /**
+     * Inicializa la lista de recetas disponibles desde el sistema de crafteo del
+     * jugador.
+     */
     private void initRecipes() {
         // Load recipes specifically from the Crafteo logic
         this.recetas = crafteoLogic.obtenerTodasLasRecetas();
@@ -149,6 +163,11 @@ public class CrafteoScreen extends BaseScreen {
         return ItemFactory.crearCrafteado(id, 1).getDescripcion();
     }
 
+    /**
+     * Renderiza la interfaz de crafteo, grilla de recetas y panel de detalles.
+     * 
+     * @param delta Tiempo transcurrido.
+     */
     @Override
     public void render(float delta) {
         handleInput();
@@ -222,6 +241,11 @@ public class CrafteoScreen extends BaseScreen {
         }
     }
 
+    /**
+     * Intenta craftear el objeto de la receta seleccionada.
+     * 
+     * @param r Receta a intentar.
+     */
     private void attemptCrafting(Receta r) {
         try {
             crafteoLogic.craftear(r.getIdResultado(), returnScreen.getExplorador().getMochila());
