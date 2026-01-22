@@ -7,15 +7,10 @@ import java.util.List;
  * Representa un recurso básico recolectable.
  * Ejemplos: Planta, Baya, Guijarro
  */
-public class Recurso extends Objeto {
+public class Recurso extends Item {
 
     public Recurso(String id, String nombre, int cantidad) {
         super(id, nombre, cantidad);
-    }
-
-    @Override
-    public String getDescripcion() {
-        return "Recurso básico: " + nombre;
     }
 
     @Override

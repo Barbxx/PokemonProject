@@ -151,7 +151,7 @@ public class Explorador implements Serializable {
     }
 
     public boolean isReproductorMusicaActivo() {
-        com.mypokemon.game.inventario.Objeto item = mochila.getItem("reproductor");
+        com.mypokemon.game.inventario.Item item = mochila.getItem("reproductor");
         if (item instanceof com.mypokemon.game.inventario.objetoscrafteados.ReproductorMusica) {
             return ((com.mypokemon.game.inventario.objetoscrafteados.ReproductorMusica) item).isActivo();
         }
@@ -159,7 +159,7 @@ public class Explorador implements Serializable {
     }
 
     public void setReproductorMusicaActivo(boolean activo) {
-        com.mypokemon.game.inventario.Objeto item = mochila.getItem("reproductor");
+        com.mypokemon.game.inventario.Item item = mochila.getItem("reproductor");
         if (item instanceof com.mypokemon.game.inventario.objetoscrafteados.ReproductorMusica) {
             ((com.mypokemon.game.inventario.objetoscrafteados.ReproductorMusica) item).setActivo(activo);
         }

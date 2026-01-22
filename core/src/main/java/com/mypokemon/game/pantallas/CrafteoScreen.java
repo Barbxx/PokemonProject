@@ -1,7 +1,7 @@
 package com.mypokemon.game.pantallas;
 
 import com.mypokemon.game.PokemonMain;
-import com.mypokemon.game.inventario.exceptions.SpaceException;
+import com.mypokemon.game.inventario.exceptions.EspacioException;
 import com.mypokemon.game.inventario.ItemFactory;
 import com.mypokemon.game.inventario.Crafteo;
 import com.mypokemon.game.inventario.Receta;
@@ -226,7 +226,7 @@ public class CrafteoScreen extends BaseScreen {
         try {
             crafteoLogic.craftear(r.getIdResultado(), returnScreen.getExplorador().getMochila());
             craftingMessage = "¡Crafteaste con éxito!";
-        } catch (SpaceException e) {
+        } catch (EspacioException e) {
             craftingMessage = "¡Inventario lleno!";
         } catch (IllegalArgumentException e) {
             craftingMessage = "¡No tienes los materiales!";

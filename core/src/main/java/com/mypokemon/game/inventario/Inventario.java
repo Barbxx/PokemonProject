@@ -1,6 +1,6 @@
 package com.mypokemon.game.inventario;
 
-import com.mypokemon.game.inventario.exceptions.SpaceException;
+import com.mypokemon.game.inventario.exceptions.EspacioException;
 import com.mypokemon.game.inventario.exceptions.PokeballException;
 import com.mypokemon.game.inventario.objetoscrafteados.BayaAranja;
 
@@ -32,14 +32,14 @@ public class Inventario implements Serializable {
         listRecursos.add(new BayaAranja(0)); // Baya moved to resources
 
         // Inicializar items crafteados
-        listObjCrafteados.add(ObjectFactory.crearCrafteado("pokeball", 0));
-        listObjCrafteados.add(ObjectFactory.crearCrafteado("heavyball", 0));
-        listObjCrafteados.add(ObjectFactory.crearCrafteado("pocion", 0));
-        listObjCrafteados.add(ObjectFactory.crearCrafteado("elixir", 0));
-        listObjCrafteados.add(ObjectFactory.crearCrafteado("revivir", 0));
-        listObjCrafteados.add(ObjectFactory.crearCrafteado("reproductor", 0));
-        listObjCrafteados.add(ObjectFactory.crearCrafteado("guante", 0));
-        listObjCrafteados.add(ObjectFactory.crearCrafteado("frijol", 0));
+        listObjCrafteados.add(ItemFactory.crearCrafteado("pokeball", 0));
+        listObjCrafteados.add(ItemFactory.crearCrafteado("heavyball", 0));
+        listObjCrafteados.add(ItemFactory.crearCrafteado("pocion", 0));
+        listObjCrafteados.add(ItemFactory.crearCrafteado("elixir", 0));
+        listObjCrafteados.add(ItemFactory.crearCrafteado("revivir", 0));
+        listObjCrafteados.add(ItemFactory.crearCrafteado("reproductor", 0));
+        listObjCrafteados.add(ItemFactory.crearCrafteado("guante", 0));
+        listObjCrafteados.add(ItemFactory.crearCrafteado("frijol", 0));
     }
 
     // ========== VALIDACIÓN ==========
@@ -69,8 +69,8 @@ public class Inventario implements Serializable {
 
     // ========== EXCEPCIONES ==========
 
-    public void espacioException() throws SpaceException {
-        throw new SpaceException("¡Inventario lleno! No hay espacio disponible.");
+    public void espacioException() throws EspacioException {
+        throw new EspacioException("¡Inventario lleno! No hay espacio disponible.");
     }
 
     public void pokeballException() throws PokeballException {
@@ -102,9 +102,9 @@ public class Inventario implements Serializable {
     /**
      * Añade un ítem al inventario.
      * 
-     * @throws SpaceException si no hay espacio
+     * @throws EspacioException si no hay espacio
      */
-    public void agregarItem(Objeto item) throws SpaceException {
+    public void agregarItem(Item item) throws EspacioException {
         if (!validarEspacio(item.getCantidad())) {
             espacioException();
         }
@@ -174,10 +174,10 @@ public class Inventario implements Serializable {
         return validarEspacio(cantidad);
     }
 
-    public void agregarObjeto(Objeto item) {
+    public void agregarObjeto(Item item) {
         try {
             agregarItem(item);
-        } catch (SpaceException e) {
+        } catch (EspacioException e) {
             System.err.println("No se pudo agregar objeto: " + e.getMessage());
         }
     }
@@ -224,7 +224,7 @@ public class Inventario implements Serializable {
      * @param id ID del ítem a buscar
      * @return El ítem encontrado, o null si no existe
      */
-    public Objeto getItem(String id) {
+    public Item getItem(String id) {
         String idLower = id.toLowerCase();
 
         // Buscar en recursos

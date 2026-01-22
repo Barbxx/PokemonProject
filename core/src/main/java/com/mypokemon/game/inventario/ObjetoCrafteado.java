@@ -5,7 +5,7 @@ package com.mypokemon.game.inventario;
  * Cada tipo específico de ítem crafteado debe extender esta clase.
  * Ejemplos: Poké Ball, Poción Herbal, Elixir, etc.
  */
-public abstract class ObjetoCrafteado extends Objeto {
+public abstract class ObjetoCrafteado extends Item {
     protected String descripcion;
 
     public ObjetoCrafteado(String id, String nombre, String descripcion, int cantidad) {

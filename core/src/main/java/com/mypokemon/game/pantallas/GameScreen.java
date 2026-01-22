@@ -37,7 +37,7 @@ import java.util.TreeMap;
 import java.util.Map;
 import com.badlogic.gdx.audio.Sound;
 import com.mypokemon.game.colisiones.GestorColisiones;
-import com.mypokemon.game.colisiones.NPCCollision;
+import com.mypokemon.game.colisiones.ColisionNPC;
 import com.mypokemon.game.colisiones.ColisionPuertaLaboratorio;
 import com.mypokemon.game.colisiones.IInteractivo;
 import com.mypokemon.game.objects.NPC;
@@ -451,7 +451,7 @@ public class GameScreen extends BaseScreen {
 
             // Add NPCs to collision manager
             for (NPC npc : npcManager.getAllNPCs()) {
-                gestorColisiones.agregarColision(new NPCCollision(npc));
+                gestorColisiones.agregarColision(new ColisionNPC(npc));
             }
         }
 
@@ -836,8 +836,8 @@ public class GameScreen extends BaseScreen {
             if (Gdx.input.isKeyJustPressed(Input.Keys.T) && !showMenu && !fadingOut) {
                 IInteractivo interactivo = gestorColisiones.obtenerInteractivoMasCercano(posX, posY);
                 if (interactivo != null) {
-                    if (interactivo instanceof NPCCollision) {
-                        NPC npc = ((NPCCollision) interactivo).obtenerNPC();
+                    if (interactivo instanceof ColisionNPC) {
+                        NPC npc = ((ColisionNPC) interactivo).obtenerNPC();
                         if (!showDialog) {
                             showDialog = true;
                             currentDialogPage = 0;
@@ -895,7 +895,7 @@ public class GameScreen extends BaseScreen {
                                 if (client != null) {
                                     client.sendMessage("COLLECT:" + r.cellX + "_" + r.cellY);
                                 }
-                            } catch (com.mypokemon.game.inventario.exceptions.SpaceException e) {
+                            } catch (com.mypokemon.game.inventario.exceptions.EspacioException e) {
                                 notificationMessage = "Mochila llena";
                                 notificationTimer = NOTIFICATION_DURATION;
                             }

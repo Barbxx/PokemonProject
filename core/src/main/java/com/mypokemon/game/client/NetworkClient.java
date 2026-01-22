@@ -3,12 +3,6 @@ package com.mypokemon.game.client;
 import java.io.*;
 import java.net.*;
 
-/**
- * Alias para ClienteRed - mantiene compatibilidad con código existente.
- * 
- * @deprecated Use ClienteRed instead
- */
-@Deprecated
 public class NetworkClient {
     private static final int TCP_PORT = 54321;
     private static final int UDP_PORT = 54777;
@@ -19,33 +13,45 @@ public class NetworkClient {
     private DataOutputStream out;
     private volatile boolean listening = true;
 
-    public interface EscuchaRed {
+    // Interface for callbacks
+    public interface NetworkListener {
         void onMessageReceived(String msg);
     }
 
-    private EscuchaRed listener;
+    private NetworkListener listener;
 
-    public void setListener(EscuchaRed listener) {
+    public void setListener(NetworkListener listener) {
         this.listener = listener;
     }
 
+    /**
+     * Listens for the Server's UDP Beacon to auto-discover IP.
+     * Blocking call (should be run in a separate thread).
+     */
     public String discoverServerIP() {
         DatagramSocket socket = null;
         try {
+            // Bind to UDP port
+            // IMPORTANT: Do NOT use setReuseAddress(true) here for local testing logic to
+            // work reliably.
+            // We WANT the second instance to fail binding or timeout so it falls back to
+            // localhost.
             socket = new DatagramSocket(null);
 
             try {
                 socket.bind(new InetSocketAddress(UDP_PORT));
             } catch (SocketException bindEx) {
+                // Port is busy - likely another local instance (Player 1) is running.
+                // Fallback to localhost for local testing.
                 System.out.println("[Client] Puerto 54777 ocupado. Asumiendo jugadora 2 en misma PC (Localhost).");
                 return "127.0.0.1";
             }
 
-            socket.setSoTimeout(1000);
+            socket.setSoTimeout(1000); // Check every 1s
 
             byte[] buffer = new byte[1024];
             int retries = 0;
-            int maxRetries = 3;
+            int maxRetries = 3; // 3 seconds max wait
 
             System.out.println("[Client] Buscando señal Faro...");
             while (listening && retries < maxRetries) {
@@ -64,11 +70,13 @@ public class NetworkClient {
                     System.out.println("[Client] Buscando... (" + retries + "/" + maxRetries + ")");
                 }
             }
+            // If we timed out or loop ended
             System.out.println("[Client] Timeout buscando faro. Probando Localhost por defecto.");
             return "127.0.0.1";
 
         } catch (Exception e) {
             e.printStackTrace();
+            // Safe fallback
             return "127.0.0.1";
         } finally {
             if (socket != null && !socket.isClosed())
@@ -83,8 +91,10 @@ public class NetworkClient {
             in = new DataInputStream(tcpSocket.getInputStream());
             out = new DataOutputStream(tcpSocket.getOutputStream());
 
+            // Initial Handshake
             sendMessage("NAME:" + playerName);
 
+            // Start listening for TCP messages
             new Thread(this::listenTcp, "Client-TCP-Listener").start();
 
             return true;

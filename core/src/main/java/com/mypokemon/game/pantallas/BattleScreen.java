@@ -672,7 +672,7 @@ public class BattleScreen extends ScreenAdapter {
                 explorador.getMochila()
                         .agregarItem(com.mypokemon.game.inventario.ItemFactory.crearRecurso(recursoId, 1));
                 updateInfo("Ganaste +" + puntosInvestigacionGanados + " Inv. y encontraste 1 " + recursoId + ".");
-            } catch (com.mypokemon.game.inventario.exceptions.SpaceException e) {
+            } catch (com.mypokemon.game.inventario.exceptions.EspacioException e) {
                 updateInfo("Ganaste +" + puntosInvestigacionGanados + " Inv. pero tu inventario está lleno.");
             }
 
