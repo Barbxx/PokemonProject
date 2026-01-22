@@ -3,12 +3,24 @@ package com.mypokemon.game;
 import java.io.Serializable;
 import java.util.Random;
 
+/**
+ * Representa un movimiento o ataque que puede usar un Pokemon en batalla.
+ * Incluye poder, tipo, precision y logica de ejecucion con inmunidades.
+ */
 public class Movimiento implements Serializable {
     private String nombre;
     private int poder;
     private String tipo;
     private int precision;
 
+    /**
+     * Constructor de un movimiento de Pokemon.
+     * 
+     * @param nombre    Nombre del movimiento
+     * @param poder     Poder de ataque del movimiento
+     * @param tipo      Tipo elemental del movimiento
+     * @param precision Precision del movimiento de 0 a 100
+     */
     public Movimiento(String nombre, int poder, String tipo, int precision) {
         this.nombre = nombre;
         this.poder = poder;
@@ -16,6 +28,13 @@ public class Movimiento implements Serializable {
         this.precision = precision;
     }
 
+    /**
+     * Ejecuta el movimiento contra un Pokemon defensor.
+     * 
+     * @param atacante Pokemon que ejecuta el movimiento
+     * @param defensor Pokemon que recibe el ataque
+     * @return Cantidad de dano infligido, 0 si falla, -1 si es inmune
+     */
     public int ejecutar(Pokemon atacante, Pokemon defensor) {
         // Lógica especial para Recuperación (cura al atacante)
         if (this.nombre.equals("Recuperación")) {
@@ -48,7 +67,11 @@ public class Movimiento implements Serializable {
     }
 
     /**
-     * Verifica si el defensor es inmune al tipo de ataque
+     * Verifica si el defensor es inmune al tipo de ataque.
+     * 
+     * @param tipoAtaque Tipo del ataque a verificar
+     * @param defensor   Pokemon defensor
+     * @return true si es inmune, false en caso contrario
      */
     private boolean esInmune(String tipoAtaque, Pokemon defensor) {
         if (defensor.getInmunidades() != null) {
@@ -62,24 +85,37 @@ public class Movimiento implements Serializable {
     }
 
     /**
-     * NOTA: La efectividad de tipos ha sido removida.
-     * El daño ahora es directo: Poder del Ataque = Daño al HP
-     * No hay multiplicadores ni cálculos adicionales.
+     * Obtiene el nombre del movimiento.
+     * 
+     * @return Nombre del movimiento
      */
-
-    // Getters
     public String getNombre() {
         return nombre;
     }
 
+    /**
+     * Obtiene el poder del movimiento.
+     * 
+     * @return Poder de ataque
+     */
     public int getPoder() {
         return poder;
     }
 
+    /**
+     * Obtiene el tipo elemental del movimiento.
+     * 
+     * @return Tipo del movimiento
+     */
     public String getTipo() {
         return tipo;
     }
 
+    /**
+     * Obtiene la precision del movimiento.
+     * 
+     * @return Precision de 0 a 100
+     */
     public int getPrecision() {
         return precision;
     }

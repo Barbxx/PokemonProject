@@ -69,7 +69,7 @@ public class BasePokemonData {
                 DATABASE.put("Stantler", new BasePokemonData(
                                 "Stantler",
                                 "Sus cuernos curvados alteran el flujo del aire y crean una distorsión en la realidad que marea a quien los mira.",
-                                73, 95, 62, 85, 65, 85,
+                                55, 95, 62, 85, 65, 85,
                                 9, 9, 0, 0, 0, 9,
                                 "Normal / Psíquico",
                                 new String[] { "Placaje", "Confusión" },
@@ -109,7 +109,7 @@ public class BasePokemonData {
                 DATABASE.put("Scyther", new BasePokemonData(
                                 "Scyther",
                                 "Sus guadañas son tan afiladas que pueden cortar troncos de un solo golpe.",
-                                70, 110, 80, 55, 80, 105,
+                                50, 110, 80, 55, 80, 105,
                                 9, 9, 0, 0, 0, 9,
                                 "Bicho / Volador",
                                 new String[] { "At. Rápido", "Falsotortazo" },

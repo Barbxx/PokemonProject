@@ -4,17 +4,21 @@ import java.util.TreeMap;
 import java.util.Map;
 import java.util.Random;
 
+/**
+ * Gestiona los encuentros aleatorios con Pokemon salvajes.
+ * Define probabilidades por nivel de dificultad y Pokemon disponibles por zona.
+ */
 public class GestorEncuentros {
     private static final Random random = new Random();
 
     // Probabilidades por nivel
     private static final Map<Integer, Float> PROBABILIDADES = new TreeMap<>();
     static {
-        PROBABILIDADES.put(1, 0.15f);
-        PROBABILIDADES.put(2, 0.25f);
-        PROBABILIDADES.put(3, 0.35f);
-        PROBABILIDADES.put(4, 0.50f);
-        PROBABILIDADES.put(5, 0.80f);
+        PROBABILIDADES.put(1, 0.35f);
+        PROBABILIDADES.put(2, 0.45f);
+        PROBABILIDADES.put(3, 0.60f);
+        PROBABILIDADES.put(4, 0.70f);
+        PROBABILIDADES.put(5, 0.90f);
     }
 
     // Pokémon por nivel
@@ -27,11 +31,23 @@ public class GestorEncuentros {
         POKEMON_POR_ZONA.put(5, new String[] { "Bergmite", "Snorunt", "Zorua H.", "Cyndaquil H." });
     }
 
+    /**
+     * Verifica si ocurre un encuentro aleatorio segun el nivel de dificultad.
+     * 
+     * @param nivel Nivel de dificultad de 1 a 5
+     * @return true si ocurre un encuentro, false en caso contrario
+     */
     public static boolean verificarEncuentro(int nivel) {
         float probabilidad = PROBABILIDADES.getOrDefault(nivel, 0.10f);
         return random.nextFloat() < probabilidad;
     }
 
+    /**
+     * Obtiene un Pokemon aleatorio de la zona segun el nivel de dificultad.
+     * 
+     * @param nivel Nivel de dificultad de 1 a 5
+     * @return Nombre del Pokemon aleatorio
+     */
     public static String obtenerPokemonAleatorio(int nivel) {
         String[] pokemons = POKEMON_POR_ZONA.get(nivel);
         if (pokemons == null || pokemons.length == 0)

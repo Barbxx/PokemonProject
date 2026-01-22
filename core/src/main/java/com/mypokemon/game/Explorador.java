@@ -11,6 +11,12 @@ import java.util.List;
 
 import com.mypokemon.game.inventario.Inventario;
 
+/**
+ * Representa al jugador explorador con su inventario, equipo de Pokemon y
+ * progreso del juego.
+ * Gestiona el guardado y carga de partidas, asi como los items crafteados
+ * activos.
+ */
 public class Explorador implements Serializable {
     private static final long serialVersionUID = 1L;
 
@@ -23,6 +29,14 @@ public class Explorador implements Serializable {
     private int misionesCompletadas;
     private float tiempoGuanteRestante; // Tiempo restante en segundos para el Guante de Reflejo
 
+    /**
+     * Constructor completo del explorador.
+     * 
+     * @param nombreUsuario    Nombre del jugador
+     * @param nombrePartida    Nombre de la partida guardada
+     * @param capacidadInicial Capacidad inicial del inventario
+     * @param genero           Genero del personaje CHICO o CHICA
+     */
     public Explorador(String nombreUsuario, String nombrePartida, int capacidadInicial, String genero) {
         this.nombreUsuario = nombreUsuario;
         this.nombrePartida = nombrePartida;
@@ -34,10 +48,23 @@ public class Explorador implements Serializable {
         this.tiempoGuanteRestante = 0;
     }
 
+    /**
+     * Constructor con genero por defecto CHICO.
+     * 
+     * @param nombreUsuario    Nombre del jugador
+     * @param nombrePartida    Nombre de la partida guardada
+     * @param capacidadInicial Capacidad inicial del inventario
+     */
     public Explorador(String nombreUsuario, String nombrePartida, int capacidadInicial) {
         this(nombreUsuario, nombrePartida, capacidadInicial, "CHICO");
     }
 
+    /**
+     * Guarda el progreso del explorador en un archivo.
+     * 
+     * @param filename Nombre del archivo donde guardar
+     * @return true si se guardo exitosamente, false en caso contrario
+     */
     public boolean guardarProgreso(String filename) {
         // Guarda el objeto Explorador completo en el archivo especificado
         try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(filename))) {
@@ -51,12 +78,23 @@ public class Explorador implements Serializable {
         }
     }
 
+    /**
+     * Guarda el progreso usando el nombre de partida y usuario por defecto.
+     * 
+     * @return true si se guardo exitosamente, false en caso contrario
+     */
     public boolean guardarProgreso() {
         // Fallback for default behavior if needed, generally shouldn't be used with new
         // logic
         return guardarProgreso(nombrePartida + "_" + nombreUsuario + ".dat");
     }
 
+    /**
+     * Carga un explorador desde un archivo guardado.
+     * 
+     * @param filename Nombre del archivo a cargar
+     * @return Objeto Explorador cargado o null si falla
+     */
     public static Explorador cargarProgreso(String filename) {
         // Busca el archivo y reconstruye el objeto usando el nombre del archivo
         // Ensure extension is handled if not provided (helper logic could go here, but
@@ -69,12 +107,21 @@ public class Explorador implements Serializable {
         }
     }
 
+    /**
+     * Verifica si el explorador cumple los requisitos para enfrentar a Arceus.
+     * 
+     * @return true si tiene 5 especies capturadas a nivel 10, false en caso
+     *         contrario
+     */
     public boolean verificarRequisitosArceus() {
         // Consulta a la Pokedex para saber si ya tiene las 5 especies investigadas a
         // nivel 10
         return registro.puedeRetarArceus();
     }
 
+    /**
+     * Finaliza la investigacion legendaria guardando el progreso.
+     */
     public void finalizarInvestigacionLegendaria() {
         System.out.println("Dr. Brenner: Progreso guardado. El experimento ha concluido.");
         // Incrementa contador de misiones al completar el hito (opcional, pero buena
@@ -83,39 +130,84 @@ public class Explorador implements Serializable {
         guardarProgreso();
     }
 
-    // Getters
+    /**
+     * Obtiene el inventario del explorador.
+     * 
+     * @return Objeto Inventario
+     */
     public Inventario getMochila() {
         return mochila;
     }
 
+    /**
+     * Alias de getMochila.
+     * 
+     * @return Objeto Inventario
+     */
     public Inventario getInventario() {
         return mochila; // Alias para getMochila()
     }
 
+    /**
+     * Obtiene la Pokedex del explorador.
+     * 
+     * @return Objeto Pokedex
+     */
     public Pokedex getRegistro() {
         return registro;
     }
 
+    /**
+     * Obtiene el nombre del usuario.
+     * 
+     * @return Nombre del usuario
+     */
     public String getNombre() {
         return nombreUsuario;
     }
 
+    /**
+     * Obtiene el nombre de la partida.
+     * 
+     * @return Nombre de la partida
+     */
     public String getNombrePartida() {
         return nombrePartida;
     }
 
+    /**
+     * Obtiene el genero del personaje.
+     * 
+     * @return CHICO o CHICA
+     */
     public String getGenero() {
         return genero;
     }
 
+    /**
+     * Obtiene el equipo de Pokemon del explorador.
+     * 
+     * @return Lista de Pokemon en el equipo
+     */
     public List<Pokemon> getEquipo() {
         return equipo;
     }
 
+    /**
+     * Obtiene el numero de misiones completadas.
+     * 
+     * @return Cantidad de misiones completadas
+     */
     public int getMisionesCompletadas() {
         return misionesCompletadas;
     }
 
+    /**
+     * Agrega un Pokemon al equipo si hay espacio disponible.
+     * 
+     * @param pokemon Pokemon a agregar
+     * @return true si se agrego exitosamente, false si el equipo esta lleno
+     */
     public boolean agregarAlEquipo(Pokemon pokemon) {
         if (this.equipo.size() < 6) {
             this.equipo.add(pokemon);
@@ -124,6 +216,11 @@ public class Explorador implements Serializable {
         return false;
     }
 
+    /**
+     * Alias de agregarAlEquipo.
+     * 
+     * @param pokemon Pokemon a agregar
+     */
     public void agregarPokemonEquipo(Pokemon pokemon) {
         agregarAlEquipo(pokemon);
     }
@@ -131,6 +228,11 @@ public class Explorador implements Serializable {
     // Sistema de Crafteo Centralizado
     private transient com.mypokemon.game.inventario.Crafteo crafteoSystem;
 
+    /**
+     * Obtiene el sistema de crafteo del explorador.
+     * 
+     * @return Sistema de crafteo
+     */
     public com.mypokemon.game.inventario.Crafteo getCrafteoSystem() {
         if (crafteoSystem == null) {
             crafteoSystem = new com.mypokemon.game.inventario.Crafteo();
@@ -138,18 +240,38 @@ public class Explorador implements Serializable {
         return crafteoSystem;
     }
 
+    /**
+     * Verifica si el guante de reflejo esta activo.
+     * 
+     * @return true si el guante esta equipado, false en caso contrario
+     */
     public boolean isGuanteEquipado() {
         return tiempoGuanteRestante > 0;
     }
 
+    /**
+     * Activa el guante de reflejo por un tiempo determinado.
+     * 
+     * @param segundos Duracion del efecto en segundos
+     */
     public void activarGuante(float segundos) {
         this.tiempoGuanteRestante = segundos;
     }
 
+    /**
+     * Obtiene el tiempo restante del guante de reflejo.
+     * 
+     * @return Tiempo restante en segundos
+     */
     public float getTiempoGuanteRestante() {
         return tiempoGuanteRestante;
     }
 
+    /**
+     * Verifica si el reproductor de musica esta activo.
+     * 
+     * @return true si esta activo, false en caso contrario
+     */
     public boolean isReproductorMusicaActivo() {
         com.mypokemon.game.inventario.Item item = mochila.getItem("reproductor");
         if (item instanceof com.mypokemon.game.inventario.objetoscrafteados.ReproductorMusica) {
@@ -158,6 +280,11 @@ public class Explorador implements Serializable {
         return false;
     }
 
+    /**
+     * Activa o desactiva el reproductor de musica.
+     * 
+     * @param activo true para activar, false para desactivar
+     */
     public void setReproductorMusicaActivo(boolean activo) {
         com.mypokemon.game.inventario.Item item = mochila.getItem("reproductor");
         if (item instanceof com.mypokemon.game.inventario.objetoscrafteados.ReproductorMusica) {

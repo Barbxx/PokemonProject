@@ -680,8 +680,9 @@ public class BattleScreen extends ScreenAdapter {
         } else if (pokemonJugador.getHpActual() <= 0) {
             updateInfo("¡Tu Pokémon se debilitó!");
 
-            // Derrota: El Pokémon salvaje gana experiencia (+1 investigación)
-            explorador.getRegistro().registrarAccion(pokemonEnemigo.getNombre(), false);
+            // Derrota: El Pokémon salvaje NO gana experiencia (cambio #3)
+            // Se eliminó la línea:
+            // explorador.getRegistro().registrarAccion(pokemonEnemigo.getNombre(), false);
 
             // Derrota: Penalización
             String perdido = explorador.getMochila().perderObjetoCrafteado();
@@ -735,13 +736,36 @@ public class BattleScreen extends ScreenAdapter {
         if (pokemonEnemigo != null)
             pokemonEnemigo.resetModificadoresTemporales();
 
-        Gdx.app.postRunnable(() -> {
-            try {
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-            }
-            Gdx.app.postRunnable(() -> game.setScreen(parentScreen));
-        });
+        // Si derrotamos a Arceus, mostrar el diálogo final
+        if (victory && pokemonEnemigo.getNombre().equalsIgnoreCase("Arceus")) {
+            Gdx.app.postRunnable(() -> {
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                }
+                Gdx.app.postRunnable(() -> {
+                    String[] finalDialog = {
+                            "Has derrotado a Arceus y su poder ha estabilizado todas las realidades…",
+                            "el Upside Down retrocede, la magia vuelve a Hogwarts y el ritmo regresa a las calles…",
+                            "Miras tu Pokédex y entiendes que nunca fue una simple misión, sino que te convertiste en el guardián de todas estas historias.",
+                            "Misión cumplida, " + explorador.getNombre()
+                                    + ", el destino de los mundos está a salvo, y tu nombre ha quedado grabado en la esencia misma de la historia.",
+                            "Porque al final, el camino siempre estuvo claro…",
+                            "¡Atrápalos a todos!"
+                    };
+                    game.setScreen(new StoryDialogScreen(game, "fondoFinal.png", finalDialog, parentScreen));
+                });
+            });
+        } else {
+            // Batalla normal
+            Gdx.app.postRunnable(() -> {
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                }
+                Gdx.app.postRunnable(() -> game.setScreen(parentScreen));
+            });
+        }
     }
 
     private void updateInfo(String text) {

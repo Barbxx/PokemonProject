@@ -2,14 +2,24 @@ package com.mypokemon.game;
 
 import java.io.Serializable;
 
+/**
+ * Representa una especie de Pokemon en la Pokedex con su nivel de
+ * investigacion.
+ * Gestiona el progreso de investigacion y el estado de captura.
+ */
 public class EspeciePokemon implements Serializable {
-    private static final long serialVersionUID = 3L; 
+    private static final long serialVersionUID = 3L;
 
     private String nombre;
     private int nivelInvestigacion;
     private boolean completa;
     private boolean capturado;
 
+    /**
+     * Constructor de una especie de Pokemon.
+     * 
+     * @param nombre Nombre de la especie
+     */
     public EspeciePokemon(String nombre) {
         this.nombre = nombre;
         this.nivelInvestigacion = 0;
@@ -17,6 +27,11 @@ public class EspeciePokemon implements Serializable {
         this.capturado = false;
     }
 
+    /**
+     * Agrega puntos de investigacion a la especie.
+     * 
+     * @param puntos Cantidad de puntos a agregar
+     */
     public void añadirPuntos(int puntos) {
         if (!completa) {
             this.nivelInvestigacion += puntos;
@@ -28,35 +43,65 @@ public class EspeciePokemon implements Serializable {
         }
     }
 
+    /**
+     * Establece la investigacion al nivel maximo instantaneamente.
+     */
     public void setInvestigacionMaxica() {
         this.nivelInvestigacion = 10;
         this.completa = true;
         this.capturado = true;
     }
 
-    // Mantenemos compatibilidad con lógica previa si es necesario
+    /**
+     * Sube el nivel de investigacion de la especie.
+     * 
+     * @param cantidad Cantidad de niveles a subir
+     */
     public void subirNivel(int cantidad) {
         añadirPuntos(cantidad);
     }
 
-    // Getters y Setters necesarios para el guardado y la UI
+    /**
+     * Obtiene el nombre de la especie.
+     * 
+     * @return Nombre de la especie
+     */
     public String getNombre() {
         return nombre;
     }
 
+    /**
+     * Obtiene el nivel de investigacion actual.
+     * 
+     * @return Nivel de investigacion de 0 a 10
+     */
     public int getNivelInvestigacion() {
         return nivelInvestigacion;
     }
 
+    /**
+     * Verifica si la investigacion esta completa.
+     * 
+     * @return true si esta completa, false en caso contrario
+     */
     public boolean isCompleta() {
         return completa;
     }
 
-    // Compatibilidad
+    /**
+     * Verifica si la especie ha sido capturada.
+     * 
+     * @return true si fue capturada, false en caso contrario
+     */
     public boolean isCapturado() {
         return capturado;
     }
 
+    /**
+     * Establece el estado de captura de la especie.
+     * 
+     * @param capturado true si fue capturada, false en caso contrario
+     */
     public void setCapturado(boolean capturado) {
         this.capturado = capturado;
     }

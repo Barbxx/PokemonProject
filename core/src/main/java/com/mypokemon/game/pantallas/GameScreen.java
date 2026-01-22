@@ -986,9 +986,23 @@ public class GameScreen extends BaseScreen {
                             // Force Encounter with Arceus (100% probability)
                             inEncounter = true;
                             Gdx.app.log("GameScreen", "Boss Encounter: " + bossName);
+
+                            // Mostrar diálogo de historia antes de la batalla con Arceus
+                            String[] preArceusDialog = {
+                                    "A medida que te aproximas a la cueva, el aire se vuelve pesado, gélido, como si el tiempo mismo se detuviera ante tus pies…",
+                                    "El pulso se te acelera… ¿Será Arceus?",
+                                    "Sin embargo, al cruzar el umbral, el silencio es absoluto. No hay deidades, solo una flauta que se ve muy antigua…",
+                                    "Por lo que tomaste una decisión…",
+                                    "Tocaste la flauta…"
+                            };
+
                             // Arceus created with stats from BasePokemonData (130 HP, moves included)
                             Pokemon jefe = new Pokemon(bossName, 10, 130, true, "Normal");
-                            game.setScreen(new BattleScreen(game, this, explorador, jefe));
+                            BattleScreen battleScreen = new BattleScreen(game, this, explorador, jefe);
+
+                            // Mostrar pantalla de diálogo antes de la batalla
+                            game.setScreen(
+                                    new StoryDialogScreen(game, "fondoFinal.png", preArceusDialog, battleScreen));
                         } else if (foundGrass && nivelDificultad >= 1 && nivelDificultad <= 5) {
                             // Check if an encounter happens based on probability
                             if (GestorEncuentros.verificarEncuentro(nivelDificultad)) {
