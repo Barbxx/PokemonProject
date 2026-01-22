@@ -29,7 +29,6 @@ public class MainMenuScreen extends BaseScreen {
     int currentOption = -1;
     float fadeAlpha = 0f;
     boolean isStarting = false;
-    String currentSubScreen = null; // null, "PARTIDA", "HELP", "ABOUT" (PARTIDA is now likely PartidasScreen)
 
     // Layout constants
     float menuBoxWidth = 370;
@@ -125,20 +124,16 @@ public class MainMenuScreen extends BaseScreen {
                 game.setScreen(new PartidasScreen(game));
                 dispose();
                 return;
-            } else if (currentOption == 2) {
-                currentSubScreen = "HELP";
+            } else if (currentOption == 2) { // HELP -> Go to AyudaScreen
+                game.setScreen(new AyudaScreen(game));
+                dispose();
+                return;
             } else if (currentOption == 3) { // ABOUT -> Go to AcercaDeScreen
                 game.setScreen(new AcercaDeScreen(game));
                 dispose();
                 return;
             } else if (currentOption == 4) { // EXIT
                 Gdx.app.exit();
-            }
-        }
-
-        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE) || Gdx.input.isKeyJustPressed(Input.Keys.BACKSPACE)) {
-            if (currentSubScreen != null) {
-                currentSubScreen = null;
             }
         }
 
@@ -190,18 +185,6 @@ public class MainMenuScreen extends BaseScreen {
 
                 game.font.draw(game.batch, layout, textX, textY);
             }
-        }
-
-        if (currentSubScreen != null) {
-            game.batch.setColor(0, 0, 0, 0.8f);
-            game.batch.draw(selectedTextures[0], 50, 50, screenWidth - 100, screenHeight - 100); // Overlay
-            game.batch.setColor(Color.WHITE);
-            game.font.getData().setScale(1.5f);
-            game.font.draw(game.batch, "SCREEN: " + currentSubScreen, 0, screenHeight / 2 + 20, screenWidth,
-                    com.badlogic.gdx.utils.Align.center, false);
-            game.font.getData().setScale(1.0f);
-            game.font.draw(game.batch, "PRESS ESC TO GO BACK", 0, screenHeight / 2 - 40, screenWidth,
-                    com.badlogic.gdx.utils.Align.center, false);
         }
 
         game.batch.end();
