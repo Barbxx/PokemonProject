@@ -122,11 +122,9 @@ public class GestorColisiones {
             return true;
         }
 
-        // Verificar todos los objetos colisionables (NPCs, Puertas, etc.)
-        for (IColisionable colision : colisiones) {
-            if (colision.verificarColision(x, y, ancho, alto)) {
-                return true;
-            }
+        // Verificar NPCs
+        if (verificarColisionNPCs(x, y, ancho, alto)) {
+            return true;
         }
         return false;
     }
