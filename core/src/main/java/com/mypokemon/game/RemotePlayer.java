@@ -3,15 +3,19 @@ package com.mypokemon.game;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.mypokemon.game.utils.TextureUtils;
 
+/**
+ * Alias para JugadorRemoto - mantiene compatibilidad con código existente.
+ * 
+ * @deprecated Use JugadorRemoto instead
+ */
+@Deprecated
 public class RemotePlayer {
     public float x, y;
     public TextureRegion currentFrame;
     public float stateTime;
-    public String name = ""; // Default empty
+    public String name = "";
 
-    // Animations (Reusing same texture logic as local player)
     private Animation<TextureRegion> walkDown, walkLeft, walkRight, walkUp;
 
     public RemotePlayer(Texture sheet, int cols, int rows) {

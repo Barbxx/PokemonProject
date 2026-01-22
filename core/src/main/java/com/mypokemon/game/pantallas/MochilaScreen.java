@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.badlogic.gdx.Screen;
-import com.mypokemon.game.inventario.Item;
+import com.mypokemon.game.inventario.Objeto;
 
 /**
  * Screen for the inventory (Mochila).
@@ -62,9 +62,9 @@ public class MochilaScreen extends BaseScreen {
         public String descripcion;
         public Texture textura;
         public int cantidad;
-        public Item itemReal; // Referencia al ítem real del sistema OO
+        public Objeto itemReal; // Referencia al ítem real del sistema OO
 
-        public ItemData(String nombre, String descripcion, Texture textura, int cantidad, Item itemReal) {
+        public ItemData(String nombre, String descripcion, Texture textura, int cantidad, Objeto itemReal) {
             this.nombre = nombre;
             this.descripcion = descripcion;
             this.textura = textura;
@@ -584,7 +584,7 @@ public class MochilaScreen extends BaseScreen {
             return;
         }
 
-        Item item = selectedItemForAction.itemReal;
+        Objeto item = selectedItemForAction.itemReal;
 
         // NUEVO SISTEMA OO: Verificar si el ítem es usable
         if (item.esUsable()) {
@@ -869,62 +869,62 @@ public class MochilaScreen extends BaseScreen {
 
         if (selectedIndex == 0) { // Red Button: Materiales
             // Obtener ítems reales del inventario
-            Item planta = inventory.getItem("planta");
+            Objeto planta = inventory.getItem("planta");
             if (planta != null && planta.getCantidad() > 0)
                 visibleItems.add(new ItemData("Planta Medicinal", "Ingrediente básico para medicinas.",
                         texPlanta, planta.getCantidad(), planta));
 
-            Item baya = inventory.getItem("baya");
+            Objeto baya = inventory.getItem("baya");
             if (baya != null && baya.getCantidad() > 0)
                 visibleItems.add(new ItemData("Baya Aranja", "Restaura el 10% de HP del Pokémon.",
                         texBaya, baya.getCantidad(), baya));
 
-            Item guijarro = inventory.getItem("guijarro");
+            Objeto guijarro = inventory.getItem("guijarro");
             if (guijarro != null && guijarro.getCantidad() > 0)
                 visibleItems.add(new ItemData("Guijarro", "Ingrediente principal para fabricar Poké Balls.",
                         texGuijarro, guijarro.getCantidad(), guijarro));
 
         } else if (selectedIndex == 1) { // Blue Button: Pokebolas
-            Item pokeball = inventory.getItem("pokeball");
+            Objeto pokeball = inventory.getItem("pokeball");
             if (pokeball != null && pokeball.getCantidad() > 0)
                 visibleItems.add(new ItemData("Poké Ball", "Dispositivo para atrapar Pokémon.",
                         texPokeball, pokeball.getCantidad(), pokeball));
 
-            Item heavyball = inventory.getItem("heavyball");
+            Objeto heavyball = inventory.getItem("heavyball");
             if (heavyball != null && heavyball.getCantidad() > 0)
                 visibleItems.add(new ItemData("Poké Ball de Peso", "Dispositivo con mejor captura en nivel bajo.",
                         texHeavyBall, heavyball.getCantidad(), heavyball));
 
         } else if (selectedIndex == 2) { // Yellow Button: Pociones + Crafteo + Lure
-            Item pocion = inventory.getItem("pocion");
+            Objeto pocion = inventory.getItem("pocion");
             if (pocion != null && pocion.getCantidad() > 0)
                 visibleItems.add(new ItemData("Poción Herbal", "Restaura el 20% de HP del Pokémon.",
                         texPocionHerbal, pocion.getCantidad(), pocion));
 
-            Item elixir = inventory.getItem("elixir");
+            Objeto elixir = inventory.getItem("elixir");
             if (elixir != null && elixir.getCantidad() > 0)
                 visibleItems.add(new ItemData("Elíxir de Piel de Piedra",
                         "Aumenta la potencia del ataque (+3 por ataque).",
                         texElixir, elixir.getCantidad(), elixir));
 
-            Item revivir = inventory.getItem("revivir");
+            Objeto revivir = inventory.getItem("revivir");
             if (revivir != null && revivir.getCantidad() > 0)
                 visibleItems.add(new ItemData("Revivir Casero", "Restaura el 50% de HP del Pokémon.",
                         texRevivir, revivir.getCantidad(), revivir));
 
-            Item reproductor = inventory.getItem("reproductor");
+            Objeto reproductor = inventory.getItem("reproductor");
             if (reproductor != null && reproductor.getCantidad() > 0)
                 visibleItems
                         .add(new ItemData("Reproductor de música", "Permite escuchar música de fondo durante el viaje.",
                                 texReproductor, reproductor.getCantidad(), reproductor));
 
-            Item guante = inventory.getItem("guante");
+            Objeto guante = inventory.getItem("guante");
             if (guante != null && guante.getCantidad() > 0)
                 visibleItems.add(new ItemData("Guante de reflejo cuarcítico",
                         "Utilizan guijarros brillantes para recolectar doble recurso.",
                         texGuante, guante.getCantidad(), guante));
 
-            Item frijol = inventory.getItem("frijol");
+            Objeto frijol = inventory.getItem("frijol");
             if (frijol != null && frijol.getCantidad() > 0)
                 visibleItems.add(new ItemData("Frijol mágico", "Restaura el 100% de HP del Pokémon.",
                         texFrijol, frijol.getCantidad(), frijol));

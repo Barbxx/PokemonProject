@@ -1,7 +1,7 @@
 package com.mypokemon.game.inventario;
 
 import com.mypokemon.game.inventario.Inventario;
-import com.mypokemon.game.inventario.exceptions.EspacioException;
+import com.mypokemon.game.inventario.exceptions.SpaceException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +30,7 @@ public class Crafteo {
      * @throws IllegalArgumentException si no existe la receta o faltan materiales
      * @throws EspacioException         si no hay espacio en el inventario
      */
-    public ObjetoCrafteado craftear(String idReceta, Inventario inventario) throws EspacioException {
+    public ObjetoCrafteado craftear(String idReceta, Inventario inventario) throws SpaceException {
         Receta receta = obtenerReceta(idReceta);
         if (receta == null) {
             throw new IllegalArgumentException("Receta no encontrada: " + idReceta);
@@ -43,7 +43,7 @@ public class Crafteo {
 
         // 2. Validar espacio
         if (!inventario.validarEspacio(1)) {
-            throw new EspacioException("¡Inventario lleno! No se puede craftear " + receta.getNombreResultado());
+            throw new SpaceException("¡Inventario lleno! No se puede craftear " + receta.getNombreResultado());
         }
 
         // 3. Consumir materiales
@@ -67,7 +67,7 @@ public class Crafteo {
         // 5. Añadir al inventario
         try {
             inventario.agregarItem(resultado);
-        } catch (EspacioException e) {
+        } catch (SpaceException e) {
             // Revertir consumo de materiales si falla (aunque ya validamos espacio)
             // En producción podría implementarse un sistema de transacciones
             throw e;

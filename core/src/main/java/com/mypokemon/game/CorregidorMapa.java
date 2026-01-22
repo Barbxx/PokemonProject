@@ -13,7 +13,7 @@ import java.util.regex.Pattern;
 /**
  * Utility class to fix GID issues in TMX maps, translated from update_map.py.
  */
-public class MapFixer {
+public class CorregidorMapa {
 
     public static void main(String[] args) {
         // Path to the TMX file
@@ -101,3 +101,7 @@ public class MapFixer {
         Files.write(path, content.getBytes(StandardCharsets.UTF_8));
     }
 }
+
+
+
+

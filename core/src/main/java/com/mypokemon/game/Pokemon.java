@@ -34,7 +34,7 @@ public class Pokemon implements Serializable {
         this.debilitado = false;
 
         // Cargar datos base si existen
-        BasePokemonData data = BasePokemonData.get(nombre);
+        DatosBasePokemon data = DatosBasePokemon.get(nombre);
         if (data != null) {
             this.descripcion = data.descripcion;
             this.inmunidades = data.inmunidades;
@@ -48,7 +48,7 @@ public class Pokemon implements Serializable {
 
             // Agregar movimientos iniciales
             for (String movNombre : data.movimientosIniciales) {
-                AtaqueData ataqueData = AtaqueData.get(movNombre);
+                DatosAtaque ataqueData = DatosAtaque.get(movNombre);
                 if (ataqueData != null) {
                     this.agregarMovimiento(
                             new Movimiento(movNombre, ataqueData.poder, ataqueData.tipo, ataqueData.precision));
@@ -59,7 +59,7 @@ public class Pokemon implements Serializable {
             // especiales
             if (nivelInvestigacion >= 5 && data.movimientosNivel5 != null) {
                 for (String movExtra : data.movimientosNivel5) {
-                    AtaqueData ataqueData = AtaqueData.get(movExtra);
+                    DatosAtaque ataqueData = DatosAtaque.get(movExtra);
                     if (ataqueData != null) {
                         this.agregarMovimiento(new Movimiento(movExtra, ataqueData.poder, ataqueData.tipo,
                                 ataqueData.precision));
@@ -67,6 +67,11 @@ public class Pokemon implements Serializable {
                 }
             }
         }
+    }
+
+    public void tocarGrito() {
+        // Implementación básica de grito de pokemon (puede ser un sonido en el futuro)
+        System.out.println("¡" + this.nombre + " lanza un grito!");
     }
 
     public void setSprite(TextureRegion sprite) {

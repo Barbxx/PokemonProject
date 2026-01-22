@@ -6,12 +6,12 @@ import com.mypokemon.game.objects.NPC;
 /**
  * Wrapper de colisión para NPCs.
  */
-public class ColisionNPC extends ColisionBase implements IInteractivo {
+public class NPCCollision extends ColisionBase implements IInteractivo {
 
     private NPC npc;
     private float rangoInteraccion = 50f;
 
-    public ColisionNPC(NPC npc) {
+    public NPCCollision(NPC npc) {
         this.npc = npc;
         // Crear Rectangle desde la posición y tamaño del NPC
         this.limites = new Rectangle(npc.getX(), npc.getY(), npc.getWidth(), npc.getHeight());
