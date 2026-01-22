@@ -1,6 +1,6 @@
 package com.mypokemon.game.pantallas;
 
-import com.mypokemon.game.PokemonMain;
+import com.mypokemon.game.PokemonPrincipal;
 import com.mypokemon.game.Explorador;
 import com.mypokemon.game.Pokemon;
 import com.mypokemon.game.Movimiento;
@@ -20,9 +20,9 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import java.util.List;
 
-public class BattleScreen extends ScreenAdapter {
+public class PantallaBatalla extends ScreenAdapter {
 
-    private final PokemonMain game;
+    private final PokemonPrincipal game;
     private final com.badlogic.gdx.Screen parentScreen;
     private final Explorador explorador;
     private Pokemon pokemonJugador; // Removed final to allow switching
@@ -61,7 +61,7 @@ public class BattleScreen extends ScreenAdapter {
     private Rectangle btnMochilaRect;
     private Rectangle btnPokemonRect;
 
-    // Rectángulos para el menú de movimientos (cuadrícula 2x2)
+    // Rectángulos para el menú de movimientos (cuadr­cula 2x2)
     private Rectangle btnMove0Rect;
     private Rectangle btnMove1Rect;
     private Rectangle btnMove2Rect;
@@ -98,6 +98,7 @@ public class BattleScreen extends ScreenAdapter {
     private Texture buttonBg;
     private Texture boxBg;
     private Texture borderBg;
+    private Texture pokeballTexture;
     private Texture hpBarBg;
     private Texture hpBarFill;
     private Texture baseCircleTexture;
@@ -111,7 +112,7 @@ public class BattleScreen extends ScreenAdapter {
 
     private BattleState currentState;
 
-    public BattleScreen(PokemonMain game, com.badlogic.gdx.Screen parentScreen, Explorador explorador,
+    public PantallaBatalla(PokemonPrincipal game, com.badlogic.gdx.Screen parentScreen, Explorador explorador,
             Pokemon enemigo) {
         this.game = game;
         this.parentScreen = parentScreen;
@@ -120,9 +121,6 @@ public class BattleScreen extends ScreenAdapter {
 
         if (!explorador.getEquipo().isEmpty()) {
             this.pokemonJugador = explorador.getEquipo().get(0);
-        } else {
-            // Revertido a Piplup como se solicitó para simulación
-            this.pokemonJugador = new Pokemon("Piplup", 5, 20, false, "Agua");
         }
 
         // Resetear modificadores temporales al iniciar batalla (Elixir)
@@ -148,7 +146,13 @@ public class BattleScreen extends ScreenAdapter {
                 backgroundTexture = new Texture(Gdx.files.internal("fondoBatalla.jpg"));
             }
         } catch (Exception e) {
-            Gdx.app.log("BattleScreen", "No se pudo cargar el fondo");
+            Gdx.app.log("PantallaBatalla", "No se pudo cargar el fondo");
+        }
+
+        try {
+            pokeballTexture = new Texture(Gdx.files.internal("pokeball.png"));
+        } catch (Exception e) {
+            Gdx.app.log("PantallaBatalla", "Missing pokeball.png");
         }
 
         try {
@@ -191,7 +195,7 @@ public class BattleScreen extends ScreenAdapter {
         try {
             statusBarTexture = new Texture(Gdx.files.internal("barraPokemon.png"));
         } catch (Exception e) {
-            Gdx.app.log("BattleScreen", "Could not load barraPokemon.png");
+            Gdx.app.log("PantallaBatalla", "Could not load barraPokemon.png");
             statusBarTexture = borderBg; // Fallback
         }
 
@@ -205,9 +209,12 @@ public class BattleScreen extends ScreenAdapter {
                 battleMusic.setVolume(0.5f);
                 battleMusic.play();
             } catch (Exception e) {
-                Gdx.app.log("BattleScreen", "No se pudo cargar batallaPokemon.mp3");
+                Gdx.app.log("PantallaBatalla", "No se pudo cargar batallaPokemon.mp3");
             }
         }
+
+        // Grito inicial del enemigo
+        pokemonEnemigo.tocarGrito();
     }
 
     private Texture createCircleTexture(Color color) {
@@ -230,12 +237,12 @@ public class BattleScreen extends ScreenAdapter {
 
     @Override
     public void show() {
-        // Disposición de botones en cuadrícula 2x2 centrada en el cuadro de acciones
+        // Disposición de botones en cuadr­cula 2x2 centrada en el cuadro de acciones
         float btnWidth = 140;
         float btnHeight = 40;
         float spacing = 15;
         // El cuadro de acciones está en el lado derecho (400 a 800)
-        // Ancho total de la cuadrícula = 140 * 2 + 15 = 295
+        // Ancho total de la cuadr­cula = 140 * 2 + 15 = 295
         // StartX para centrar en 400-800: 400 + (400 - 295) / 2 = 452.5
         float startX = 452.5f;
         // StartY para centrar verticalmente en relación al cuadro de mensajes
@@ -249,7 +256,7 @@ public class BattleScreen extends ScreenAdapter {
         btnPokemonRect = new Rectangle(startX, startY, btnWidth, btnHeight);
         btnHuirRect = new Rectangle(startX + btnWidth + spacing, startY, btnWidth, btnHeight);
 
-        // Crear rectángulos para el menú de movimientos (cuadrícula 2x2 perfecta)
+        // Crear rectángulos para el menú de movimientos (cuadr­cula 2x2 perfecta)
         // Fila superior: Movimiento 0 | Movimiento 1
         btnMove0Rect = new Rectangle(startX, startY + btnHeight + spacing, btnWidth, btnHeight);
         btnMove1Rect = new Rectangle(startX + btnWidth + spacing, startY + btnHeight + spacing, btnWidth, btnHeight);
@@ -272,7 +279,7 @@ public class BattleScreen extends ScreenAdapter {
 
                 if (currentState == BattleState.PLAYER_TURN) {
                     if (showMoveMenu) {
-                        // Menú de movimientos - usar rectángulos específicos
+                        // Menú de movimientos - usar rectángulos espec­ficos
                         List<Movimiento> movs = pokemonJugador.getMovimientos();
                         if (btnMove0Rect.contains(x, y) && movs.size() > 0) {
                             performMove(0);
@@ -402,7 +409,7 @@ public class BattleScreen extends ScreenAdapter {
     }
 
     private void abrirMochila() {
-        game.setScreen(new MochilaScreen(game, this, explorador));
+        game.setScreen(new PantallaMochila(game, this, explorador));
     }
 
     public void usarItemEnBatalla(String tipo) {
@@ -416,54 +423,17 @@ public class BattleScreen extends ScreenAdapter {
                 return;
             }
 
-            updateInfo("¡Usaste una " + (tipo.equals("heavyball") ? "Heavy Ball" : "Poké Ball") + "!");
-            float hpPercent = pokemonEnemigo.getHpActual() / pokemonEnemigo.getHpMaximo();
-            int nivelEnemigo = pokemonEnemigo.getNivel();
+            updateInfo("¡Lanzaste una " + (tipo.equals("heavyball") ? "Heavy Ball" : "Poké Ball") + "!");
+            currentBallType = tipo;
 
-            // Capture Logic
-            boolean capturado = false;
+            // Start Animation
+            animState = AnimState.THROWING;
+            animTimer = 0;
+            ballX = 160; // Start from player position
+            ballY = 330;
+            ballTargetX = 540; // Enemy position
+            ballTargetY = 490;
 
-            if (tipo.equals("heavyball")) {
-                // Heavy Ball works better on low-level Pokémon (0-3)
-                if (nivelEnemigo <= 3) {
-                    // Better threshold for low-level Pokémon
-                    if (hpPercent <= 0.40f)
-                        capturado = true;
-                } else {
-                    // Standard threshold for higher-level Pokémon
-                    if (hpPercent <= 0.20f)
-                        capturado = true;
-                }
-            } else {
-                // Standard Pokeball (20% threshold regardless of level)
-                if (hpPercent <= 0.20f)
-                    capturado = true;
-            }
-
-            if (capturado) {
-                // Success!
-                updateInfo("¡Captura exitosa! " + pokemonEnemigo.getNombre() + " se unió a tu equipo.");
-                explorador.getRegistro().registrarAccion(pokemonEnemigo.getNombre(), true);
-                explorador.agregarAlEquipo(pokemonEnemigo);
-
-                // Show 'CAPTURA EXITOSA' text on screen
-                damageText = "¡CAPTURA EXITOSA!";
-                damageTextX = 350; // Center
-                damageTextY = 400;
-                damageTextTimer = 2.0f;
-
-                endBattle(true);
-            } else {
-                updateInfo(
-                        "¡Fallo la captura! " + (tipo.equals("heavyball") ? "¡Casi!" : "Debe estar mas debilitado."));
-                // Show 'FALLÓ' text on screen
-                damageText = "¡FALLÓ!";
-                damageTextX = 350; // Center
-                damageTextY = 400;
-                damageTextTimer = 2.0f;
-                currentState = BattleState.ENEMY_TURN;
-                performEnemyTurnWithDelay();
-            }
         } else if (tipo.equals("pocion")) {
             updateInfo("¡Usaste una Poción! Tu Pokémon recuperó 20 PS.");
             pokemonJugador.recuperarSalud(20);
@@ -493,24 +463,23 @@ public class BattleScreen extends ScreenAdapter {
         }
 
         if (capturado) {
-            updateInfo("¡Captura exitosa! " + pokemonEnemigo.getNombre() + " se unió a tu equipo.");
+            updateInfo("¡Pokémon Capturado!");
             explorador.getRegistro().registrarAccion(pokemonEnemigo.getNombre(), true);
             explorador.agregarAlEquipo(pokemonEnemigo);
 
-            // Show 'EXITOSA' text on screen
-            damageText = "¡EXITOSA!";
-            damageTextX = 350; // Center
+            damageText = "¡POK‰MON CAPTURADO!";
+            damageTextX = 300; // Center-ish
             damageTextY = 400;
-            damageTextTimer = 2.0f;
+            damageTextTimer = 3.0f;
 
             endBattle(true);
         } else {
             updateInfo("¡Fallaste la captura!");
-            // Show 'FALLÓ' text on screen
             damageText = "¡FALLASTE!";
-            damageTextX = 350; // Center
+            damageTextX = 400; // Center-ish
             damageTextY = 400;
             damageTextTimer = 2.0f;
+            // Failure is RED
             animState = AnimState.NONE;
             currentState = BattleState.ENEMY_TURN;
             performEnemyTurnWithDelay();
@@ -532,9 +501,9 @@ public class BattleScreen extends ScreenAdapter {
     }
 
     private void abrirPokemon() {
-        // Redirigir a MochilaScreen en la pestaña de Pokémon (índice 3)
-        MochilaScreen mochila = new MochilaScreen(game, this, explorador);
-        mochila.setSelectedIndex(3); // Método que añadiremos en MochilaScreen
+        // Redirigir a PantallaMochila en la pestaña de Pokémon (­ndice 3)
+        PantallaMochila mochila = new PantallaMochila(game, this, explorador);
+        mochila.setSelectedIndex(3); // Método que añadiremos en PantallaMochila
         game.setScreen(mochila);
     }
 
@@ -652,6 +621,7 @@ public class BattleScreen extends ScreenAdapter {
     private void checkBattleStatus() {
         if (pokemonEnemigo.getHpActual() <= 0) {
             updateInfo("¡" + pokemonEnemigo.getNombre() + " se debilitó!");
+            pokemonEnemigo.tocarGrito(); // Grito al perder
 
             // Victoria: +1 Punto Investigación para el quien vence
 
@@ -670,7 +640,7 @@ public class BattleScreen extends ScreenAdapter {
             String recursoId = Math.random() < 0.5 ? "planta" : "guijarro";
             try {
                 explorador.getMochila()
-                        .agregarItem(com.mypokemon.game.inventario.ItemFactory.crearRecurso(recursoId, 1));
+                        .agregarItem(com.mypokemon.game.inventario.ObjectFactory.crearRecurso(recursoId, 1));
                 updateInfo("Ganaste +" + puntosInvestigacionGanados + " Inv. y encontraste 1 " + recursoId + ".");
             } catch (com.mypokemon.game.inventario.exceptions.SpaceException e) {
                 updateInfo("Ganaste +" + puntosInvestigacionGanados + " Inv. pero tu inventario está lleno.");
@@ -688,7 +658,7 @@ public class BattleScreen extends ScreenAdapter {
             if (perdido != null) {
                 updateInfo("Perdiste 1 " + perdido + " en la huida.");
             } else {
-                updateInfo("No tenías objetos para perder.");
+                updateInfo("No ten­as objetos para perder.");
             }
 
             endBattle(false);
@@ -728,6 +698,16 @@ public class BattleScreen extends ScreenAdapter {
             battleMusic.stop();
         }
         currentState = BattleState.END_BATTLE;
+
+        if (victory) {
+            if (pokemonJugador != null) {
+                pokemonJugador.tocarGrito();
+            }
+        } else {
+            if (pokemonEnemigo != null) {
+                pokemonEnemigo.tocarGrito();
+            }
+        }
 
         // Resetear modificadores temporales (Elixir)
         if (pokemonJugador != null)
@@ -782,7 +762,7 @@ public class BattleScreen extends ScreenAdapter {
             game.batch.draw(backgroundTexture, 0, 0, viewport.getWorldWidth(), viewport.getWorldHeight());
         }
 
-        if (enemyTexture != null) {
+        if (enemyTexture != null && currentState != BattleState.END_BATTLE) {
             float enemyX = 400;
             float enemyY = 350;
             float enemySize = 280;
@@ -803,7 +783,7 @@ public class BattleScreen extends ScreenAdapter {
         if (showPokedex) {
             drawPokedex();
         } else if (showMoveMenu) {
-            // Mostrar movimientos del Pokémon en cuadrícula 2x2 perfecta
+            // Mostrar movimientos del Pokémon en cuadr­cula 2x2 perfecta
             List<Movimiento> movs = pokemonJugador.getMovimientos();
             drawButton(btnMove0Rect, movs.size() > 0 ? movs.get(0).getNombre() : "-", selectedMove == 0);
             drawButton(btnMove1Rect, movs.size() > 1 ? movs.get(1).getNombre() : "-", selectedMove == 1);
@@ -828,7 +808,8 @@ public class BattleScreen extends ScreenAdapter {
             float currentY = ballY + (ballTargetY - ballY) * progress;
 
             // Draw Ball (White circle with red top if possible, or just a small circle)
-            game.batch.draw(baseCircleTexture, currentX - 15, currentY - 15, 30, 30); // Simple ball representation
+            Texture ballTex = (pokeballTexture != null) ? pokeballTexture : baseCircleTexture;
+            game.batch.draw(ballTex, currentX - 15, currentY - 15, 40, 40);
 
             if (progress >= 1.0f) {
                 animState = AnimState.CAPTURE_CHECK;
@@ -839,8 +820,14 @@ public class BattleScreen extends ScreenAdapter {
 
         // Mostrar texto de daño si está activo
         if (!damageText.isEmpty() && damageTextTimer > 0) {
-            font.setColor(Color.RED);
-            font.getData().setScale(2.0f);
+            if (damageText.equals("¡FALLASTE!")) {
+                font.setColor(Color.RED);
+            } else if (damageText.equals("¡POK‰MON CAPTURADO!")) {
+                font.setColor(Color.GOLD);
+            } else {
+                font.setColor(Color.RED); // Default for damage
+            }
+            font.getData().setScale(2.5f);
             font.draw(game.batch, damageText, damageTextX, damageTextY);
             font.getData().setScale(1.0f);
         }
@@ -856,14 +843,14 @@ public class BattleScreen extends ScreenAdapter {
 
         font.setColor(Color.BLACK);
         font.getData().setScale(1.2f);
-        font.draw(game.batch, "POKÉDEX - Pokemon Capturados", 250, 520);
+        font.draw(game.batch, "POK‰DEX - Pokemon Capturados", 250, 520);
         font.getData().setScale(1.0f);
 
         List<Pokemon> equipo = explorador.getEquipo();
         float yOffset = 470;
 
         if (equipo.isEmpty()) {
-            font.draw(game.batch, "No has capturado ningún Pokemon todavía.", 100, yOffset);
+            font.draw(game.batch, "No has capturado ningún Pokemon todav­a.", 100, yOffset);
         } else {
             for (Pokemon p : equipo) {
                 String desc = p.getNombre() + ": " + p.getDescripcion();
@@ -871,7 +858,7 @@ public class BattleScreen extends ScreenAdapter {
                 font.draw(game.batch, desc, 100, yOffset);
                 yOffset -= 30;
                 if (yOffset < 100)
-                    break; // Límite de pantalla
+                    break; // L­mite de pantalla
             }
         }
 
@@ -1006,3 +993,8 @@ public class BattleScreen extends ScreenAdapter {
         }
     }
 }
+
+
+
+
+

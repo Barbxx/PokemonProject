@@ -1,6 +1,6 @@
 package com.mypokemon.game.pantallas;
 
-import com.mypokemon.game.PokemonMain;
+import com.mypokemon.game.PokemonPrincipal;
 import com.mypokemon.game.Explorador;
 import com.mypokemon.game.inventario.Inventario;
 import com.mypokemon.game.Pokemon;
@@ -15,6 +15,7 @@ import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,20 +26,20 @@ import com.mypokemon.game.inventario.Objeto;
  * Screen for the inventory (Mochila).
  * Pure SpriteBatch logic with robust texture loading and coordinate handling.
  */
-public class MochilaScreen extends BaseScreen {
+public class PantallaMochila extends PantallaBase {
     private final Explorador explorador;
     private Texture background;
     private Texture[] buttonsNormal;
     private Texture[] buttonsSelected;
     private String[] buttonNames = { "botonIrojo", "botonIazul", "botonIamarillo", "botonImorado" };
 
-    // Item Textures
+    // Objeto Textures
     private Texture texPokeball;
     private Texture texPlanta;
     private Texture texGuijarro;
     private Texture texBaya;
 
-    // New Potion/Item Textures
+    // New Potion/Objeto Textures
     private Texture texPocionHerbal;
     private Texture texElixir;
     private Texture texRevivir;
@@ -53,18 +54,22 @@ public class MochilaScreen extends BaseScreen {
     private Texture texMarcoVerde;
 
     // Pokemon Texture Cache
-    private java.util.Map<String, Texture> pokemonTextureCache = new java.util.TreeMap<>();
+    private BitmapFont fontContador;
+    private List<String> pCacheNames = new ArrayList<>();
+    private List<Texture> pCacheTextures = new ArrayList<>();
+    private List<String> tCacheNames = new ArrayList<>();
+    private List<Texture> tCacheTextures = new ArrayList<>();
 
     // Helper class for grid items
     // Data Model
-    public class ItemData {
+    public class DatosObjeto {
         public String nombre;
         public String descripcion;
         public Texture textura;
         public int cantidad;
         public Objeto itemReal; // Referencia al ítem real del sistema OO
 
-        public ItemData(String nombre, String descripcion, Texture textura, int cantidad, Objeto itemReal) {
+        public DatosObjeto(String nombre, String descripcion, Texture textura, int cantidad, Objeto itemReal) {
             this.nombre = nombre;
             this.descripcion = descripcion;
             this.textura = textura;
@@ -73,12 +78,12 @@ public class MochilaScreen extends BaseScreen {
         }
 
         // Constructor de compatibilidad para Pokémon (que no son Items)
-        public ItemData(String nombre, String descripcion, Texture textura, int cantidad) {
+        public DatosObjeto(String nombre, String descripcion, Texture textura, int cantidad) {
             this(nombre, descripcion, textura, cantidad, null);
         }
     }
 
-    private List<ItemData> visibleItems = new ArrayList<>();
+    private List<DatosObjeto> visibleItems = new ArrayList<>();
 
     private float buttonWidth = 140; // Increased size as requested
     private float buttonHeight = 140;
@@ -87,7 +92,6 @@ public class MochilaScreen extends BaseScreen {
 
     // User requested fields
     private Texture textureFondoSlot; // Will generate procedurally if missing
-    private com.badlogic.gdx.graphics.g2d.BitmapFont fontContador;
     private int indexSeleccionado = 0; // 0 to 20
     private Texture whitePixel; // Kept for selection box if needed
 
@@ -112,18 +116,18 @@ public class MochilaScreen extends BaseScreen {
     // Options Menu Data
     private List<String> currentOptions = new ArrayList<>();
     private int selectedOptionIndex = 0;
-    private ItemData selectedItemForAction = null;
+    private DatosObjeto selectedItemForAction = null;
     // currentActionType eliminado - ya no se necesita con el sistema OO
 
     // Feedback
     private String feedbackMessage = "";
     private float feedbackTimer = 0;
 
-    public MochilaScreen(PokemonMain game, Screen returnScreen, Explorador explorador) {
+    public PantallaMochila(PokemonPrincipal game, Screen returnScreen, Explorador explorador) {
         super(game);
         this.returnScreen = returnScreen;
         this.explorador = explorador;
-        Gdx.app.log("MochilaScreen", "Constructor call started");
+        Gdx.app.log("PantallaMochila", "Constructor call started");
 
         // Initialize Camera and Viewport
         camera = new OrthographicCamera();
@@ -137,15 +141,15 @@ public class MochilaScreen extends BaseScreen {
         // Load Background and Buttons
         try {
             background = new Texture(Gdx.files.internal("fondoMochila.png"));
-            Gdx.app.log("MochilaScreen", "Background loaded successfully");
+            Gdx.app.log("PantallaMochila", "Background loaded successfully");
 
             for (int i = 0; i < buttonNames.length; i++) {
                 buttonsNormal[i] = new Texture(Gdx.files.internal(buttonNames[i] + ".png"));
                 buttonsSelected[i] = new Texture(Gdx.files.internal(buttonNames[i] + "_seleccionado.png"));
             }
-            Gdx.app.log("MochilaScreen", "Buttons loaded successfully");
+            Gdx.app.log("PantallaMochila", "Buttons loaded successfully");
 
-            // Load Item Textures
+            // Load Objeto Textures
             try {
                 texPokeball = new Texture(Gdx.files.internal("pokeball.png"));
             } catch (Exception e) {
@@ -210,7 +214,7 @@ public class MochilaScreen extends BaseScreen {
             }
 
         } catch (Exception e) {
-            Gdx.app.error("MochilaScreen", "Error loading textures: " + e.getMessage());
+            Gdx.app.error("PantallaMochila", "Error loading textures: " + e.getMessage());
         }
 
         // Define Button Positions
@@ -241,7 +245,7 @@ public class MochilaScreen extends BaseScreen {
         fontContador = new com.badlogic.gdx.graphics.g2d.BitmapFont();
         fontContador.getData().setScale(1.5f);
 
-        Gdx.app.log("MochilaScreen", "Positions and assets initialized");
+        Gdx.app.log("PantallaMochila", "Positions and assets initialized");
         updateVisibleItems();
     }
 
@@ -302,13 +306,12 @@ public class MochilaScreen extends BaseScreen {
             drawPokemonSelectionPrompt(game.batch);
         }
 
-        // Draw Feedback Message (abajo a la izquierda, en rojo)
+        // Draw Feedback Message (abajo a la izquierda, en blanco)
         if (feedbackTimer > 0) {
-            game.font.setColor(Color.RED);
+            game.font.setColor(Color.WHITE);
             game.font.getData().setScale(1.2f);
             game.font.draw(game.batch, feedbackMessage, 100, 80);
             game.font.getData().setScale(1.0f);
-            game.font.setColor(Color.WHITE);
         }
 
         game.batch.end();
@@ -327,9 +330,9 @@ public class MochilaScreen extends BaseScreen {
         // Grid Navigation input (Arrowns + Mouse) - Existing Logic adapted
         handleGridNavigation();
 
-        // Select Item to Open Menu
+        // Select Objeto to Open Menu
         if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
-            // Check if we are in Pokemon Tab (3) or Item Tabs (<3)
+            // Check if we are in Pokemon Tab (3) or Objeto Tabs (<3)
             int totalItems = (selectedIndex == 3) ? explorador.getEquipo().size() : visibleItems.size();
             if (indexSeleccionado < totalItems) {
                 if (selectedIndex < 3) {
@@ -435,7 +438,7 @@ public class MochilaScreen extends BaseScreen {
         updateVisibleItems();
     }
 
-    private void openOptionsMenu(ItemData item) {
+    private void openOptionsMenu(DatosObjeto Objeto) {
         currentOptions.clear();
 
         // ** POQUEMON TAB LOGIC **
@@ -445,10 +448,10 @@ public class MochilaScreen extends BaseScreen {
             // Add Info or other stuff if desired, but user asked for "una sola opcion"
             selectedIndex = 3; // Ensure we stick to this tab
         }
-        // ** ITEM LOGIC **
-        else if (item.itemReal != null) {
+        // ** Objeto LOGIC **
+        else if (Objeto.itemReal != null) {
             // NUEVO SISTEMA OO: Usa el método getOpciones() del ítem real
-            currentOptions.addAll(item.itemReal.getOpciones());
+            currentOptions.addAll(Objeto.itemReal.getOpciones());
         } else {
             // Fallback para casos sin itemReal (no debería ocurrir en el futuro)
             currentOptions.add("Tirar");
@@ -482,8 +485,8 @@ public class MochilaScreen extends BaseScreen {
 
                 showFeedback("¡" + selected.getNombre() + " es ahora tu Pokémon principal!");
 
-                if (returnScreen instanceof BattleScreen) {
-                    ((BattleScreen) returnScreen).cambiarPokemon(selected);
+                if (returnScreen instanceof PantallaBatalla) {
+                    ((PantallaBatalla) returnScreen).cambiarPokemon(selected);
                 }
             } else {
                 showFeedback("Ya es el principal.");
@@ -505,23 +508,17 @@ public class MochilaScreen extends BaseScreen {
 
         // **OPCIÓN: Lanzar** (Pokéballs)
         if (option.equals("Lanzar")) {
-            if (returnScreen instanceof BattleScreen) {
+            if (returnScreen instanceof PantallaBatalla) {
                 if (explorador.getMochila().consumirItem(mapNameToInternal(selectedItemForAction.nombre), 1)) {
-                    BattleScreen battle = (BattleScreen) returnScreen;
+                    PantallaBatalla battle = (PantallaBatalla) returnScreen;
                     String internalName = mapNameToInternal(selectedItemForAction.nombre);
                     battle.usarItemEnBatalla(internalName);
                     game.setScreen(battle);
                 }
             } else {
-                showFeedback("No puedes lanzar una poke ball, no estas en batalla.");
+                showFeedback("¡No puedes lanzar una poké ball! No estás en batalla.");
                 currentState = InventoryState.BROWSING;
             }
-            return;
-        }
-
-        // **OPCIÓN: Información**
-        if (option.equals("Información")) {
-            currentState = InventoryState.BROWSING;
             return;
         }
 
@@ -537,8 +534,8 @@ public class MochilaScreen extends BaseScreen {
 
                 // Validación para Tomar (Solo en batalla)
                 if (option.equals("Tomar")) {
-                    if (!(returnScreen instanceof BattleScreen)) {
-                        showFeedback("no puedes tomar el elixir porque no estas en batalla.");
+                    if (!(returnScreen instanceof PantallaBatalla)) {
+                        showFeedback("¡No puedes tomar el elixir! No estás en batalla.");
                         currentState = InventoryState.BROWSING;
                         return;
                     }
@@ -551,8 +548,8 @@ public class MochilaScreen extends BaseScreen {
 
                 // Determinar target (para Tomar usamos el pokemon activo en batalla)
                 Pokemon target = null;
-                if (option.equals("Tomar") && returnScreen instanceof BattleScreen) {
-                    target = ((BattleScreen) returnScreen).getPokemonJugador();
+                if (option.equals("Tomar") && returnScreen instanceof PantallaBatalla) {
+                    target = ((PantallaBatalla) returnScreen).getPokemonJugador();
                 }
 
                 com.mypokemon.game.inventario.ResultadoUso resultado = itemUsable.usar(target, explorador.getMochila());
@@ -562,7 +559,8 @@ public class MochilaScreen extends BaseScreen {
                 return;
             }
 
-            // El ítem es usable - ir al selector de Pokémon para opciones que SÍ requieren
+            // El ítem es usable - ir al selector de Pokémon para opciones que SÍ requieren
+            // requieren
             // target
             if (option.equals("Curar") || option.equals("Revivir") || option.equals("Usar") || option.equals("Comer")) {
                 // Switch to Pokemon Tab (Index 3)
@@ -584,11 +582,11 @@ public class MochilaScreen extends BaseScreen {
             return;
         }
 
-        Objeto item = selectedItemForAction.itemReal;
+        Objeto Objeto = selectedItemForAction.itemReal;
 
         // NUEVO SISTEMA OO: Verificar si el ítem es usable
-        if (item.esUsable()) {
-            com.mypokemon.game.inventario.interfaces.IUsable itemUsable = (com.mypokemon.game.inventario.interfaces.IUsable) item;
+        if (Objeto.esUsable()) {
+            com.mypokemon.game.inventario.interfaces.IUsable itemUsable = (com.mypokemon.game.inventario.interfaces.IUsable) Objeto;
 
             // Usar el ítem en el Pokémon
             com.mypokemon.game.inventario.ResultadoUso resultado = itemUsable.usar(p,
@@ -778,16 +776,18 @@ public class MochilaScreen extends BaseScreen {
                 }
             }
         }
-        // Item Drawing
+        // Objeto Drawing
         else {
             for (int i = 0; i < visibleItems.size(); i++) {
                 float x = 700 + (i % columnas) * (size + margen);
                 float y = 300 - (i / columnas) * (size + margen);
-                ItemData item = visibleItems.get(i);
-                if (item.textura != null)
-                    batch.draw(item.textura, x + 5, y + 5, size - 10, size - 10);
-                if (fontContador != null)
-                    fontContador.draw(batch, "x" + item.cantidad, x + 40, y + 5);
+                DatosObjeto Objeto = visibleItems.get(i);
+                if (Objeto.textura != null)
+                    batch.draw(Objeto.textura, x + 5, y + 5, size - 10, size - 10);
+                if (fontContador != null) {
+                    fontContador.setColor(Color.WHITE);
+                    fontContador.draw(batch, "x" + Objeto.cantidad, x + 40, y + 5);
+                }
             }
         }
     }
@@ -795,15 +795,28 @@ public class MochilaScreen extends BaseScreen {
     private void drawPokemonSlot(com.badlogic.gdx.graphics.g2d.SpriteBatch batch, Pokemon p, float x, float y,
             float size) {
         String pName = p.getNombre();
-        // Texture loading check (simplified)
-        if (!pokemonTextureCache.containsKey(pName)) {
-            try {
-                String nameClean = pName.toLowerCase().replace(" h.", "").replace(" jr.", "-jr").replace(" ", "-");
-                pokemonTextureCache.put(pName, new Texture(Gdx.files.internal(nameClean + ".png")));
-            } catch (Exception e) {
+        Texture tex = null;
+
+        // Buscar en el caché (bucle manual)
+        for (int i = 0; i < pCacheNames.size(); i++) {
+            if (pCacheNames.get(i).equals(pName)) {
+                tex = pCacheTextures.get(i);
+                break;
             }
         }
-        Texture tex = pokemonTextureCache.get(pName);
+
+        // Si no está, lo cargamos
+        if (tex == null) {
+            try {
+                String nameClean = pName.toLowerCase().replace(" h.", "").replace(" jr.", "-jr").replace(" ", "-");
+                tex = new Texture(Gdx.files.internal(nameClean + ".png"));
+                pCacheNames.add(pName);
+                pCacheTextures.add(tex);
+            } catch (Exception e) {
+                // Handle error, maybe log it
+            }
+        }
+
         if (tex != null)
             batch.draw(tex, x + 5, y + 5, size - 10, size - 10);
         else
@@ -847,20 +860,17 @@ public class MochilaScreen extends BaseScreen {
                 batch.setColor(Color.WHITE);
             }
 
-            game.font.setColor(Color.WHITE);
-            if (i == selectedOptionIndex)
-                game.font.setColor(Color.CYAN);
+            game.font.setColor(i == selectedOptionIndex ? Color.CYAN : Color.WHITE);
             game.font.draw(batch, currentOptions.get(i), mx + 20, y - 5);
         }
         game.font.setColor(Color.WHITE);
     }
 
     private void drawPokemonSelectionPrompt(com.badlogic.gdx.graphics.g2d.SpriteBatch batch) {
-        game.font.setColor(Color.YELLOW);
-        game.font.getData().setScale(1.5f);
-        game.font.draw(batch, "SELECCIONA UN POKÉMON", 700, VIRTUAL_HEIGHT - 50);
-        game.font.getData().setScale(1.0f);
         game.font.setColor(Color.WHITE);
+        game.font.getData().setScale(1.5f);
+        game.font.draw(batch, "SELECCIONA UN POKƒâ€°MON: ", 700, VIRTUAL_HEIGHT - 50);
+        game.font.getData().setScale(1.0f);
     }
 
     private void updateVisibleItems() {
@@ -871,71 +881,65 @@ public class MochilaScreen extends BaseScreen {
             // Obtener ítems reales del inventario
             Objeto planta = inventory.getItem("planta");
             if (planta != null && planta.getCantidad() > 0)
-                visibleItems.add(new ItemData("Planta Medicinal", "Ingrediente básico para medicinas.",
+                visibleItems.add(new DatosObjeto(planta.getNombre(), planta.getDescripcion(),
                         texPlanta, planta.getCantidad(), planta));
 
             Objeto baya = inventory.getItem("baya");
             if (baya != null && baya.getCantidad() > 0)
-                visibleItems.add(new ItemData("Baya Aranja", "Restaura el 10% de HP del Pokémon.",
+                visibleItems.add(new DatosObjeto(baya.getNombre(), baya.getDescripcion(),
                         texBaya, baya.getCantidad(), baya));
 
             Objeto guijarro = inventory.getItem("guijarro");
             if (guijarro != null && guijarro.getCantidad() > 0)
-                visibleItems.add(new ItemData("Guijarro", "Ingrediente principal para fabricar Poké Balls.",
+                visibleItems.add(new DatosObjeto(guijarro.getNombre(), guijarro.getDescripcion(),
                         texGuijarro, guijarro.getCantidad(), guijarro));
 
         } else if (selectedIndex == 1) { // Blue Button: Pokebolas
             Objeto pokeball = inventory.getItem("pokeball");
             if (pokeball != null && pokeball.getCantidad() > 0)
-                visibleItems.add(new ItemData("Poké Ball", "Dispositivo para atrapar Pokémon.",
+                visibleItems.add(new DatosObjeto(pokeball.getNombre(), pokeball.getDescripcion(),
                         texPokeball, pokeball.getCantidad(), pokeball));
 
             Objeto heavyball = inventory.getItem("heavyball");
             if (heavyball != null && heavyball.getCantidad() > 0)
-                visibleItems.add(new ItemData("Poké Ball de Peso", "Dispositivo con mejor captura en nivel bajo.",
+                visibleItems.add(new DatosObjeto(heavyball.getNombre(), heavyball.getDescripcion(),
                         texHeavyBall, heavyball.getCantidad(), heavyball));
 
         } else if (selectedIndex == 2) { // Yellow Button: Pociones + Crafteo + Lure
             Objeto pocion = inventory.getItem("pocion");
             if (pocion != null && pocion.getCantidad() > 0)
-                visibleItems.add(new ItemData("Poción Herbal", "Restaura el 20% de HP del Pokémon.",
+                visibleItems.add(new DatosObjeto(pocion.getNombre(), pocion.getDescripcion(),
                         texPocionHerbal, pocion.getCantidad(), pocion));
 
             Objeto elixir = inventory.getItem("elixir");
             if (elixir != null && elixir.getCantidad() > 0)
-                visibleItems.add(new ItemData("Elíxir de Piel de Piedra",
-                        "Aumenta la potencia del ataque (+3 por ataque).",
+                visibleItems.add(new DatosObjeto(elixir.getNombre(), elixir.getDescripcion(),
                         texElixir, elixir.getCantidad(), elixir));
 
             Objeto revivir = inventory.getItem("revivir");
             if (revivir != null && revivir.getCantidad() > 0)
-                visibleItems.add(new ItemData("Revivir Casero", "Restaura el 50% de HP del Pokémon.",
+                visibleItems.add(new DatosObjeto(revivir.getNombre(), revivir.getDescripcion(),
                         texRevivir, revivir.getCantidad(), revivir));
 
             Objeto reproductor = inventory.getItem("reproductor");
             if (reproductor != null && reproductor.getCantidad() > 0)
                 visibleItems
-                        .add(new ItemData("Reproductor de música", "Permite escuchar música de fondo durante el viaje.",
+                        .add(new DatosObjeto(reproductor.getNombre(), reproductor.getDescripcion(),
                                 texReproductor, reproductor.getCantidad(), reproductor));
 
             Objeto guante = inventory.getItem("guante");
             if (guante != null && guante.getCantidad() > 0)
-                visibleItems.add(new ItemData("Guante de reflejo cuarcítico",
-                        "Utilizan guijarros brillantes para recolectar doble recurso.",
+                visibleItems.add(new DatosObjeto(guante.getNombre(), guante.getDescripcion(),
                         texGuante, guante.getCantidad(), guante));
 
             Objeto frijol = inventory.getItem("frijol");
             if (frijol != null && frijol.getCantidad() > 0)
-                visibleItems.add(new ItemData("Frijol mágico", "Restaura el 100% de HP del Pokémon.",
+                visibleItems.add(new DatosObjeto(frijol.getNombre(), frijol.getDescripcion(),
                         texFrijol, frijol.getCantidad(), frijol));
 
         } else if (selectedIndex == 3) { // Brown Button
-            // User moved Lure to Yellow. Leaving empty as implied by "solo aparezcan de
-            // estos..."
         }
 
-        // Pokemon Logic (Category 4) is handled separately in render so visibleItems
-        // ignored there
     }
 
     @Override
@@ -943,17 +947,15 @@ public class MochilaScreen extends BaseScreen {
         viewport.update(width, height, true);
     }
 
-    // Old methods replaced by new logic
-
     private void dibujarExplicacion(com.badlogic.gdx.graphics.g2d.SpriteBatch batch) {
         String titulo = "";
         String desc = "";
 
         if (selectedIndex < 3) {
             if (indexSeleccionado < visibleItems.size()) {
-                ItemData item = visibleItems.get(indexSeleccionado);
-                titulo = item.nombre;
-                desc = item.descripcion;
+                DatosObjeto Objeto = visibleItems.get(indexSeleccionado);
+                titulo = Objeto.nombre;
+                desc = Objeto.descripcion;
             }
         } else if (selectedIndex == 3) {
             // Pokemon Details
@@ -961,14 +963,55 @@ public class MochilaScreen extends BaseScreen {
             if (indexSeleccionado < equipo.size()) {
                 Pokemon p = equipo.get(indexSeleccionado);
                 titulo = p.getNombre() + " Nv." + p.getNivel();
-                desc = "HP: " + (int) p.getHpActual() + "/" + (int) p.getHpMaximo() + " | Tipo: " + p.getTipo();
+                desc = "HP: " + (int) p.getHpActual() + "/" + (int) p.getHpMaximo(); // Termina aquí
+
+                // Dibujar Tipos
+                String fullType = p.getTipo();
+                if (fullType != null) {
+                    String[] types = fullType.split(" / ");
+                    float typeX = 100;
+                    float typeY = 240; // Por debajo del texto de HP
+                    float typeW = 80;
+                    float typeH = 30;
+
+                    for (String t : types) {
+                        String typeName = t.trim();
+                        Texture tTex = null;
+
+                        // Buscar en el caché "normal" (bucle manual)
+                        for (int i = 0; i < tCacheNames.size(); i++) {
+                            if (tCacheNames.get(i).equals(typeName)) {
+                                tTex = tCacheTextures.get(i);
+                                break;
+                            }
+                        }
+
+                        // Si no está, lo cargamos
+                        if (tTex == null) {
+                            try {
+                                String typePath = "Tipo" + typeName + ".png";
+                                if (Gdx.files.internal(typePath).exists()) {
+                                    tTex = new Texture(Gdx.files.internal(typePath));
+                                    tCacheNames.add(typeName);
+                                    tCacheTextures.add(tTex);
+                                }
+                            } catch (Exception e) {
+                            }
+                        }
+
+                        if (tTex != null) {
+                            batch.draw(tTex, typeX, typeY, typeW, typeH);
+                            typeX += typeW + 10;
+                        }
+                    }
+                }
 
                 // Añadir nivel de investigación
                 com.mypokemon.game.EspeciePokemon especie = explorador.getRegistro().getRegistro().get(p.getNombre());
                 if (especie != null) {
-                    desc += "\nInv: " + especie.getNivelInvestigacion() + "/10";
+                    desc += "\nNIV. Inv: " + especie.getNivelInvestigacion() + "/10";
                 } else {
-                    desc += "\nInv: 0/10";
+                    desc += "\nNIV. Inv: 0/10";
                 }
             } else {
                 // Nothing
@@ -976,33 +1019,22 @@ public class MochilaScreen extends BaseScreen {
         }
 
         if (!titulo.isEmpty() && game.font != null) {
-            // Special case for "Planta Medicinal" title -> Image
-            if (titulo.equals("Planta Medicinal") && texMarcoVerde != null) {
-                batch.draw(texMarcoVerde, 30, 200, 500, 160);
-                game.font.setColor(Color.WHITE);
-                game.font.getData().setScale(1.0f);
-                game.font.draw(batch, desc, 100, 310);
-            } else {
-                game.font.setColor(Color.YELLOW);
-                game.font.getData().setScale(1.2f);
-                game.font.draw(batch, titulo, 100, 350); // Title
+            game.font.setColor(Color.WHITE);
+            // Title
+            game.font.getData().setScale(2.0f);
+            game.font.draw(batch, titulo, 100, 400);
 
-                game.font.setColor(Color.WHITE);
-                game.font.getData().setScale(1.0f);
-                // Wrap text if needed, but existing logic didn't wrap much. Assuming short
-                // descriptions.
-                game.font.draw(batch, desc, 100, 310);
-            }
+            // Description
+            game.font.getData().setScale(1.0f);
+            game.font.draw(batch, desc, 100, 310);
 
             // Draw "OPCIONES" button
-            if (currentState == InventoryState.BROWSING && !titulo.isEmpty()) {
+            if (currentState == InventoryState.BROWSING) {
                 float btnX = 100;
-                float btnY = 160; // Bajado para no tapar el texto
+                float btnY = 160;
                 float btnW = 150;
                 float btnH = 40;
 
-                // Hover effect logic is in input, but we can visualize it if wanted
-                // For now just draw standard button
                 batch.setColor(Color.DARK_GRAY);
                 batch.draw(whitePixel, btnX, btnY, btnW, btnH);
                 batch.setColor(Color.WHITE);
@@ -1011,16 +1043,14 @@ public class MochilaScreen extends BaseScreen {
                 batch.draw(whitePixel, btnX, btnY, 2, btnH);
                 batch.draw(whitePixel, btnX + btnW, btnY, 2, btnH);
 
-                game.font.getData().setScale(1.0f);
                 game.font.draw(batch, "OPCIONES", btnX + 30, btnY + 28);
             }
         }
-
     }
 
     @Override
     public void dispose() {
-        Gdx.app.log("MochilaScreen", "Disposing textures...");
+        Gdx.app.log("PantallaMochila", "Disposing textures...");
         if (background != null)
             background.dispose();
         if (buttonsNormal != null) {
@@ -1066,10 +1096,18 @@ public class MochilaScreen extends BaseScreen {
         if (texMarcoVerde != null)
             texMarcoVerde.dispose();
 
-        for (Texture t : pokemonTextureCache.values()) {
+        for (Texture t : pCacheTextures) {
             if (t != null)
                 t.dispose();
         }
-        pokemonTextureCache.clear();
+        pCacheNames.clear();
+        pCacheTextures.clear();
+
+        for (Texture t : tCacheTextures) {
+            if (t != null)
+                t.dispose();
+        }
+        tCacheNames.clear();
+        tCacheTextures.clear();
     }
 }

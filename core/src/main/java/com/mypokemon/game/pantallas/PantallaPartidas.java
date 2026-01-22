@@ -1,6 +1,6 @@
 package com.mypokemon.game.pantallas;
 
-import com.mypokemon.game.PokemonMain;
+import com.mypokemon.game.PokemonPrincipal;
 import com.mypokemon.game.Explorador;
 
 import com.badlogic.gdx.Gdx;
@@ -13,7 +13,7 @@ import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
-public class PartidasScreen extends BaseScreen {
+public class PantallaPartidas extends PantallaBase {
 
     private Texture background;
     private Texture btnJugarNormal, btnJugarSel;
@@ -30,7 +30,7 @@ public class PartidasScreen extends BaseScreen {
     private static final float VIRTUAL_WIDTH = 1280f;
     private static final float VIRTUAL_HEIGHT = 720f;
 
-    public PartidasScreen(PokemonMain game) {
+    public PantallaPartidas(PokemonPrincipal game) {
         super(game);
         try {
             background = new Texture("pantallaPartidas.png");
@@ -39,7 +39,7 @@ public class PartidasScreen extends BaseScreen {
             btnBorrarNormal = new Texture("boton_borrarPartida_normal.png");
             btnBorrarSel = new Texture("boton_borrarPartida_seleccionado.png");
         } catch (Exception e) {
-            Gdx.app.log("PartidasScreen", "Could not load textures: " + e.getMessage());
+            Gdx.app.log("PantallaPartidas", "Could not load textures: " + e.getMessage());
         }
 
         // Find Save Files
@@ -102,14 +102,14 @@ public class PartidasScreen extends BaseScreen {
                         if (exp != null && "CHICA".equals(exp.getGenero())) {
                             skin = "protagonistaFemenino.png";
                         }
-                        game.setScreen(new GameScreen(game, skin, 4, 4, "", fullFileName));
+                        game.setScreen(new PantallaJuego(game, skin, 4, 4, "", fullFileName));
                         dispose();
                         return;
                     } else {
                         // DELETE
                         FileHandle selectedFile = saveFiles[selectedIndex];
                         selectedFile.delete();
-                        Gdx.app.log("PartidasScreen", "Deleted: " + selectedFile.name());
+                        Gdx.app.log("PantallaPartidas", "Deleted: " + selectedFile.name());
 
                         // Refresh List
                         FileHandle local = Gdx.files.local(".");
@@ -125,7 +125,7 @@ public class PartidasScreen extends BaseScreen {
         }
 
         if (!selectingAction && Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
-            game.setScreen(new MainMenuScreen(game));
+            game.setScreen(new PantallaMenuPrincipal(game));
             dispose();
             return;
         }
@@ -172,7 +172,7 @@ public class PartidasScreen extends BaseScreen {
                             skin = "protagonistaFemenino.png";
                         }
                         game.setScreen(
-                                new GameScreen(game, skin, 4, 4, "", selectedFile.name()));
+                                new PantallaJuego(game, skin, 4, 4, "", selectedFile.name()));
                         dispose();
                         return;
                     }
@@ -287,3 +287,7 @@ public class PartidasScreen extends BaseScreen {
             btnBorrarSel.dispose();
     }
 }
+
+
+
+

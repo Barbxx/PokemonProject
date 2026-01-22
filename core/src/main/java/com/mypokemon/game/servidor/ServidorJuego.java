@@ -5,11 +5,6 @@ import java.net.*;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Servidor principal del juego multijugador.
- * Gestiona el ciclo de vida del servidor, descubrimiento UDP y conexiones TCP.
- * Coordina la comunicación entre los dos jugadores.
- */
 public class ServidorJuego {
     private static final int TCP_PORT = 54321;
     private static final int UDP_PORT = 54777;
@@ -24,9 +19,6 @@ public class ServidorJuego {
         new ServidorJuego().start();
     }
 
-    /**
-     * Inicia el servidor, activando el discovery UDP y el listener TCP.
-     */
     public void start() {
         isRunning = true;
         System.out.println("Iniciando Servidor de Juego (ServidorJuego)...");
@@ -56,10 +48,6 @@ public class ServidorJuego {
         }
     }
 
-    /**
-     * Hilo dedicado a emitir un beacon UDP para que los clientes encuentren
-     * el servidor automáticamente en la red local.
-     */
     private void runUdpBeacon() {
         DatagramSocket udpSocket = null;
         try {
@@ -67,7 +55,7 @@ public class ServidorJuego {
             udpSocket.setBroadcast(true);
             byte[] buffer = BEACON_MESSAGE.getBytes();
 
-            System.out.println("Faro UDP activo. Emitiendo señal...");
+            System.out.println("Faro UDP activo. Emitiendo seƒÆ’‚Â±al...");
 
             while (isRunning) {
                 try {
@@ -76,7 +64,7 @@ public class ServidorJuego {
                     DatagramPacket packet = new DatagramPacket(buffer, buffer.length, broadcastAddr, UDP_PORT);
                     udpSocket.send(packet);
 
-                    // Intervalo de emisión
+                    // Intervalo de emisiƒÆ’‚Â³n
                     Thread.sleep(1000);
                 } catch (Exception e) {
                     System.err.println("Error en Beacon UDP: " + e.getMessage());
@@ -93,11 +81,6 @@ public class ServidorJuego {
 
     private java.util.Set<String> collectedResources = java.util.Collections.synchronizedSet(new java.util.TreeSet<>());
 
-    /**
-     * Maneja una nueva conexión entrante y asigna un slot de jugador (1 o 2).
-     * 
-     * @param socket Socket del cliente conectado.
-     */
     private synchronized void handleConnection(Socket socket) {
         GestorCliente handler = new GestorCliente(socket, this);
         boolean assigned = false;
@@ -136,9 +119,6 @@ public class ServidorJuego {
         }
     }
 
-    /**
-     * Elimina un cliente desconectado y libera su slot.
-     */
     public synchronized void removeClient(GestorCliente client) {
         if (player1 == client) {
             player1 = null;
@@ -153,10 +133,7 @@ public class ServidorJuego {
         }
     }
 
-    /**
-     * Recibe y procesa mensajes de información/acciones desde un cliente.
-     * Reenvía movimientos y gestiona la recolección de recursos.
-     */
+    // Called by GestorCliente
     public void onInfoReceived(GestorCliente sender, String msg) {
         if (msg.startsWith("MOVE:")) {
             // Forward movement exactly as is to peer
@@ -175,15 +152,11 @@ public class ServidorJuego {
             if (player2 != null)
                 player2.sendMessage(cmd);
         } else if (msg.equals("SAVE_GAME")) {
-            System.out.println("Jugador " + sender.getPlayerName() + " guardó su progreso individualmente.");
+            System.out.println("Jugador " + sender.getPlayerName() + " guardƒÆ’‚Â³ su progreso individualmente.");
             sender.sendMessage("SAVE_CONFIRMED");
         }
     }
 
-    /**
-     * Sincroniza el estado inicial de un cliente recién conectado o identificado.
-     * Envía recursos ya recolectados e información del compañero si existe.
-     */
     public synchronized void syncClientState(GestorCliente client) {
         // Send all collected resources to the new client
         if (!collectedResources.isEmpty()) {
@@ -227,9 +200,6 @@ public class ServidorJuego {
     public synchronized void notifyPlayerName(int playerId, String name) {
     }
 
-    /**
-     * Verifica si un nombre de usuario ya está en uso por otro jugador conectado.
-     */
     public synchronized boolean isNameTaken(String name, GestorCliente requester) {
         if (player1 != null && player1 != requester && name.equalsIgnoreCase(player1.getPlayerName())) {
             return true;
@@ -240,3 +210,7 @@ public class ServidorJuego {
         return false;
     }
 }
+
+
+
+

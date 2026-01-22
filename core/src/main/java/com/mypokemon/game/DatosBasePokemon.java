@@ -69,7 +69,7 @@ public class DatosBasePokemon {
                 DATABASE.put("Stantler", new DatosBasePokemon(
                                 "Stantler",
                                 "Sus cuernos curvados alteran el flujo del aire y crean una distorsión en la realidad que marea a quien los mira.",
-                                58, 95, 62, 85, 65, 85,
+                                73, 95, 62, 85, 65, 85,
                                 9, 9, 0, 0, 0, 9,
                                 "Normal / Psíquico",
                                 new String[] { "Placaje", "Confusión" },
@@ -109,7 +109,7 @@ public class DatosBasePokemon {
                 DATABASE.put("Scyther", new DatosBasePokemon(
                                 "Scyther",
                                 "Sus guadañas son tan afiladas que pueden cortar troncos de un solo golpe.",
-                                55, 110, 80, 55, 80, 105,
+                                70, 110, 80, 55, 80, 105,
                                 9, 9, 0, 0, 0, 9,
                                 "Bicho / Volador",
                                 new String[] { "At. Rápido", "Falsotortazo" },
@@ -247,7 +247,7 @@ public class DatosBasePokemon {
                 DATABASE.put("Bergmite", new DatosBasePokemon(
                                 "Bergmite",
                                 "Bloquea ataques con el escudo de hielo de su lomo.",
-                                65, 69, 85, 32, 35, 28,
+                                55, 69, 85, 32, 35, 28,
                                 5, 5, 9, 0, 0, 0,
                                 "Hielo",
                                 new String[] { "Placaje", "Polvo Nieve" },
@@ -257,7 +257,7 @@ public class DatosBasePokemon {
                 DATABASE.put("Snorunt", new DatosBasePokemon(
                                 "Snorunt",
                                 "Se dice que los hogares visitados por él prosperarán.",
-                                60, 50, 50, 50, 50, 50,
+                                50, 50, 50, 50, 50, 50,
                                 5, 5, 0, 0, 0, 5,
                                 "Hielo",
                                 new String[] { "Polvo Nieve", "Impresionar" },
@@ -267,7 +267,7 @@ public class DatosBasePokemon {
                 DATABASE.put("Zorua H.", new DatosBasePokemon(
                                 "Zorua H.",
                                 "Remanente de almas que perecieron en el frío. Crea ilusiones de rencor.",
-                                55, 60, 40, 85, 40, 70,
+                                35, 60, 40, 85, 40, 70,
                                 5, 0, 0, 9, 0, 9,
                                 "Normal / Fantasma",
                                 new String[] { "Arañazo", "Rencor" },

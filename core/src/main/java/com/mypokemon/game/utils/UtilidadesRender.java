@@ -3,22 +3,11 @@ package com.mypokemon.game.utils;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 
-/**
- * Utilidades para renderizado de gráficos 2D.
- * Versión duplicada/alias de RenderUtils.
- */
 public class UtilidadesRender {
 
     /**
-     * Dibuja un rectángulo con bordes redondeados.
-     * 
-     * @param shapeRenderer Renderizador de formas.
-     * @param x             Posición X.
-     * @param y             Posición Y.
-     * @param width         Ancho del rectángulo.
-     * @param height        Alto del rectángulo.
-     * @param radius        Radio de las esquinas.
-     * @param color         Color del rectángulo.
+     * Draws a rounded rectangle using the provided ShapeRenderer.
+     * Note: Must be called within a shapeRenderer.begin() / end() block.
      */
     public static void drawRoundedRect(ShapeRenderer shapeRenderer, float x, float y, float width, float height,
             float radius, Color color) {
@@ -45,3 +34,7 @@ public class UtilidadesRender {
         shapeRenderer.arc(x + width - radius, y + height - radius, radius, 0, 90, segments); // Top Right
     }
 }
+
+
+
+

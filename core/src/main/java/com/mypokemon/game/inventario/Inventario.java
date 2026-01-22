@@ -100,7 +100,7 @@ public class Inventario implements Serializable {
     // ========== OPERACIONES CRUD ==========
 
     /**
-     * Añade un ítem al inventario utilizando Double Dispatch.
+     * Añade un ítem al inventario.
      * 
      * @throws SpaceException si no hay espacio
      */
@@ -108,26 +108,17 @@ public class Inventario implements Serializable {
         if (!validarEspacio(item.getCantidad())) {
             espacioException();
         }
-        item.guardarEn(this);
-    }
 
-    /**
-     * Método específico para añadir recursos. Usado por Double Dispatch.
-     */
-    public void agregarRecurso(Recurso recurso) {
-        Recurso existente = encontrarRecurso(recurso.getId());
-        if (existente != null) {
-            existente.agregar(recurso.getCantidad());
-        }
-    }
-
-    /**
-     * Método específico para añadir objetos crafteados. Usado por Double Dispatch.
-     */
-    public void agregarObjetoCrafteado(ObjetoCrafteado objeto) {
-        ObjetoCrafteado existente = encontrarCrafteado(objeto.getId());
-        if (existente != null) {
-            existente.agregar(objeto.getCantidad());
+        if (item instanceof Recurso) {
+            Recurso existente = encontrarRecurso(item.getId());
+            if (existente != null) {
+                existente.agregar(item.getCantidad());
+            }
+        } else if (item instanceof ObjetoCrafteado) {
+            ObjetoCrafteado existente = encontrarCrafteado(item.getId());
+            if (existente != null) {
+                existente.agregar(item.getCantidad());
+            }
         }
     }
 

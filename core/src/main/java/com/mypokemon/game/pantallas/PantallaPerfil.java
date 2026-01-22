@@ -7,45 +7,42 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.GlyphLayout;
-import com.mypokemon.game.PokemonMain;
+import com.mypokemon.game.PokemonPrincipal;
 import com.mypokemon.game.Explorador;
+import com.mypokemon.game.DatosBasePokemon;
 
-public class PerfilScreen extends ScreenAdapter {
+public class PantallaPerfil extends ScreenAdapter {
 
-    private final PokemonMain game;
-    private final BaseScreen parentScreen;
+    private final PokemonPrincipal game;
+    private final PantallaBase parentScreen;
     private final Explorador explorador;
     private final boolean esChico;
 
     private Texture backgroundTexture;
     private BitmapFont font;
-    private BitmapFont titleFont;
 
-    public PerfilScreen(PokemonMain game, BaseScreen parentScreen, Explorador explorador, boolean esChico) {
+    public PantallaPerfil(PokemonPrincipal game, PantallaBase parentScreen, Explorador explorador, boolean esChico) {
         this.game = game;
         this.parentScreen = parentScreen;
         this.explorador = explorador;
         this.esChico = esChico;
 
         this.font = new BitmapFont();
-        this.titleFont = new BitmapFont();
-        this.titleFont.getData().setScale(2.0f);
 
-        // Cargar fondo según género
+        // Cargar fondo segun genero
         String bgName = esChico ? "fondoPerfilChico.png" : "fondoPerfilChica.png";
         try {
             if (Gdx.files.internal(bgName).exists()) {
                 this.backgroundTexture = new Texture(Gdx.files.internal(bgName));
             } else {
-                // Fallback si no existe la imagen específica
-                Gdx.app.log("PerfilScreen", "No se encontró " + bgName + ", usando fondo por defecto.");
+                // Fallback si no existe la imagen especifica
+                Gdx.app.log("PantallaPerfil", "No se encontro " + bgName + ", usando fondo por defecto.");
                 if (Gdx.files.internal("fondoMochila.png").exists()) {
                     this.backgroundTexture = new Texture(Gdx.files.internal("fondoMochila.png"));
                 }
             }
         } catch (Exception e) {
-            Gdx.app.error("PerfilScreen", "Error cargando fondo: " + e.getMessage());
+            Gdx.app.error("PantallaPerfil", "Error cargando fondo: " + e.getMessage());
         }
     }
 
@@ -67,45 +64,36 @@ public class PerfilScreen extends ScreenAdapter {
             game.batch.draw(backgroundTexture, 0, 0, 800, 480);
         }
 
-        // Título
-        titleFont.setColor(Color.GOLD);
-        drawCenteredText(titleFont, "PERFIL DE ENTRENADOR", 400);
-
-        // Información del Entrenador
+        // Informacion del Entrenador
         font.setColor(Color.WHITE);
         font.getData().setScale(1.5f);
 
-        float startY = 300;
-        float spacing = 40;
+        float startY = 350;
 
-        font.draw(game.batch, "Nombre: " + explorador.getNombre(), 100, startY);
-        font.draw(game.batch, "Género: " + (esChico ? "Chico" : "Chica"), 100, startY - spacing);
+        font.draw(game.batch, explorador.getNombre(), 200, startY);
+        font.draw(game.batch, (esChico ? "Chico" : "Chica"), 200, startY - 55);
 
         // Info adicional
         int capacidad = explorador.getMochila().getCapacidadMaxima();
         int ocupado = explorador.getMochila().getEspacioOcupado();
-        font.draw(game.batch, "Mochila: " + ocupado + "/" + capacidad, 100, startY - spacing * 2);
+        font.draw(game.batch, "Mochila: " + ocupado + "/" + capacidad, 60, startY - 150);
 
-        int pokemonCapturados = explorador.getRegistro().getCapturedOrder().size();
-        font.draw(game.batch, "Pokémon Capturados: " + pokemonCapturados, 100, startY - spacing * 3);
+        int nPokemon = explorador.getEquipo().size();
+        font.draw(game.batch, "Pokemon: " + nPokemon + "/6", 60, startY - 190);
 
-        // Instrucción para salir
-        font.getData().setScale(1.0f);
-        font.setColor(Color.LIGHT_GRAY);
-        font.draw(game.batch, "Presiona ESC para volver", 20, 30);
+        int especiesPokedex = explorador.getRegistro().getCapturedOrder().size();
+        int totalEspecies = DatosBasePokemon.getNombres().size();
+        font.draw(game.batch, especiesPokedex + "/" + totalEspecies, 300, startY - 235);
+
+        int misiones = explorador.getMisionesCompletadas();
+        font.draw(game.batch, misiones + "/4", 300, startY - 285);
 
         game.batch.end();
-    }
-
-    private void drawCenteredText(BitmapFont f, String text, float y) {
-        GlyphLayout layout = new GlyphLayout(f, text);
-        f.draw(game.batch, text, (800 - layout.width) / 2, y);
     }
 
     @Override
     public void dispose() {
         font.dispose();
-        titleFont.dispose();
         if (backgroundTexture != null) {
             backgroundTexture.dispose();
         }

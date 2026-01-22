@@ -17,10 +17,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-/**
- * Utilidad duplicada/alias de AssetSplitter para dividir recursos.
- * Mantiene compatibilidad o sirve como versión en español.
- */
 public class DivisorRecursos {
 
     private static final int CHUNK_HEIGHT = 2048;
@@ -29,11 +25,6 @@ public class DivisorRecursos {
     private static final int COLUMNS = 8; // 256 / 32
     private static final int TILES_PER_CHUNK = (CHUNK_HEIGHT / TILE_HEIGHT) * COLUMNS;
 
-    /**
-     * Punto de entrada principal.
-     * 
-     * @param args Argumentos de la línea de comandos.
-     */
     public static void main(String[] args) {
         String inputDir = "c:/Users/User/PokemonProject/assets/";
         String imageFile = inputDir + "Tilesets.png";
@@ -106,15 +97,6 @@ public class DivisorRecursos {
         }
     }
 
-    /**
-     * Genera el archivo TSX correspondiente a una parte dividida (chunk).
-     * 
-     * @param chunkIndex  Índice del fragmento.
-     * @param totalChunks Total de fragmentos.
-     * @param allProps    Propiedades clonadas de los tiles.
-     * @param dir         Directorio de destino.
-     * @throws Exception En caso de error de escritura o XML.
-     */
     private static void createTsxForChunk(int chunkIndex, int totalChunks, Map<Integer, Node> allProps, String dir)
             throws Exception {
         DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();

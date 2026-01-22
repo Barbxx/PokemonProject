@@ -17,11 +17,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-/**
- * Utilidad para dividir grandes texturas y mapas de tiles en chunks más
- * pequeños.
- * Facilita la carga de recursos en dispositivos con memoria limitada.
- */
 public class AssetSplitter {
 
     private static final int CHUNK_HEIGHT = 2048;
@@ -30,11 +25,6 @@ public class AssetSplitter {
     private static final int COLUMNS = 8; // 256 / 32
     private static final int TILES_PER_CHUNK = (CHUNK_HEIGHT / TILE_HEIGHT) * COLUMNS;
 
-    /**
-     * Punto de entrada principal para la utilidad de división de assets.
-     * 
-     * @param args Argumentos de línea de comandos (no utilizados).
-     */
     public static void main(String[] args) {
         String inputDir = "c:/Users/User/PokemonProject/assets/";
         String imageFile = inputDir + "Tilesets.png";
@@ -107,15 +97,6 @@ public class AssetSplitter {
         }
     }
 
-    /**
-     * Crea un archivo TSX para un chunk específico de tiles.
-     * 
-     * @param chunkIndex  Índice del chunk actual.
-     * @param totalChunks Número total de chunks.
-     * @param allProps    Mapa de propiedades de los tiles.
-     * @param dir         Directorio de salida.
-     * @throws Exception Si ocurre un error durante la creación del XML.
-     */
     private static void createTsxForChunk(int chunkIndex, int totalChunks, Map<Integer, Node> allProps, String dir)
             throws Exception {
         DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();

@@ -4,27 +4,11 @@ import java.io.Serializable;
 import java.util.TreeMap;
 import java.util.Map;
 
-/**
- * Gestiona el registro de todos los Pokémon avistados y capturados por el
- * jugador.
- * Rastrea el progreso de la investigación para cada especie y verifica
- * requisitos de misiones.
- */
 public class Pokedex implements Serializable {
     private static final long serialVersionUID = 2L;
-    /**
-     * Mapa que asocia el nombre de un Pokémon con su información de especie y
-     * progreso.
-     */
     private Map<String, EspeciePokemon> registro;
-    /** Orden cronológico en el que los Pokémon fueron capturados. */
     private java.util.List<String> capturedOrder;
-    /** Orden cronológico en el que los Pokémon fueron avistados. */
     private java.util.List<String> encounterOrder;
-    /**
-     * Contador de cuántas especies han alcanzado el nivel máximo de investigación
-     * (10).
-     */
     private int especiesCompletas;
 
     public Pokedex() {

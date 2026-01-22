@@ -3,18 +3,10 @@ package com.mypokemon.game;
 import java.io.Serializable;
 import java.util.Random;
 
-/**
- * Representa un ataque o habilidad que un Pokémon puede ejecutar en combate.
- * Gestiona la lógica de daño, precisión e interacciones de tipos (inmunidades).
- */
 public class Movimiento implements Serializable {
-    /** Nombre identificador del movimiento. */
     private String nombre;
-    /** Valor base de daño del movimiento. */
     private int poder;
-    /** Tipo elemental del movimiento. */
     private String tipo;
-    /** Porcentaje de probabilidad de acierto (0-100). */
     private int precision;
 
     public Movimiento(String nombre, int poder, String tipo, int precision) {

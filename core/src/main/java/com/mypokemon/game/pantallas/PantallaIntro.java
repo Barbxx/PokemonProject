@@ -1,6 +1,6 @@
 package com.mypokemon.game.pantallas;
 
-import com.mypokemon.game.PokemonMain;
+import com.mypokemon.game.PokemonPrincipal;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
@@ -14,12 +14,12 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Align;
 
-import com.mypokemon.game.utils.RenderUtils;
+import com.mypokemon.game.utils.UtilidadesRender;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
-public class IntroScreen extends BaseScreen {
+public class PantallaIntro extends PantallaBase {
 
     // States
     private enum State {
@@ -82,7 +82,7 @@ public class IntroScreen extends BaseScreen {
     private int caretPosition = 0;
     private boolean isNameConfirmed = true; // For SÍ/NO selection
 
-    public IntroScreen(final PokemonMain game, String gameName) {
+    public PantallaIntro(final PokemonPrincipal game, String gameName) {
         super(game);
         this.gameName = gameName;
         this.shapeRenderer = new ShapeRenderer();
@@ -145,7 +145,7 @@ public class IntroScreen extends BaseScreen {
             poofAnim = new Animation<>(0.1f, poofFrames); // 0.4s total duration
 
         } catch (Exception e) {
-            Gdx.app.log("IntroScreen", "Could not load assets", e);
+            Gdx.app.log("PantallaIntro", "Could not load assets", e);
         }
 
         // Initialize button positions
@@ -294,8 +294,8 @@ public class IntroScreen extends BaseScreen {
                 if (isNameConfirmed) {
                     if ("SharedGame".equals(gameName)) {
                         // Check if name is taken via Network
-                        if (game.networkClient != null) {
-                            game.networkClient.setListener(msg -> {
+                        if (game.ClienteRed != null) {
+                            game.ClienteRed.setListener(msg -> {
                                 if (msg.equals("NAME_OK")) {
                                     Gdx.app.postRunnable(() -> {
                                         this.currentState = State.PRE_CLOSING;
@@ -309,7 +309,7 @@ public class IntroScreen extends BaseScreen {
                                     });
                                 }
                             });
-                            game.networkClient.sendMessage("CHECK_NAME:" + playerName);
+                            game.ClienteRed.sendMessage("CHECK_NAME:" + playerName);
                         } else {
                             // Fallback if no network (shouldn't happen in SharedGame)
                             currentState = State.PRE_CLOSING;
@@ -523,8 +523,8 @@ public class IntroScreen extends BaseScreen {
         float boxW = vpW - 20;
         float boxH = TEXT_BOX_HEIGHT;
 
-        RenderUtils.drawRoundedRect(shapeRenderer, boxX, boxY, boxW, boxH, 20f, new Color(0.3f, 0.5f, 0.6f, 1f)); // Frame
-        RenderUtils.drawRoundedRect(shapeRenderer, boxX + 6, boxY + 6, boxW - 12, boxH - 12, 16f,
+        UtilidadesRender.drawRoundedRect(shapeRenderer, boxX, boxY, boxW, boxH, 20f, new Color(0.3f, 0.5f, 0.6f, 1f)); // Frame
+        UtilidadesRender.drawRoundedRect(shapeRenderer, boxX + 6, boxY + 6, boxW - 12, boxH - 12, 16f,
                 new Color(0.6f, 0.8f, 1.0f, 1f)); // Inner (Light Blue)
 
         // 2.5 Name Tag "Profesor Ferxxo"
@@ -532,9 +532,9 @@ public class IntroScreen extends BaseScreen {
         float nameTagH = 50;
         float nameTagX = boxX;
         float nameTagY = boxY + boxH - 5;
-        RenderUtils.drawRoundedRect(shapeRenderer, nameTagX, nameTagY, nameTagW, nameTagH, 10f,
+        UtilidadesRender.drawRoundedRect(shapeRenderer, nameTagX, nameTagY, nameTagW, nameTagH, 10f,
                 new Color(0.3f, 0.5f, 0.6f, 1f)); // Frame
-        RenderUtils.drawRoundedRect(shapeRenderer, nameTagX + 3, nameTagY + 3, nameTagW - 6, nameTagH - 6, 8f,
+        UtilidadesRender.drawRoundedRect(shapeRenderer, nameTagX + 3, nameTagY + 3, nameTagW - 6, nameTagH - 6, 8f,
                 Color.WHITE); // Inner White
 
         // 3. Gender Selection Menu (Text only, removed buttons)
@@ -690,10 +690,10 @@ public class IntroScreen extends BaseScreen {
             fadeAlpha += delta * 1.0f; // 1 second fade
             if (fadeAlpha >= 1f) {
                 fadeAlpha = 1f;
-                // Transition directly to GameScreen (Bypassing IntroWalkScreen as requested)
+                // Transition directly to PantallaJuego (Bypassing IntroWalkScreen as requested)
                 String texturePath = isMale ? "protagonistaMasculino1.png" : "protagonistaFemenino.png";
                 // Pass gameName (Partida Name) AND playerName (Explorer Name)
-                game.setScreen(new GameScreen(game, texturePath, 4, 4, playerName, gameName));
+                game.setScreen(new PantallaJuego(game, texturePath, 4, 4, playerName, gameName));
                 dispose();
                 return;
             }

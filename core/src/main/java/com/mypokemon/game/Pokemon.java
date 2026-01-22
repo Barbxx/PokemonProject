@@ -5,40 +5,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.io.Serializable;
 
-/**
- * Representa una instancia individual de un Pokémon en el juego.
- * Contiene estadísticas dinámicas, movimientos y estado de salud.
- */
 public class Pokemon implements Serializable {
-    /** Nombre de la especie del Pokémon. */
     private String nombre;
-    /** Nivel de investigación (o nivel base) del Pokémon. */
     private int nivel;
-    /** Puntos de salud máximos. */
     private float hpMaximo;
-    /** Puntos de salud actuales. */
     private float hpActual;
-    /** Valor de ataque utilizado para calcular el daño. */
     private float ataque;
-    /** Velocidad que determina el orden de los turnos en combate. */
     private float velocidad;
-    /** Descripción biográfica del Pokémon. */
     private String descripcion;
-    /** Tipos contra los que este Pokémon no recibe daño. */
     private String[] inmunidades;
-    /** Indica si es un Pokémon legendario (como Arceus). */
     private boolean esLegendario;
-    /** Indica si el Pokémon ha quedado fuera de combate (0 HP). */
     private boolean debilitado;
-    /** Tipo elemental principal del Pokémon. */
     private String tipo;
-    /** Lista de movimientos que el Pokémon puede usar en batalla. */
     private List<Movimiento> movimientos;
-    /**
-     * Modificador temporal de ataque (aplicado por ítems como el Elixir). No se
-     * persiste.
-     */
-    private transient float modificadorAtaqueTemporal = 0;
+    private transient float modificadorAtaqueTemporal = 0; // Para el Elixir de Piel de Piedra (No se guarda)
 
     // Para LibGDX (marcar como transient para que no intente serializar la imagen)
     private transient TextureRegion sprite;
