@@ -2,10 +2,8 @@ package com.mypokemon.game.colisiones;
 
 import com.badlogic.gdx.math.Rectangle;
 
-/**
- * Clase abstracta base para todos los objetos que tienen colisión.
- * Proporciona una implementación base común para manejar límites y detección.
- */
+// Clase abstracta base para todos los objetos que tienen colisión.
+
 public abstract class ColisionBase implements IColisionable {
 
     protected Rectangle limites;
@@ -24,7 +22,7 @@ public abstract class ColisionBase implements IColisionable {
     /**
      * Obtiene el tipo de colisión.
      * 
-     * @return Cadena que representa el tipo (ej: "NPC").
+     * @return Cadena que representa el tipo
      */
     @Override
     public String obtenerTipo() {

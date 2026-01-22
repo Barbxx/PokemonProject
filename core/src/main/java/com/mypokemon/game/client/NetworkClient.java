@@ -32,9 +32,7 @@ public class NetworkClient {
     }
 
     /**
-     * Escucha la señal del faro (Beacon) UDP del servidor para auto-descubrir su
-     * IP.
-     * Esta llamada es bloqueante y debería ejecutarse en un hilo separado.
+     * Escucha la señal del faro UDP del servidor para auto-descubrir su IP.
      * 
      * @return La dirección IP del servidor descubierto o "127.0.0.1" si falla.
      */
@@ -42,7 +40,6 @@ public class NetworkClient {
         DatagramSocket socket = null;
         try {
             // Enlazar al puerto UDP
-
             socket = new DatagramSocket(null);
 
             try {
@@ -91,8 +88,7 @@ public class NetworkClient {
     }
 
     /**
-     * Intenta establecer una conexión TCP con el servidor.
-     * Envía el mensaje inicial de handshake con el nombre del jugador.
+     * Intenta establecer una conexión TCP con el servidor. - Envía el mensaje inicial de handshake con el nombre del jugador.
      * 
      * @param ip         IP del servidor.
      * @param playerName Nombre del jugador local.
@@ -133,8 +129,7 @@ public class NetworkClient {
         }
     }
 
-    // Bucle de escucha TCP que se ejecuta en su propio hilo. Recibe mensajes
-    // entrantes y notifica al listener registrado.
+    // Bucle de escucha TCP que se ejecuta en su propio hilo. Recibe mensajes entrantes y notifica al listener registrado.
     private void listenTcp() {
         try {
             while (listening && !tcpSocket.isClosed()) {

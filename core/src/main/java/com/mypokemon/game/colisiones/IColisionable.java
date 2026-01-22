@@ -2,9 +2,7 @@ package com.mypokemon.game.colisiones;
 
 import com.badlogic.gdx.math.Rectangle;
 
-/**
- * Interfaz base para todos los objetos que tienen colisión.
- */
+// Interfaz base para todos los objetos que tienen colisión.
 public interface IColisionable {
 
     /**
@@ -28,7 +26,7 @@ public interface IColisionable {
     /**
      * Obtiene el tipo de colisión para identificar el objeto.
      * 
-     * @return Tipo como cadena (ej: "NPC", "ZONA", "TERRENO").
+     * @return Tipo como cadena (NPC, ZONA,TERRENO)
      */
     String obtenerTipo();
 }

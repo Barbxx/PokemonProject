@@ -8,10 +8,7 @@ import com.mypokemon.game.PokemonMain;
 import com.mypokemon.game.pantallas.GameScreen;
 import com.mypokemon.game.pantallas.LaboratorioScreen;
 
-/**
- * Maneja la interacción específica con la puerta del laboratorio.
- * Permite al jugador entrar al seleccionar esta zona.
- */
+// Maneja la interacción específica con la puerta del laboratorio. Permite al jugador entrar al seleccionar esta zona.
 public class ColisionPuertaLaboratorio extends ZonaInteractiva {
 
     private Texture texturaLetrero;
@@ -33,13 +30,14 @@ public class ColisionPuertaLaboratorio extends ZonaInteractiva {
     public ColisionPuertaLaboratorio(float x, float y, Texture letrero,
             PokemonMain juego, GameScreen pantallaJuego,
             Explorador explorador) {
-        // Sin colisión física, solo interacción cercana
+        // Interacción cercana
         this.limites = new Rectangle(x + 10, y, 60, 70);
-        this.tipo = "INTERACTIVO"; // Cambiado de ZONA para quitar colisión física
-        this.rangoInteraccion = 45f; // Reducido de 35 a 25 para interacción muy cercana
+        this.tipo = "INTERACTIVO"; 
+        this.rangoInteraccion = 45f;
         this.mensajeInteraccion = "Presiona [T] para entrar al laboratorio.";
         this.texturaLetrero = letrero;
-        // Ajustado para letrero más pequeño
+
+        //Letrero Laboratorio
         this.letreroX = x + 80;
         this.letreroY = y + 50;
         this.juego = juego;
@@ -47,10 +45,7 @@ public class ColisionPuertaLaboratorio extends ZonaInteractiva {
         this.explorador = explorador;
     }
 
-    /**
-     * Ejecuta la lógica al entrar al laboratorio.
-     * Cambia la pantalla a LaboratorioScreen si el equipo está vacío (inicio).
-     */
+    // Ejecuta la lógica al entrar al laboratorio.
     @Override
     public void interactuar() {
         if (explorador.getEquipo().isEmpty()) {

@@ -3,10 +3,7 @@ package com.mypokemon.game.colisiones;
 import com.badlogic.gdx.math.Rectangle;
 import com.mypokemon.game.objects.NPC;
 
-/**
- * Envoltorio (Wrapper) de colisión e interacción para NPCs.
- * Conecta la lógica del NPC con el sistema de colisiones.
- */
+// Envoltorio (Wrapper) de colisión e interacción para NPCs. Conecta la lógica del NPC con el sistema de colisiones.
 public class ColisionNPC extends ColisionBase implements IInteractivo {
 
     private NPC npc;
@@ -36,14 +33,10 @@ public class ColisionNPC extends ColisionBase implements IInteractivo {
         return npc.isClose(x, y);
     }
 
-    /**
-     * Método vacío ya que la interacción real se gestiona en GameScreen.
-     * Requerido por la interfaz IInteractivo.
-     */
+    // Método para cumplir con la interfaz.
     @Override
     public void interactuar() {
         // La interacción con NPCs se maneja en GameScreen
-        // Este método está aquí para cumplir con la interfaz
     }
 
     /**

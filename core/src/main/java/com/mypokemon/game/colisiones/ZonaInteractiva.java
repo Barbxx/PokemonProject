@@ -2,11 +2,8 @@ package com.mypokemon.game.colisiones;
 
 import com.badlogic.gdx.math.Vector2;
 
-/**
- * Clase abstracta que define zonas específicas del mapa con las que se puede
- * interactuar.
- * Ejemplo: Puertas, letreros, objetos en el suelo.
- */
+// Clase abstracta que define zonas específicas del mapa con las que se puede interactuar.
+
 public abstract class ZonaInteractiva extends ColisionBase implements IInteractivo {
 
     protected float rangoInteraccion;
@@ -14,7 +11,6 @@ public abstract class ZonaInteractiva extends ColisionBase implements IInteracti
 
     /**
      * Verifica si el jugador está dentro del radio de interacción.
-     * Utiliza la distancia euclidiana desde el centro de la zona.
      * 
      * @param x Posición X del jugador.
      * @param y Posición Y del jugador.
@@ -47,10 +43,7 @@ public abstract class ZonaInteractiva extends ColisionBase implements IInteracti
         return mensajeInteraccion;
     }
 
-    /**
-     * Método abstracto que deben implementar las subclases para definir
-     * qué sucede al interactuar.
-     */
+    // Método abstracto que deben implementar las subclases para definir qué sucede al interactuar.
     @Override
     public abstract void interactuar();
 }

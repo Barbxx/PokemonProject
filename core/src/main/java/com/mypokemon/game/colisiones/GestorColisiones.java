@@ -6,9 +6,7 @@ import com.badlogic.gdx.math.Vector2;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Gestor centralizado de todas las colisiones del juego.
- */
+// Gestor centralizado de todas las colisiones del juego.
 public class GestorColisiones {
 
     private List<IColisionable> colisiones;
@@ -30,10 +28,9 @@ public class GestorColisiones {
     }
 
     /**
-     * Agrega un objeto colisionable al gestor.
-     * Si el objeto también es interactivo, se registra para interacciones.
+     * Agrega un objeto colisionable al gestor. Si el objeto también es interactivo, se registra para interacciones.
      * 
-     * @param colision Objeto que implementa IColisionable.
+     * @param colision Objeto que implementa IColisionable
      */
     public void agregarColision(IColisionable colision) {
         colisiones.add(colision);
@@ -44,7 +41,6 @@ public class GestorColisiones {
 
     /**
      * Verifica colisión con el terreno del mapa.
-     * Comprueba si el rectángulo especificado solapa con algún tile sólido.
      * 
      * @param x     Posición X central.
      * @param y     Posición Y central.
@@ -56,7 +52,7 @@ public class GestorColisiones {
         if (capaColisionTerreno == null)
             return false;
 
-        // Definir esquinas del jugador para verificar
+        // Esquinas del jugador
         float[] esquinas = {
                 x - ancho / 2, y - alto / 2, // Inferior-izquierda
                 x + ancho / 2, y - alto / 2, // Inferior-derecha
@@ -70,12 +66,13 @@ public class GestorColisiones {
 
             TiledMapTileLayer.Cell celda = capaColisionTerreno.getCell(celdaX, celdaY);
             if (celda != null && celda.getTile() != null) {
-                // Permitir pasar por la grama (solo usarla para encuentros, no para colisión)
+
+                // Permitir pasar por la grama (solo usado para encuentros)
                 Object zonaEncuentro = celda.getTile().getProperties().get("ZonaEncuentro");
                 if (zonaEncuentro != null) {
                     continue; // Ignorar colisión con grama, permitir pasar
                 }
-                return true; // Hay colisión con otro tipo de tile
+                return true; // Colisión con otro tipo de tile
             }
         }
         return false;
@@ -102,7 +99,7 @@ public class GestorColisiones {
     }
 
     /**
-     * Verifica todas las colisiones posibles (terreno y objetos).
+     * Verifica todas las colisiones posibles (terreno y objetos)
      * 
      * @param x     Posición X.
      * @param y     Posición Y.
@@ -111,6 +108,7 @@ public class GestorColisiones {
      * @return true si hay alguna colisión.
      */
     public boolean verificarTodasLasColisiones(float x, float y, float ancho, float alto) {
+        
         // Verificar terreno
         if (verificarColisionTerreno(x, y, ancho, alto)) {
             return true;
@@ -165,9 +163,7 @@ public class GestorColisiones {
         return resultado;
     }
 
-    /**
-     * Limpia todas las colisiones y objetos interactivos registrados.
-     */
+    // Limpia todas las colisiones y objetos interactivos registrados.
     public void limpiar() {
         colisiones.clear();
         interactivos.clear();
