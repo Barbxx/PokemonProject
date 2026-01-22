@@ -2,11 +2,7 @@ package com.mypokemon.game.inventario;
 
 import java.io.Serializable;
 
-/**
- * Clase que representa el resultado de usar un ítem.
- * Contiene información sobre si el uso fue exitoso, un mensaje descriptivo,
- * y si el ítem debe ser consumido.
- */
+// Representa el resultado de usar un ítem (éxito, mensaje descriptivo y si debe consumirse).
 public class ResultadoUso implements Serializable {
     private static final long serialVersionUID = 1L;
 
@@ -14,57 +10,40 @@ public class ResultadoUso implements Serializable {
     private final String mensaje;
     private final boolean consumirItem;
 
-    /**
-     * Constructor para crear un resultado de uso.
-     * 
-     * @param exito        true si el uso fue exitoso
-     * @param mensaje      Mensaje descriptivo del resultado
-     * @param consumirItem true si el ítem debe ser consumido
-     */
+    // Crea un resultado de uso con el estado de éxito, mensaje y si consume el
+    // ítem.
     public ResultadoUso(boolean exito, String mensaje, boolean consumirItem) {
         this.exito = exito;
         this.mensaje = mensaje;
         this.consumirItem = consumirItem;
     }
 
-    /**
-     * @return true si el uso fue exitoso
-     */
+    // Indica si el uso fue exitoso.
     public boolean isExito() {
         return exito;
     }
 
-    /**
-     * @return Mensaje descriptivo del resultado
-     */
+    // Obtiene el mensaje descriptivo del resultado.
     public String getMensaje() {
         return mensaje;
     }
 
-    /**
-     * @return true si el ítem debe ser consumido
-     */
+    // Indica si el ítem debe ser consumido del inventario.
     public boolean isConsumirItem() {
         return consumirItem;
     }
 
-    /**
-     * Crea un resultado exitoso.
-     */
+    // Crea un resultado exitoso que consume el ítem.
     public static ResultadoUso exito(String mensaje) {
         return new ResultadoUso(true, mensaje, true);
     }
 
-    /**
-     * Crea un resultado fallido.
-     */
+    // Crea un resultado fallido que no consume el ítem.
     public static ResultadoUso fallo(String mensaje) {
         return new ResultadoUso(false, mensaje, false);
     }
 
-    /**
-     * Crea un resultado exitoso sin consumir el ítem.
-     */
+    // Crea un resultado exitoso sin consumir el ítem.
     public static ResultadoUso exitoSinConsumir(String mensaje) {
         return new ResultadoUso(true, mensaje, false);
     }

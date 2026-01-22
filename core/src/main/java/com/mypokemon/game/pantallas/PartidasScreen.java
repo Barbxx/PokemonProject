@@ -2,333 +2,135 @@ package com.mypokemon.game.pantallas;
 
 import com.mypokemon.game.PokemonMain;
 import com.mypokemon.game.Explorador;
-
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
+import com.badlogic.gdx.graphics.OrthographicCamera;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
-/**
- * Pantalla que permite visualizar, seleccionar y borrar las partidas guardadas.
- */
+// Pantalla que muestra las partidas guardadas y permite cargar, borrar o crear nuevas.
 public class PartidasScreen extends BaseScreen {
 
-    /** Textura de fondo de la pantalla. */
-    private Texture background;
-    /**
-     * Texturas para los botones de jugar y borrar en estado normal y seleccionado.
-     */
-    private Texture btnJugarNormal, btnJugarSel;
-    private Texture btnBorrarNormal, btnBorrarSel;
+    private Texture fondo;
+    private Texture botonJugarNormal, botonJugarSel;
+    private Texture botonBorrarNormal, botonBorrarSel;
+    private List<String> archivosPartidas;
+    private int indiceSeleccionado = 0;
+    private int modoBoton = 0; // 0 = Jugar, 1 = Borrar
 
-    /** Lista de archivos de guardado encontrados en el directorio local. */
-    private FileHandle[] saveFiles;
-    /** Índice del archivo de guardado seleccionado actualmente. */
-    private int selectedIndex = 0;
-    /** Indica si el jugador está en la fase de elegir una acción (Jugar/Borrar). */
-    private boolean selectingAction = false;
-    /** Índice de la acción seleccionada (0: Jugar, 1: Borrar). */
-    private int actionIndex = 0;
-
-    // Cámara y Viewport para mantener una resolución fija
-    private OrthographicCamera camera;
+    private OrthographicCamera camara;
     private Viewport viewport;
-    private static final float VIRTUAL_WIDTH = 1280f;
-    private static final float VIRTUAL_HEIGHT = 720f;
+    private static final float ANCHO_VIRTUAL = 1280f;
+    private static final float ALTO_VIRTUAL = 720f;
 
-    /**
-     * Constructor de la pantalla de partidas.
-     * 
-     * @param game Instancia principal del juego.
-     */
-    public PartidasScreen(PokemonMain game) {
-        super(game);
-        try {
-            background = new Texture("pantallaPartidas.png");
-            btnJugarNormal = new Texture("boton_jugarPartida_normal.png");
-            btnJugarSel = new Texture("boton_jugarPartida_seleccionado.png");
-            btnBorrarNormal = new Texture("boton_borrarPartida_normal.png");
-            btnBorrarSel = new Texture("boton_borrarPartida_seleccionado.png");
-        } catch (Exception e) {
-            Gdx.app.log("PartidasScreen", "No se pudieron cargar las texturas: " + e.getMessage());
-        }
+    public PartidasScreen(PokemonMain juego) {
+        super(juego);
+        this.fondo = cargarTextura("pantallaPartidas.png");
+        this.botonJugarNormal = cargarTextura("boton_jugar_normal.png");
+        this.botonJugarSel = cargarTextura("boton_jugar_seleccionado.png");
+        this.botonBorrarNormal = cargarTextura("boton_borrar_normal.png");
+        this.botonBorrarSel = cargarTextura("boton_borrar_seleccionado.png");
 
-        // Buscar archivos de guardado
-        FileHandle local = Gdx.files.local(".");
-        saveFiles = local.list((dir, name) -> name.contains(" - ") && name.endsWith(".dat"));
-
-        if (saveFiles == null) {
-            saveFiles = new FileHandle[0];
-        }
-
-        // Configuración de cámara y viewport
-        camera = new OrthographicCamera();
-        viewport = new FitViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, camera);
+        camara = new OrthographicCamera();
+        viewport = new FitViewport(ANCHO_VIRTUAL, ALTO_VIRTUAL, camara);
         viewport.apply();
-        camera.position.set(VIRTUAL_WIDTH / 2, VIRTUAL_HEIGHT / 2, 0);
-        camera.update();
+        camara.position.set(ANCHO_VIRTUAL / 2, ALTO_VIRTUAL / 2, 0);
+        camara.update();
+
+        archivosPartidas = new ArrayList<>();
+        actualizarListaPartidas();
     }
 
-    /**
-     * Renderiza la lista de partidas, gestiona la entrada de teclado/ratón y las
-     * acciones de jugar/borrar.
-     * 
-     * @param delta Tiempo transcurrido desde el último frame.
-     */
-    @Override
-    public void render(float delta) {
-        // Manejo de entrada
-        if (saveFiles.length > 0) {
-            if (!selectingAction) {
-                // FASE DE SELECCIÓN DE ARCHIVO
-                if (Gdx.input.isKeyJustPressed(Input.Keys.UP) || Gdx.input.isKeyJustPressed(Input.Keys.W)) {
-                    selectedIndex--;
-                    if (selectedIndex < 0)
-                        selectedIndex = saveFiles.length - 1;
-                }
-                if (Gdx.input.isKeyJustPressed(Input.Keys.DOWN) || Gdx.input.isKeyJustPressed(Input.Keys.S)) {
-                    selectedIndex++;
-                    if (selectedIndex >= saveFiles.length)
-                        selectedIndex = 0;
-                }
-
-                if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
-                    selectingAction = true;
-                    actionIndex = 0; // Por defecto Jugar
-                }
-            } else {
-                // FASE DE SELECCIÓN DE ACCIÓN (Jugar / Borrar)
-                if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT) || Gdx.input.isKeyJustPressed(Input.Keys.A)) {
-                    actionIndex = 0; // Jugar
-                }
-                if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT) || Gdx.input.isKeyJustPressed(Input.Keys.D)) {
-                    actionIndex = 1; // Borrar
-                }
-
-                if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
-                    selectingAction = false;
-                }
-
-                if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
-                    if (actionIndex == 0) {
-                        // JUGAR
-                        FileHandle selectedFile = saveFiles[selectedIndex];
-                        String fullFileName = selectedFile.name();
-                        Explorador exp = Explorador.cargarProgreso(fullFileName);
-                        String skin = "protagonistaMasculino1.png";
-                        if (exp != null && "CHICA".equals(exp.getGenero())) {
-                            skin = "protagonistaFemenino.png";
-                        }
-                        game.setScreen(new GameScreen(game, skin, 4, 4, "", fullFileName));
-                        dispose();
-                        return;
-                    } else {
-                        // BORRAR
-                        FileHandle selectedFile = saveFiles[selectedIndex];
-                        selectedFile.delete();
-                        Gdx.app.log("PartidasScreen", "Borrada: " + selectedFile.name());
-
-                        // Refrescar lista
-                        FileHandle local = Gdx.files.local(".");
-                        saveFiles = local.list((dir, name) -> name.contains(" - ") && name.endsWith(".dat"));
-                        if (saveFiles == null)
-                            saveFiles = new FileHandle[0];
-
-                        selectedIndex = 0;
-                        selectingAction = false;
-                    }
-                }
+    private void actualizarListaPartidas() {
+        archivosPartidas.clear();
+        File folder = new File(".");
+        File[] files = folder.listFiles((dir, name) -> name.endsWith(".dat"));
+        if (files != null) {
+            for (File f : files) {
+                String n = f.getName();
+                if (n.equals("config.dat"))
+                    continue;
+                archivosPartidas.add(n.substring(0, n.length() - 4));
             }
         }
+    }
 
-        if (!selectingAction && Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
-            game.setScreen(new MainMenuScreen(game));
+    @Override
+    public void render(float delta) {
+        ScreenUtils.clear(0, 0, 0, 1);
+        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
+            juego.setScreen(new MainMenuScreen(juego));
             dispose();
             return;
         }
 
-        // Soporte de ratón para selección y botones
-        com.badlogic.gdx.math.Vector3 mousePos = new com.badlogic.gdx.math.Vector3(Gdx.input.getX(), Gdx.input.getY(),
-                0);
-        viewport.unproject(mousePos);
+        if (!archivosPartidas.isEmpty()) {
+            if (Gdx.input.isKeyJustPressed(Input.Keys.UP))
+                indiceSeleccionado = (indiceSeleccionado <= 0) ? archivosPartidas.size() - 1 : indiceSeleccionado - 1;
+            if (Gdx.input.isKeyJustPressed(Input.Keys.DOWN))
+                indiceSeleccionado = (indiceSeleccionado >= archivosPartidas.size() - 1) ? 0 : indiceSeleccionado + 1;
+            if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT) || Gdx.input.isKeyJustPressed(Input.Keys.RIGHT))
+                modoBoton = (modoBoton == 0) ? 1 : 0;
 
-        if (saveFiles.length > 0) {
-            float startY = VIRTUAL_HEIGHT / 2 + 100;
-            float spacing = 60; // Aumentado para mayor claridad con letra grande
-
-            // Selección con ratón para la lista
-            if (!selectingAction) {
-                for (int i = 0; i < saveFiles.length; i++) {
-                    float y = startY - (i * spacing);
-                    if (mousePos.x > 200 && mousePos.x < 1080 && mousePos.y < y + 15 && mousePos.y > y - 45) {
-                        selectedIndex = i;
-                        if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
-                            selectingAction = true;
-                            actionIndex = 0;
-                        }
-                    }
-                }
-            } else {
-                // Hover/Click de ratón para botones
-                float btnW = 340;
-                float btnH = 100;
-                float btnY = 100;
-                float centerX = VIRTUAL_WIDTH / 2;
-                float gap = 40;
-
-                // Límites de botón Jugar
-                if (mousePos.x > centerX - btnW - gap / 2 && mousePos.x < centerX - gap / 2 &&
-                        mousePos.y > btnY && mousePos.y < btnY + btnH) {
-                    actionIndex = 0;
-                    if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
-                        FileHandle selectedFile = saveFiles[selectedIndex];
-                        Explorador exp = Explorador.cargarProgreso(selectedFile.name());
-                        String skin = "protagonistaMasculino1.png";
-                        if (exp != null && "CHICA".equals(exp.getGenero())) {
-                            skin = "protagonistaFemenino.png";
-                        }
-                        game.setScreen(
-                                new GameScreen(game, skin, 4, 4, "", selectedFile.name()));
+            if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
+                String partida = archivosPartidas.get(indiceSeleccionado);
+                if (modoBoton == 0) {
+                    Explorador exp = Explorador.cargarProgreso(partida + ".dat");
+                    if (exp != null) {
+                        String tex = (exp.obtenerGenero() == com.mypokemon.game.utils.Genero.CHICA)
+                                ? "protagonistaFemenino.png"
+                                : "protagonistaMasculino1.png";
+                        juego.setScreen(new GameScreen(juego, tex, 4, 4, exp.obtenerNombre(), partida));
                         dispose();
                         return;
                     }
-                }
-                // Límites de botón Borrar
-                if (mousePos.x > centerX + gap / 2 && mousePos.x < centerX + btnW + gap / 2 &&
-                        mousePos.y > btnY && mousePos.y < btnY + btnH) {
-                    actionIndex = 1;
-                    if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
-                        saveFiles[selectedIndex].delete();
-                        saveFiles = Gdx.files.local(".")
-                                .list((dir, name) -> name.contains(" - ") && name.endsWith(".dat"));
-                        if (saveFiles == null)
-                            saveFiles = new FileHandle[0];
-                        selectedIndex = 0;
-                        selectingAction = false;
+                } else {
+                    File f = new File(partida + ".dat");
+                    if (f.delete()) {
+                        actualizarListaPartidas();
+                        if (indiceSeleccionado >= archivosPartidas.size())
+                            indiceSeleccionado = Math.max(0, archivosPartidas.size() - 1);
                     }
                 }
             }
         }
 
-        // Renderizado
-        ScreenUtils.clear(0, 0, 0, 1);
-        camera.update();
-        game.batch.setProjectionMatrix(camera.combined);
+        camara.update();
+        juego.batch.setProjectionMatrix(camara.combined);
+        juego.batch.begin();
+        if (fondo != null)
+            juego.batch.draw(fondo, 0, 0, ANCHO_VIRTUAL, ALTO_VIRTUAL);
 
-        game.batch.begin();
-        if (background != null) {
-            game.batch.draw(background, 0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
-        }
-
-        // Dibujar archivos de guardado centrados
-        if (saveFiles.length == 0) {
-            game.font.setColor(Color.GRAY);
-            game.font.getData().setScale(2.5f); // Tamaño aumentado
-            game.font.draw(game.batch, "No hay partidas guardadas.", 0, VIRTUAL_HEIGHT / 2, VIRTUAL_WIDTH,
-                    com.badlogic.gdx.utils.Align.center, false);
+        if (archivosPartidas.isEmpty()) {
+            juego.fuente.getData().setScale(2.5f);
+            juego.fuente.setColor(Color.WHITE);
+            juego.fuente.draw(juego.batch, "NO HAY PARTIDAS GUARDADAS", 0, ALTO_VIRTUAL / 2, ANCHO_VIRTUAL, 1, false);
         } else {
-            game.font.getData().setScale(2.0f); // Tamaño aumentado de 1.2f a 2.0f
-            float startY = VIRTUAL_HEIGHT / 2 + 100;
-            float spacing = 60;
+            float startY = ALTO_VIRTUAL - 200, itemH = 100;
+            for (int i = 0; i < archivosPartidas.size(); i++) {
+                boolean sel = (i == indiceSeleccionado);
+                juego.fuente.getData().setScale(1.8f);
+                juego.fuente.setColor(sel ? Color.YELLOW : Color.WHITE);
+                juego.fuente.draw(juego.batch, archivosPartidas.get(i), 150, startY - i * itemH);
 
-            for (int i = 0; i < saveFiles.length; i++) {
-                String fullPath = saveFiles[i].nameWithoutExtension();
-                String nameDisplay = "";
-
-                // SOLUCIÓN ROBUSTA: Dividir por el separador estándar " - "
-                // El formato esperado es "NombrePartida - NombreExplorador"
-                if (fullPath.contains(" - ")) {
-                    String[] parts = fullPath.split(" - ");
-                    String gamePart = parts[0].trim();
-                    String userPart = parts[1].trim();
-
-                    // Limpiar cualquier metadato entre corchetes si existiera
-                    if (userPart.contains("[")) {
-                        userPart = userPart.split("\\[")[0].trim();
-                    }
-                    if (gamePart.contains("[")) {
-                        gamePart = gamePart.split("\\[")[0].trim();
-                    }
-
-                    nameDisplay = gamePart + " - " + userPart;
-                } else {
-                    // Fallback si el formato no es el estándar, pero limpiando corchetes
-                    nameDisplay = fullPath;
-                    if (nameDisplay.contains(" [")) {
-                        nameDisplay = nameDisplay.substring(0, nameDisplay.indexOf(" ["));
-                    }
+                if (sel) {
+                    float bx = 800, by = startY - i * itemH - 40, bw = 180, bh = 60;
+                    juego.batch.draw(modoBoton == 0 ? botonJugarSel : botonJugarNormal, bx, by, bw, bh);
+                    juego.batch.draw(modoBoton == 1 ? botonBorrarSel : botonBorrarNormal, bx + 220, by, bw, bh);
                 }
-
-                float y = startY - (i * spacing);
-
-                if (i == selectedIndex) {
-                    if (selectingAction)
-                        game.font.setColor(Color.LIME);
-                    else
-                        game.font.setColor(Color.YELLOW);
-                    nameDisplay = ">> " + nameDisplay + " <<";
-                } else {
-                    game.font.setColor(Color.WHITE);
-                }
-
-                game.font.draw(game.batch, nameDisplay, 0, y, VIRTUAL_WIDTH, com.badlogic.gdx.utils.Align.center,
-                        false);
-            }
-
-            // Dibujar botones
-            float btnW = 340;
-            float btnH = 100;
-            float btnY = 100;
-            float centerX = VIRTUAL_WIDTH / 2;
-            float gap = 40;
-
-            // Botón Jugar
-            Texture playTex = (selectingAction && actionIndex == 0) ? btnJugarSel : btnJugarNormal;
-            if (playTex != null) {
-                game.batch.draw(playTex, centerX - btnW - gap / 2, btnY, btnW, btnH);
-            }
-
-            // Botón Borrar
-            Texture delTex = (selectingAction && actionIndex == 1) ? btnBorrarSel : btnBorrarNormal;
-            if (delTex != null) {
-                game.batch.draw(delTex, centerX + gap / 2, btnY, btnW, btnH);
             }
         }
-
-        game.batch.end();
+        juego.batch.end();
     }
 
-    /**
-     * Actualiza el viewport al redimensionar la ventana.
-     * 
-     * @param width  Nuevo ancho.
-     * @param height Nuevo alto.
-     */
     @Override
-    public void resize(int width, int height) {
-        viewport.update(width, height, true);
-        camera.position.set(VIRTUAL_WIDTH / 2, VIRTUAL_HEIGHT / 2, 0);
-    }
-
-    /**
-     * Libera las texturas cargadas.
-     */
-    @Override
-    public void dispose() {
-        if (background != null)
-            background.dispose();
-        if (btnJugarNormal != null)
-            btnJugarNormal.dispose();
-        if (btnJugarSel != null)
-            btnJugarSel.dispose();
-        if (btnBorrarNormal != null)
-            btnBorrarNormal.dispose();
-        if (btnBorrarSel != null)
-            btnBorrarSel.dispose();
+    public void resize(int w, int h) {
+        viewport.update(w, h, true);
     }
 }

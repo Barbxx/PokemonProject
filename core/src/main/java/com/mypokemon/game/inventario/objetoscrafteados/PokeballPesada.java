@@ -1,17 +1,15 @@
 package com.mypokemon.game.inventario.objetoscrafteados;
 
-import com.mypokemon.game.inventario.ObjetoCrafteado;
+import com.mypokemon.game.inventario.ItemCrafteado;
 import com.mypokemon.game.inventario.interfaces.ILanzable;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * Poké Ball de Peso (Heavy Ball) - Mejor captura para Pokémon de nivel bajo.
- */
-public class PokeballPesada extends ObjetoCrafteado implements ILanzable {
+// Poké Ball de Peso (Heavy Ball) - Mejor tasa de captura para Pokémon en ciertas condiciones.
+public class PokeballPesada extends ItemCrafteado implements ILanzable {
 
     public PokeballPesada(int cantidad) {
-        super("heavyball", "Poké Ball de Peso", "Dispositivo con mejor captura en nivel bajo.", cantidad);
+        super("heavyball", "Poké Ball de Peso", "Dispositivo con mejor tasa de captura en nivel bajo.", cantidad);
     }
 
     @Override
@@ -20,12 +18,12 @@ public class PokeballPesada extends ObjetoCrafteado implements ILanzable {
     }
 
     @Override
-    public String getTipoLanzable() {
+    public String obtenerTipoLanzable() {
         return "heavyball";
     }
 
     @Override
-    public List<String> getOpciones() {
+    public List<String> obtenerOpciones() {
         return Arrays.asList("Lanzar", "Tirar");
     }
 }

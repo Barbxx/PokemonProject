@@ -5,117 +5,110 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 
-/**
- * Abstract class representing an NPC.
- * Follows Open/Close Principle (OCP) as new NPCs can be created by extending
- * this class.
- * Implements Single Responsibility Principle (SRP) by handling only NPC state
- * and rendering.
- */
-public abstract class NPC implements Interactable {
+// Clase abstracta que representa un NPC. Sigue los principios SRP y OCP.
+public abstract class NPC implements GameEntidad {
     protected Texture sprite;
-    protected Texture portrait;
-    protected float x, y;
-    protected float width, height;
-    protected String name;
-    protected String[] dialogPages;
-    protected float interactionDistance = 45f; // Reducido de 30 a 20 para permitir acercarse más de frente
+    protected Texture retrato;
+    protected float posX, posY;
+    protected float ancho, alto;
+    protected String nombre;
+    protected String[] paginasDialogo;
+    protected float distanciaInteraccion = 45f;
 
-    public NPC(float x, float y, float width, float height, String texturePath, String name, String[] dialogPages) {
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
-        this.name = name;
-        this.dialogPages = dialogPages;
+    public NPC(float x, float y, float ancho, float alto, String rutaTextura, String nombre, String[] paginasDialogo) {
+        this.posX = x;
+        this.posY = y;
+        this.ancho = ancho;
+        this.alto = alto;
+        this.nombre = nombre;
+        this.paginasDialogo = paginasDialogo;
 
         try {
-            if (texturePath != null) {
-                this.sprite = new Texture(Gdx.files.internal(texturePath));
+            if (rutaTextura != null) {
+                this.sprite = new Texture(Gdx.files.internal(rutaTextura));
             }
         } catch (Exception e) {
-            Gdx.app.log("NPC", "Error loading texture: " + texturePath);
+            Gdx.app.log("NPC", "Error cargando textura: " + rutaTextura);
         }
     }
 
-    public void setPortrait(String portraitPath) {
+    public void setRetrato(String rutaRetrato) {
         try {
-            this.portrait = new Texture(Gdx.files.internal(portraitPath));
+            this.retrato = new Texture(Gdx.files.internal(rutaRetrato));
         } catch (Exception e) {
-            Gdx.app.log("NPC", "Error loading portrait: " + portraitPath);
+            Gdx.app.log("NPC", "Error cargando retrato: " + rutaRetrato);
         }
     }
 
-    public Texture getPortrait() {
-        return portrait != null ? portrait : sprite;
+    public Texture getRetrato() {
+        return retrato != null ? retrato : sprite;
     }
 
-    public String getName() {
-        return name;
+    public String getNombre() {
+        return nombre;
     }
 
-    public String[] getDialog() {
-        return dialogPages;
-    }
-
-    @Override
-    public boolean isClose(float playerX, float playerY) {
-        return Vector2.dst(playerX, playerY, x, y) < interactionDistance;
+    public String[] getDialogo() {
+        return paginasDialogo;
     }
 
     @Override
-    public void render(SpriteBatch batch) {
+    public boolean estaCerca(float playerX, float playerY) {
+        return Vector2.dst(playerX, playerY, posX, posY) < distanciaInteraccion;
+    }
+
+    @Override
+    public void renderizar(SpriteBatch batch) {
         if (sprite != null) {
-            batch.draw(sprite, x, y, width, height);
+            batch.draw(sprite, posX, posY, ancho, alto);
         }
     }
 
     @Override
-    public void dispose() {
+    public void liberar() {
         if (sprite != null)
             sprite.dispose();
-        if (portrait != null)
-            portrait.dispose();
-        if (music != null)
-            music.dispose();
+        if (retrato != null)
+            retrato.dispose();
+        if (musica != null)
+            musica.dispose();
     }
 
-    // Music Management
-    protected com.badlogic.gdx.audio.Music music;
+    // Gestión de Música
+    protected com.badlogic.gdx.audio.Music musica;
 
-    public void loadMusic(String musicPath) {
+    public void cargarMusica(String rutaMusica) {
         try {
-            if (Gdx.files.internal(musicPath).exists()) {
-                this.music = Gdx.audio.newMusic(Gdx.files.internal(musicPath));
-                this.music.setLooping(true);
+            if (Gdx.files.internal(rutaMusica).exists()) {
+                this.musica = Gdx.audio.newMusic(Gdx.files.internal(rutaMusica));
+                this.musica.setLooping(true);
             }
         } catch (Exception e) {
-            Gdx.app.log("NPC", "Error loading music: " + musicPath, e);
+            Gdx.app.log("NPC", "Error cargando música: " + rutaMusica, e);
         }
     }
 
-    public com.badlogic.gdx.audio.Music getMusic() {
-        return music;
+    public com.badlogic.gdx.audio.Music getMusica() {
+        return musica;
     }
 
-    // Getters for position/size if needed for collision distinct from interaction
     public float getX() {
-        return x;
+        return posX;
     }
 
     public float getY() {
-        return y;
+        return posY;
     }
 
-    public float getWidth() {
-        return width;
+    public float getAncho() {
+        return ancho;
     }
 
-    public float getHeight() {
-        return height;
+    public float getAlto() {
+        return alto;
     }
 
-    public boolean overlaps(float ox, float oy, float owidth, float oheight) {
-        return x < ox + owidth && x + width > ox && y < oy + oheight && y + height > oy;
+    public boolean superpone(float ox, float oy, float oancho, float oalto) {
+        return posX < ox + oancho && posX + ancho > ox && posY < oy + oalto && posY + alto > oy;
     }
 }

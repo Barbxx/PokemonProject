@@ -3,43 +3,38 @@ package com.mypokemon.game.client;
 import java.io.*;
 import java.net.*;
 
-/**
- * Alias para ClienteRed - mantiene compatibilidad con código existente.
- * 
- * @deprecated Use ClienteRed instead
- */
-@Deprecated
+// Cliente de red principal que maneja la comunicación TCP y UDP con el servidor.
+
 public class NetworkClient {
-    private static final int TCP_PORT = 54321;
-    private static final int UDP_PORT = 54777;
-    private static final String BEACON_MSG = "POKEMON_SERVER_DISCOVERY";
+    private static final int PUERTO_TCP = 54321;
+    private static final int PUERTO_UDP = 54777;
+    private static final String MSG_FARO = "POKEMON_SERVER_DISCOVERY";
 
-    private Socket tcpSocket;
-    private DataInputStream in;
-    private DataOutputStream out;
-    private volatile boolean listening = true;
+    private Socket socketTcp;
+    private DataInputStream entrada;
+    private DataOutputStream salida;
+    private volatile boolean escuchando = true;
 
-    /**
-     * Interfaz para manejar mensajes recibidos desde la red.
-     */
+    // Interfaz para manejar mensajes recibidos desde la red.
+    
     public interface EscuchaRed {
         /**
          * Se llama cuando se recibe un mensaje del servidor.
          * 
          * @param msg El mensaje recibido.
          */
-        void onMessageReceived(String msg);
+        void alRecibirMensaje(String msg);
     }
 
-    private EscuchaRed listener;
+    private EscuchaRed escucha;
 
     /**
      * Establece el escuchador de eventos de red.
      * 
-     * @param listener El objeto que implementa EscuchaRed.
+     * @param escucha El objeto que implementa EscuchaRed.
      */
-    public void setListener(EscuchaRed listener) {
-        this.listener = listener;
+    public void establecerEscucha(EscuchaRed escucha) {
+        this.escucha = escucha;
     }
 
     /**
@@ -47,42 +42,42 @@ public class NetworkClient {
      * 
      * @return La IP del servidor encontrada o "127.0.0.1" si no se detecta.
      */
-    public String discoverServerIP() {
+    public String descubrirIPServidor() {
         DatagramSocket socket = null;
         try {
             socket = new DatagramSocket(null);
 
             try {
-                socket.bind(new InetSocketAddress(UDP_PORT));
+                socket.bind(new InetSocketAddress(PUERTO_UDP));
             } catch (SocketException bindEx) {
-                System.out.println("[Client] Puerto 54777 ocupado. Asumiendo jugadora 2 en misma PC (Localhost).");
+                System.out.println("[Cliente] Puerto 54777 ocupado. Asumiendo jugadora 2 en misma PC (Localhost).");
                 return "127.0.0.1";
             }
 
             socket.setSoTimeout(1000);
 
             byte[] buffer = new byte[1024];
-            int retries = 0;
-            int maxRetries = 3;
+            int intentos = 0;
+            int maxIntentos = 3;
 
-            System.out.println("[Client] Buscando señal Faro...");
-            while (listening && retries < maxRetries) {
+            System.out.println("[Cliente] Buscando señal Faro...");
+            while (escuchando && intentos < maxIntentos) {
                 try {
-                    DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
-                    socket.receive(packet);
+                    DatagramPacket paquete = new DatagramPacket(buffer, buffer.length);
+                    socket.receive(paquete);
 
-                    String msg = new String(packet.getData(), 0, packet.getLength());
-                    if (BEACON_MSG.equals(msg)) {
-                        String serverIP = packet.getAddress().getHostAddress();
-                        System.out.println("[Client] ¡Faro detectado! Servidor en: " + serverIP);
-                        return serverIP;
+                    String msg = new String(paquete.getData(), 0, paquete.getLength());
+                    if (MSG_FARO.equals(msg)) {
+                        String ipServidor = paquete.getAddress().getHostAddress();
+                        System.out.println("[Cliente] ¡Faro detectado! Servidor en: " + ipServidor);
+                        return ipServidor;
                     }
                 } catch (SocketTimeoutException e) {
-                    retries++;
-                    System.out.println("[Client] Buscando... (" + retries + "/" + maxRetries + ")");
+                    intentos++;
+                    System.out.println("[Cliente] Buscando... (" + intentos + "/" + maxIntentos + ")");
                 }
             }
-            System.out.println("[Client] Timeout buscando faro. Probando Localhost por defecto.");
+            System.out.println("[Cliente] Tiempo agotado buscando faro. Probando Localhost por defecto.");
             return "127.0.0.1";
 
         } catch (Exception e) {
@@ -97,24 +92,24 @@ public class NetworkClient {
     /**
      * Conecta al servidor TCP especificado.
      * 
-     * @param ip         Dirección IP del servidor.
-     * @param playerName Nombre que se enviará al conectar.
+     * @param ip            Dirección IP del servidor.
+     * @param nombreJugador Nombre que se enviará al conectar.
      * @return true si la conexión fue exitosa, false en caso contrario.
      */
-    public boolean connect(String ip, String playerName) {
+    public boolean conectar(String ip, String nombreJugador) {
         try {
-            System.out.println("[Client] Conectando a TCP " + ip + ":" + TCP_PORT);
-            tcpSocket = new Socket(ip, TCP_PORT);
-            in = new DataInputStream(tcpSocket.getInputStream());
-            out = new DataOutputStream(tcpSocket.getOutputStream());
+            System.out.println("[Cliente] Conectando a TCP " + ip + ":" + PUERTO_TCP);
+            socketTcp = new Socket(ip, PUERTO_TCP);
+            entrada = new DataInputStream(socketTcp.getInputStream());
+            salida = new DataOutputStream(socketTcp.getOutputStream());
 
-            sendMessage("NAME:" + playerName);
+            enviarMensaje("NAME:" + nombreJugador);
 
-            new Thread(this::listenTcp, "Client-TCP-Listener").start();
+            new Thread(this::escucharTcp, "Cliente-TCP-Escucha").start();
 
             return true;
         } catch (IOException e) {
-            System.err.println("[Client] Error conexión TCP: " + e.getMessage());
+            System.err.println("[Cliente] Error conexión TCP: " + e.getMessage());
             return false;
         }
     }
@@ -124,34 +119,41 @@ public class NetworkClient {
      * 
      * @param msg El mensaje a enviar.
      */
-    public void sendMessage(String msg) {
+    public void enviarMensaje(String msg) {
         try {
-            if (out != null) {
-                out.writeUTF(msg);
+            if (salida != null) {
+                salida.writeUTF(msg);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private void listenTcp() {
+    /**
+     * Mantiene un hilo escuchando mensajes entrantes a través del socket TCP.
+     * Los mensajes recibidos se pasan al escucha registrado.
+     */
+    private void escucharTcp() {
         try {
-            while (listening && !tcpSocket.isClosed()) {
-                String msg = in.readUTF();
-                if (listener != null) {
-                    listener.onMessageReceived(msg);
+            while (escuchando && !socketTcp.isClosed()) {
+                String msg = entrada.readUTF();
+                if (escucha != null) {
+                    escucha.alRecibirMensaje(msg);
                 }
             }
         } catch (IOException e) {
-            System.out.println("[Client] Desconectado del servidor.");
+            System.out.println("[Cliente] Desconectado del servidor.");
         }
     }
 
-    public void stop() {
-        listening = false;
+    /**
+     * Detiene la conexión de red y libera los recursos del socket TCP.
+     */
+    public void detener() {
+        escuchando = false;
         try {
-            if (tcpSocket != null)
-                tcpSocket.close();
+            if (socketTcp != null)
+                socketTcp.close();
         } catch (IOException e) {
         }
     }

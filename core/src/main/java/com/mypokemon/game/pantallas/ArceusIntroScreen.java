@@ -13,48 +13,38 @@ import com.mypokemon.game.PokemonMain;
 import com.mypokemon.game.Explorador;
 import com.mypokemon.game.Pokemon;
 
-/**
- * Pantalla de introducción que se muestra antes de la batalla con Arceus
- */
+// Pantalla de introducción que se muestra antes de la batalla con Arceus.
 public class ArceusIntroScreen implements Screen {
-    private final PokemonMain game;
-    private final com.badlogic.gdx.Screen parentScreen;
+    private final PokemonMain juego;
+    private final com.badlogic.gdx.Screen pantallaPadre;
     private final Explorador explorador;
     private SpriteBatch batch;
-    private Texture background;
-    private BitmapFont font;
-    private ShapeRenderer shapeRenderer;
+    private Texture fondo;
+    private BitmapFont fuente;
+    private ShapeRenderer renderizadorFormas;
 
-    private String[] messages;
-    private int currentMessageIndex;
-    private float messageTimer;
+    private String[] mensajes;
+    private int indiceMensajeActual;
+    private float temporizadorMensaje;
 
-    /**
-     * Constructor de la pantalla de introducción de Arceus
-     * 
-     * @param game         Instancia principal del juego
-     * @param parentScreen Pantalla anterior (GameScreen)
-     * @param explorador   Explorador del jugador
-     */
-    public ArceusIntroScreen(PokemonMain game, com.badlogic.gdx.Screen parentScreen, Explorador explorador) {
-        this.game = game;
-        this.parentScreen = parentScreen;
+    // Constructor de la pantalla de introducción de Arceus.
+    public ArceusIntroScreen(PokemonMain juego, com.badlogic.gdx.Screen pantallaPadre, Explorador explorador) {
+        this.juego = juego;
+        this.pantallaPadre = pantallaPadre;
         this.explorador = explorador;
         this.batch = new SpriteBatch();
-        this.shapeRenderer = new ShapeRenderer();
-        this.font = new BitmapFont();
-        this.font.getData().setScale(2.0f);
-        this.font.setColor(Color.WHITE);
+        this.renderizadorFormas = new ShapeRenderer();
+        this.fuente = new BitmapFont();
+        this.fuente.getData().setScale(2.0f);
+        this.fuente.setColor(Color.WHITE);
 
-        // Cargar el fondo del hito final
         try {
-            this.background = new Texture(Gdx.files.internal("fondoHitoFinal.png"));
+            this.fondo = new Texture(Gdx.files.internal("fondoHitoFinal.png"));
         } catch (Exception e) {
             Gdx.app.error("ArceusIntroScreen", "No se pudo cargar fondoHitoFinal.png", e);
         }
 
-        // Inicializar los mensajes
-        this.messages = new String[] {
+        this.mensajes = new String[] {
                 "A medida que te aproximas a la cueva, el aire se vuelve pesado, gélido, como si el tiempo mismo se detuviera ante tus pies…",
                 "El pulso se te acelera… ¿Será Arceus?",
                 "Sin embargo, al cruzar el umbral, el silencio es absoluto. No hay deidades, solo una flauta que se ve muy antigua…",
@@ -62,168 +52,132 @@ public class ArceusIntroScreen implements Screen {
                 "Tocaste la flauta…"
         };
 
-        this.currentMessageIndex = 0;
-        this.messageTimer = 0;
+        this.indiceMensajeActual = 0;
+        this.temporizadorMensaje = 0;
     }
 
     @Override
     public void show() {
-        // Configurar input para avanzar mensajes con clic o tecla
         Gdx.input.setInputProcessor(new InputAdapter() {
             @Override
             public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-                advanceMessage();
+                avanzarMensaje();
                 return true;
             }
 
             @Override
             public boolean keyDown(int keycode) {
-                advanceMessage();
+                avanzarMensaje();
                 return true;
             }
         });
     }
 
-    /**
-     * Avanza al siguiente mensaje o inicia la batalla con Arceus
-     */
-    private void advanceMessage() {
-        if (currentMessageIndex < messages.length - 1) {
-            currentMessageIndex++;
-            messageTimer = 0;
+    // Avanza al siguiente mensaje o inicia la batalla con Arceus.
+    private void avanzarMensaje() {
+        if (indiceMensajeActual < mensajes.length - 1) {
+            indiceMensajeActual++;
+            temporizadorMensaje = 0;
         } else {
-            // Iniciar batalla con Arceus
             Pokemon arceus = new Pokemon("Arceus", 10, 130, true, "Normal");
-            game.setScreen(new BattleScreen(game, parentScreen, explorador, arceus));
+            juego.setScreen(new BattleScreen(juego, pantallaPadre, explorador, arceus));
         }
     }
 
     @Override
     public void render(float delta) {
-        // Limpiar pantalla
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        // Actualizar timer
-        messageTimer += delta;
+        temporizadorMensaje += delta;
 
         batch.begin();
-
-        // Dibujar fondo si está disponible
-        if (background != null) {
-            batch.draw(background, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        if (fondo != null) {
+            batch.draw(fondo, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         }
-
-        // Dibujar cuadro de diálogo
         batch.end();
 
-        // Dibujar caja de diálogo con ShapeRenderer
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        renderizadorFormas.begin(ShapeRenderer.ShapeType.Filled);
+        float anchoCaja = Gdx.graphics.getWidth() * 0.8f;
+        float altoCaja = 200;
+        float cajaX = (Gdx.graphics.getWidth() - anchoCaja) / 2;
+        float cajaY = 50;
 
-        float boxWidth = Gdx.graphics.getWidth() * 0.8f;
-        float boxHeight = 200;
-        float boxX = (Gdx.graphics.getWidth() - boxWidth) / 2;
-        float boxY = 50;
+        renderizadorFormas.setColor(0, 0, 0, 0.8f);
+        renderizadorFormas.rect(cajaX, cajaY, anchoCaja, altoCaja);
+        renderizadorFormas.end();
 
-        // Fondo semi-transparente negro
-        shapeRenderer.setColor(0, 0, 0, 0.8f);
-        shapeRenderer.rect(boxX, boxY, boxWidth, boxHeight);
+        renderizadorFormas.begin(ShapeRenderer.ShapeType.Line);
+        renderizadorFormas.setColor(Color.WHITE);
+        renderizadorFormas.rect(cajaX, cajaY, anchoCaja, altoCaja);
+        renderizadorFormas.end();
 
-        // Borde blanco
-        shapeRenderer.end();
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
-        shapeRenderer.setColor(Color.WHITE);
-        shapeRenderer.rect(boxX, boxY, boxWidth, boxHeight);
-        shapeRenderer.end();
-
-        // Dibujar texto
         batch.begin();
+        if (indiceMensajeActual < mensajes.length) {
+            String mensaje = mensajes[indiceMensajeActual];
+            float textoX = cajaX + 20;
+            float textoY = cajaY + altoCaja - 30;
+            float anchoMaximo = anchoCaja - 40;
 
-        if (currentMessageIndex < messages.length) {
-            String message = messages[currentMessageIndex];
+            dibujarTextoAjustado(mensaje, textoX, textoY, anchoMaximo);
 
-            // Dividir el texto en líneas para que quepa en la caja
-            float textX = boxX + 20;
-            float textY = boxY + boxHeight - 30;
-            float maxWidth = boxWidth - 40;
-
-            drawWrappedText(message, textX, textY, maxWidth);
-
-            // Indicador de continuar (parpadeante)
-            if (messageTimer % 1.0f < 0.5f) {
-                font.draw(batch, "▼", boxX + boxWidth - 40, boxY + 30);
+            if (temporizadorMensaje % 1.0f < 0.5f) {
+                fuente.draw(batch, "▼", cajaX + anchoCaja - 40, cajaY + 30);
             }
         }
-
         batch.end();
     }
 
-    /**
-     * Dibuja texto con ajuste de línea automático
-     * 
-     * @param text     Texto a dibujar
-     * @param x        Posición X inicial
-     * @param y        Posición Y inicial
-     * @param maxWidth Ancho máximo antes de hacer salto de línea
-     */
-    private void drawWrappedText(String text, float x, float y, float maxWidth) {
-        String[] words = text.split(" ");
-        StringBuilder line = new StringBuilder();
-        float currentY = y;
-        float lineHeight = font.getLineHeight();
+    // Dibuja texto con ajuste de línea automático.
+    private void dibujarTextoAjustado(String texto, float x, float y, float anchoMaximo) {
+        String[] palabras = texto.split(" ");
+        StringBuilder linea = new StringBuilder();
+        float yActual = y;
+        float altoLinea = fuente.getLineHeight();
 
-        for (String word : words) {
-            String testLine = line.length() == 0 ? word : line + " " + word;
-            float testWidth = font.draw(batch, testLine, 0, 0).width;
+        for (String palabra : palabras) {
+            String lineaPrueba = linea.length() == 0 ? palabra : linea + " " + palabra;
+            float anchoPrueba = fuente.draw(batch, lineaPrueba, 0, 0).width;
 
-            if (testWidth > maxWidth && line.length() > 0) {
-                font.draw(batch, line.toString(), x, currentY);
-                currentY -= lineHeight;
-                line = new StringBuilder(word);
+            if (anchoPrueba > anchoMaximo && linea.length() > 0) {
+                fuente.draw(batch, linea.toString(), x, yActual);
+                yActual -= altoLinea;
+                linea = new StringBuilder(palabra);
             } else {
-                line = new StringBuilder(testLine);
+                linea = new StringBuilder(lineaPrueba);
             }
         }
 
-        // Dibujar la última línea
-        if (line.length() > 0) {
-            font.draw(batch, line.toString(), x, currentY);
+        if (linea.length() > 0) {
+            fuente.draw(batch, linea.toString(), x, yActual);
         }
     }
 
     @Override
     public void resize(int width, int height) {
-        // No es necesario hacer nada aquí
     }
 
     @Override
     public void pause() {
-        // No es necesario hacer nada aquí
     }
 
     @Override
     public void resume() {
-        // No es necesario hacer nada aquí
     }
 
     @Override
     public void hide() {
-        // No es necesario hacer nada aquí
     }
 
     @Override
     public void dispose() {
-        if (batch != null) {
+        if (batch != null)
             batch.dispose();
-        }
-        if (background != null) {
-            background.dispose();
-        }
-        if (font != null) {
-            font.dispose();
-        }
-        if (shapeRenderer != null) {
-            shapeRenderer.dispose();
-        }
+        if (fondo != null)
+            fondo.dispose();
+        if (fuente != null)
+            fuente.dispose();
+        if (renderizadorFormas != null)
+            renderizadorFormas.dispose();
     }
 }

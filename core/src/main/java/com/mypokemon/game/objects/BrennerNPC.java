@@ -1,9 +1,6 @@
 package com.mypokemon.game.objects;
 
-/**
- * Clase que representa al NPC Dr. Martin Brenner.
- * Proporciona diálogos específicos relacionados con el hito final del juego.
- */
+// Representa al NPC Dr. Martin Brenner. Proporciona diálogos específicos del hito final.
 public class BrennerNPC extends NPC {
     private static final String[] DIALOG = {
             "Has llegado lejos Once, siempre supe que eras especial.",
@@ -15,15 +12,10 @@ public class BrennerNPC extends NPC {
             "No dejes que el mundo se desmorone por un descuido."
     };
 
-    /**
-     * Constructor para el Dr. Brenner.
-     * 
-     * @param startX Posición inicial en X.
-     * @param startY Posición inicial en Y.
-     */
+    // Constructor para el Dr. Brenner.
     public BrennerNPC(float startX, float startY) {
         super(startX, startY, 25, 35, "drBrennerSprite.png", "Dr. Martin Brenner", DIALOG);
-        setPortrait("drBrenner.png");
-        loadMusic("MusicaDrBrenner.mp3");
+        setRetrato("drBrenner.png");
+        cargarMusica("MusicaDrBrenner.mp3");
     }
 }

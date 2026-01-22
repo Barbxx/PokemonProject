@@ -27,7 +27,7 @@ public class Movimiento implements Serializable {
     public int ejecutar(Pokemon atacante, Pokemon defensor) {
         // Lógica especial para Recuperación (cura al atacante)
         if (this.nombre.equals("Recuperación")) {
-            atacante.recuperarSalud(Math.abs(this.poder));
+            atacante.curar(Math.abs(this.poder));
             // No hace daño al oponente
             return 0;
         }
@@ -41,7 +41,7 @@ public class Movimiento implements Serializable {
 
             // El daño es el poder del ataque + el modificador temporal del atacante
             // (Elixir)
-            int daño = this.poder + (int) atacante.getModificadorAtaqueTemporal();
+            int daño = this.poder + (int) atacante.obtenerModificadorAtaqueTemporal();
 
             // Asegurar que el daño sea al menos 1 si el ataque conecta
             if (daño < 1) {
@@ -59,8 +59,8 @@ public class Movimiento implements Serializable {
      * Verifica si el defensor es inmune al tipo de ataque
      */
     private boolean esInmune(String tipoAtaque, Pokemon defensor) {
-        if (defensor.getInmunidades() != null) {
-            for (String inmune : defensor.getInmunidades()) {
+        if (defensor.obtenerInmunidades() != null) {
+            for (String inmune : defensor.obtenerInmunidades()) {
                 if (tipoAtaque.equalsIgnoreCase(inmune)) {
                     return true; // Inmune
                 }

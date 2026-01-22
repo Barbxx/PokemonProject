@@ -1,36 +1,29 @@
 package com.mypokemon.game.inventario;
 
 import com.mypokemon.game.inventario.objetoscrafteados.*;
+import com.mypokemon.game.inventario.recursos.BayaAranja;
+import com.mypokemon.game.inventario.recursos.Guijarro;
+import com.mypokemon.game.inventario.recursos.PlantaMedicinal;
 
-/**
- * Factory para crear ítems del inventario.
- * Ahora crea instancias de clases concretas específicas en lugar de genéricas.
- */
+// Fábrica para crear objetos del inventario a partir de sus clases concretas.
 public class ObjectFactory {
 
-    /**
-     * Crea un recurso básico con su nombre correcto.
-     * Solo para recursos verdaderamente básicos (Planta, Guijarro).
-     * Otros ítems como Baya Aranja se crean mediante crearCrafteado().
-     */
+    // Crea un recurso básico (Planta, Guijarro, Baya Aranja).
     public static Recurso crearRecurso(String id, int cantidad) {
         switch (id.toLowerCase()) {
             case "planta":
-                return new Recurso(id, "Planta Medicinal", cantidad);
+                return new PlantaMedicinal(cantidad);
             case "guijarro":
-                return new Recurso(id, "Guijarro", cantidad);
+                return new Guijarro(cantidad);
             case "baya":
-                // Baya Aranja (ahora es Recurso con IUsable)
                 return new BayaAranja(cantidad);
             default:
                 return new Recurso(id, id, cantidad);
         }
     }
 
-    /**
-     * Crea un ítem crafteado con la clase concreta apropiada.
-     */
-    public static ObjetoCrafteado crearCrafteado(String id, int cantidad) {
+    // Crea un objeto crafteado con la clase concreta apropiada.
+    public static ItemCrafteado crearCrafteado(String id, int cantidad) {
         switch (id.toLowerCase()) {
             case "pokeball":
                 return new Pokeball(cantidad);
@@ -49,22 +42,24 @@ public class ObjectFactory {
             case "frijol":
                 return new FrijolMagico(cantidad);
             default:
-                // Fallback para ítems desconocidos - crear clase genérica temporal
                 return new ObjetoCrafteadoGenerico(id, id, "Descripción no disponible.", cantidad);
         }
     }
 
-    /**
-     * Clase interna para ítems crafteados genéricos (fallback).
-     * Solo se usa si se intenta crear un ítem no reconocido.
-     */
-    private static class ObjetoCrafteadoGenerico extends ObjetoCrafteado {
+    // Crea un objeto genérico por ID.
+    public static Item crearObjeto(String id, int cantidad) {
+        if (id.equals("planta") || id.equals("guijarro") || id.equals("baya"))
+            return crearRecurso(id, cantidad);
+        return crearCrafteado(id, cantidad);
+    }
+
+    private static class ObjetoCrafteadoGenerico extends ItemCrafteado {
         public ObjetoCrafteadoGenerico(String id, String nombre, String descripcion, int cantidad) {
             super(id, nombre, descripcion, cantidad);
         }
 
         @Override
-        public java.util.List<String> getOpciones() {
+        public java.util.List<String> obtenerOpciones() {
             return java.util.Arrays.asList("Tirar");
         }
     }

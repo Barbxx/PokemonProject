@@ -8,10 +8,7 @@ import com.mypokemon.game.inventario.ResultadoUso;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * Baya Aranja - Cura 10% HP.
- * Ahora dentro del paquete de recursos para mayor coherencia OO.
- */
+// Baya Aranja - Recurso comestible que restaura el 10% de HP del Pokémon.
 public class BayaAranja extends Recurso implements IUsable {
 
     public BayaAranja(int cantidad) {
@@ -20,24 +17,21 @@ public class BayaAranja extends Recurso implements IUsable {
 
     @Override
     public boolean puedeUsar(Pokemon pokemon) {
-        // Se puede usar siempre que no este FULL HP
-        return pokemon.getHpActual() < pokemon.getHpMaximo();
+        return pokemon.obtenerHpActual() < pokemon.obtenerHpMaximo();
     }
 
     @Override
     public ResultadoUso usar(Pokemon pokemon, Inventario inventario) {
-        if (pokemon.getHpActual() >= pokemon.getHpMaximo()) {
-            return ResultadoUso.fallo("El Pokemon ya esta al maximo de salud!");
-        }
-
-        float healAmount = pokemon.getHpMaximo() * 0.10f;
-        pokemon.recuperarSalud(healAmount);
+        if (!puedeUsar(pokemon))
+            return ResultadoUso.fallo("El Pokémon ya tiene la salud al máximo.");
+        float cantidadSanacion = pokemon.obtenerHpMaximo() * 0.10f;
+        pokemon.curar(cantidadSanacion);
         inventario.consumirItem(id, 1);
-        return ResultadoUso.exito("Curaste a " + pokemon.getNombre());
+        return ResultadoUso.exito("¡Curaste a " + pokemon.obtenerNombre() + "!");
     }
 
     @Override
-    public List<String> getOpciones() {
+    public List<String> obtenerOpciones() {
         return Arrays.asList("Curar", "Tirar");
     }
 }

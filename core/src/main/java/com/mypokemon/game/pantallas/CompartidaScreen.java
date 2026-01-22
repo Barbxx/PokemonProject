@@ -1,7 +1,6 @@
 package com.mypokemon.game.pantallas;
 
 import com.mypokemon.game.PokemonMain;
-
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -9,88 +8,68 @@ import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
-import com.mypokemon.game.client.ClienteRed;
+import com.badlogic.gdx.Input;
+import com.mypokemon.game.client.NetworkClient;
 
-/**
- * Pantalla que gestiona la conexión multijugador en red local.
- * Se encarga del auto-descubrimiento del servidor y la sincronización inicial.
- */
+// Pantalla que gestiona la conexión multijugador en red local.
 public class CompartidaScreen extends BaseScreen {
+    private String nombreJugador;
+    private String textoEstado = "Inicializando...";
+    private boolean estaConectando = false;
 
-    /** Nombre del jugador que se conecta. */
-    private String playerName;
-    /** Texto de estado mostrado en pantalla durante la conexión. */
-    private String statusText = "Inicializando...";
-    /** Indica si el cliente está intentando conectar actualmente. */
-    private boolean isConnecting = false;
-
-    // Camera and Viewport for fixed aspect ratio
-    private OrthographicCamera camera;
+    private OrthographicCamera camara;
     private Viewport viewport;
-    private static final float VIRTUAL_WIDTH = 1280f;
-    private static final float VIRTUAL_HEIGHT = 720f;
+    private static final float ANCHO_VIRTUAL = 1280f;
+    private static final float ALTO_VIRTUAL = 720f;
 
-    public CompartidaScreen(PokemonMain game, String playerName) {
-        super(game);
-        this.playerName = playerName;
-
-        // Setup camera and viewport
-        camera = new OrthographicCamera();
-        viewport = new FitViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, camera);
+    public CompartidaScreen(PokemonMain juego, String nombreJugador) {
+        super(juego);
+        this.nombreJugador = nombreJugador;
+        camara = new OrthographicCamera();
+        viewport = new FitViewport(ANCHO_VIRTUAL, ALTO_VIRTUAL, camara);
         viewport.apply();
-        camera.position.set(VIRTUAL_WIDTH / 2, VIRTUAL_HEIGHT / 2, 0);
-        camera.update();
+        camara.position.set(ANCHO_VIRTUAL / 2, ALTO_VIRTUAL / 2, 0);
+        camara.update();
     }
 
     @Override
     public void show() {
-        startDiscovery();
+        iniciarDescubrimiento();
     }
 
-    private void startDiscovery() {
-        statusText = "Buscando Servidor en RED LOCAL...";
-        isConnecting = true;
-
-        // Inicializar Client en Main si no existe
-        if (game.clienteRed == null) {
-            game.clienteRed = new ClienteRed();
-        }
+    private void iniciarDescubrimiento() {
+        textoEstado = "Buscando Servidor en RED LOCAL...";
+        estaConectando = true;
+        if (juego.clienteRed == null)
+            juego.clienteRed = new NetworkClient();
 
         new Thread(() -> {
-            // 1. Auto-descubrimiento (UDP Beacon)
-            String serverIP = game.clienteRed.discoverServerIP();
-
-            if (serverIP != null) {
-                Gdx.app.postRunnable(() -> statusText = "Servidor encontrado en: " + serverIP + "\nConectando...");
-
+            String ip = juego.clienteRed.descubrirIPServidor();
+            if (ip != null) {
+                Gdx.app.postRunnable(() -> textoEstado = "Servidor encontrado en: " + ip + "\nConectando...");
                 try {
-                    Thread.sleep(500); // Pequeña pausa visual
+                    Thread.sleep(500);
                 } catch (InterruptedException e) {
                 }
-
-                // 2. Configurar Listener antes de conectar para evitar perder mensajes de
-                // inicio rápidos
-                game.clienteRed.setListener(msg -> {
+                juego.clienteRed.establecerEscucha(msg -> {
                     if (msg.startsWith("MATCH_START")) {
                         Gdx.app.postRunnable(() -> {
-                            game.setScreen(new IntroScreen(game, "SharedGame"));
+                            juego.setScreen(new IntroScreen(juego, "SharedGame"));
                             dispose();
                         });
                     }
                 });
-
-                // 3. Conexión TCP
-                boolean connected = game.clienteRed.connect(serverIP, playerName);
-
-                if (connected) {
-                    Gdx.app.postRunnable(() -> statusText = "Conectado. Esperando Jugador 2...");
-                } else {
-                    Gdx.app.postRunnable(() -> statusText = "Error al conectar con TCP " + serverIP);
-                    isConnecting = false;
+                boolean ok = juego.clienteRed.conectar(ip, nombreJugador);
+                if (ok)
+                    Gdx.app.postRunnable(() -> textoEstado = "Conectado. Esperando Jugador 2...");
+                else {
+                    Gdx.app.postRunnable(() -> textoEstado = "Error al conectar con " + ip);
+                    estaConectando = false;
                 }
             } else {
-                Gdx.app.postRunnable(() -> statusText = "No se encontró servidor.\nEjecuta el 'GameServer' en una PC.");
-                isConnecting = false;
+                Gdx.app.postRunnable(
+                        () -> textoEstado = "No se encontró servidor.\nEjecuta el 'GameServer' en una PC.");
+                estaConectando = false;
             }
         }).start();
     }
@@ -98,52 +77,33 @@ public class CompartidaScreen extends BaseScreen {
     @Override
     public void render(float delta) {
         ScreenUtils.clear(0, 0, 0, 1);
-
-        float w = VIRTUAL_WIDTH;
-        float h = VIRTUAL_HEIGHT;
-
-        camera.update();
-        game.batch.setProjectionMatrix(camera.combined);
-
-        game.batch.begin();
-
-        game.font.setColor(Color.WHITE);
-        game.font.getData().setScale(2.5f); // Aumentado de 1.5f a 2.5f
-        game.font.draw(game.batch, "MODO COMPARTIDO", 0, h - 100, w, Align.center, false);
-
-        game.font.getData().setScale(2.0f); // Aumentado de 1.2f a 2.0f
-        if (isConnecting) {
-            game.font.setColor(Color.YELLOW);
-            // Efecto de parpadeo simple
-            if (System.currentTimeMillis() % 1000 < 500) {
-                game.font.draw(game.batch, statusText, 0, h / 2, w, Align.center, false);
-            } else {
-                game.font.draw(game.batch, statusText.replace("...", "   "), 0, h / 2, w, Align.center, false);
-            }
+        camara.update();
+        juego.batch.setProjectionMatrix(camara.combined);
+        juego.batch.begin();
+        juego.fuente.setColor(Color.WHITE);
+        juego.fuente.getData().setScale(2.5f);
+        juego.fuente.draw(juego.batch, "MODO COMPARTIDO", 0, ALTO_VIRTUAL - 100, ANCHO_VIRTUAL, Align.center, false);
+        juego.fuente.getData().setScale(2.0f);
+        if (estaConectando) {
+            juego.fuente.setColor(Color.YELLOW);
+            if (System.currentTimeMillis() % 1000 < 500)
+                juego.fuente.draw(juego.batch, textoEstado, 0, ALTO_VIRTUAL / 2, ANCHO_VIRTUAL, Align.center, false);
         } else {
-            game.font.setColor(Color.RED);
-            game.font.draw(game.batch, statusText, 0, h / 2, w, Align.center, false);
-            game.font.setColor(Color.WHITE);
-            game.font.getData().setScale(1.5f);
-            game.font.draw(game.batch, "Presiona ESC para volver", 0, h / 2 - 80, w, Align.center, false);
-        }
-
-        game.batch.end();
-
-        if (!isConnecting && Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.ESCAPE)) {
-            // Cancelar / Salir
-            if (game.clienteRed != null) {
-                game.clienteRed.stop();
-                game.clienteRed = null;
+            juego.fuente.setColor(Color.RED);
+            juego.fuente.draw(juego.batch, textoEstado, 0, ALTO_VIRTUAL / 2, ANCHO_VIRTUAL, Align.center, false);
+            juego.fuente.getData().setScale(1.2f);
+            juego.fuente.setColor(Color.WHITE);
+            juego.fuente.draw(juego.batch, "PRESIONA ESC PARA REGRESAR", 0, 100, ANCHO_VIRTUAL, Align.center, false);
+            if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
+                juego.setScreen(new EleccionJuegoScreen(juego));
+                dispose();
             }
-            game.setScreen(new EleccionJuegoScreen(game));
-            dispose();
         }
+        juego.batch.end();
     }
 
     @Override
-    public void resize(int width, int height) {
-        viewport.update(width, height, true);
-        camera.position.set(VIRTUAL_WIDTH / 2, VIRTUAL_HEIGHT / 2, 0);
+    public void resize(int w, int h) {
+        viewport.update(w, h, true);
     }
 }

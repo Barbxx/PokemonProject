@@ -2,87 +2,53 @@ package com.mypokemon.game.pantallas;
 
 import com.mypokemon.game.PokemonMain;
 import com.mypokemon.game.utils.ITextureManager;
-
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Texture;
-
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Clase base abstracta para pantallas con gestión automática de texturas.
- * Todas las pantallas deben extender esta clase para beneficiarse de la gestión
- * de recursos y métodos auxiliares.
- */
+// Clase base abstracta para todas las pantallas del juego. Gestiona la carga y liberación de recursos.
 public abstract class BaseScreen implements Screen, ITextureManager {
+    protected final PokemonMain juego;
+    private final List<Texture> texturas;
 
-    protected final PokemonMain game;
-    private final List<Texture> textures;
-
-    public BaseScreen(PokemonMain game) {
-        this.game = game;
-        this.textures = new ArrayList<>();
+    public BaseScreen(PokemonMain juego) {
+        this.juego = juego;
+        this.texturas = new ArrayList<>();
     }
 
-    /**
-     * Carga una textura y la registra para su liberación automática.
-     * 
-     * @param path Ruta al archivo de textura.
-     * @return La textura cargada, o null si la carga falla.
-     */
     @Override
-    public Texture loadTexture(String path) {
+    public Texture cargarTextura(String ruta) {
         try {
-            Texture texture = new Texture(path);
-            addTexture(texture);
-            return texture;
+            Texture t = new Texture(ruta);
+            agregarTextura(t);
+            return t;
         } catch (Exception e) {
-            Gdx.app.error(this.getClass().getSimpleName(), "Could not load texture: " + path, e);
+            Gdx.app.error(this.getClass().getSimpleName(), "Error al cargar textura: " + ruta, e);
             return null;
         }
     }
 
-    /**
-     * Registra una textura para su liberación automática.
-     * 
-     * @param texture Textura a registrar.
-     */
     @Override
-    public void addTexture(Texture texture) {
-        if (texture != null && !textures.contains(texture)) {
-            textures.add(texture);
-        }
+    public void agregarTextura(Texture t) {
+        if (t != null && !texturas.contains(t))
+            texturas.add(t);
     }
 
-    /**
-     * Libera todas las texturas registradas.
-     */
     @Override
-    public void disposeTextures() {
-        for (Texture texture : textures) {
-            if (texture != null) {
-                texture.dispose();
-            }
-        }
-        textures.clear();
+    public void liberarTexturas() {
+        for (Texture t : texturas)
+            if (t != null)
+                t.dispose();
+        texturas.clear();
     }
 
-    /**
-     * Gets the current screen width.
-     * 
-     * @return Screen width in pixels
-     */
-    protected float getScreenWidth() {
+    protected float obtenerAnchoPantalla() {
         return Gdx.graphics.getWidth();
     }
 
-    /**
-     * Gets the current screen height.
-     * 
-     * @return Screen height in pixels
-     */
-    protected float getScreenHeight() {
+    protected float obtenerAltoPantalla() {
         return Gdx.graphics.getHeight();
     }
 
@@ -91,31 +57,26 @@ public abstract class BaseScreen implements Screen, ITextureManager {
 
     @Override
     public void show() {
-        // Optional override
     }
 
     @Override
-    public void resize(int width, int height) {
-        // Optional override
+    public void resize(int ancho, int alto) {
     }
 
     @Override
     public void pause() {
-        // Optional override
     }
 
     @Override
     public void resume() {
-        // Optional override
     }
 
     @Override
     public void hide() {
-        // Optional override
     }
 
     @Override
     public void dispose() {
-        disposeTextures();
+        liberarTexturas();
     }
 }

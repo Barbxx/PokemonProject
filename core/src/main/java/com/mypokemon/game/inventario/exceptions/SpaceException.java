@@ -1,13 +1,8 @@
 package com.mypokemon.game.inventario.exceptions;
 
-/**
- * Excepción lanzada cuando el inventario está lleno y no hay espacio
- * disponible.
- * Checked exception - debe ser manejada explícitamente.
- */
+// Excepción que se lanza cuando no hay espacio en la mochila.
 public class SpaceException extends Exception {
-
-    public SpaceException(String m) {
-        super(m);
+    public SpaceException(String mensaje) {
+        super(mensaje);
     }
 }
