@@ -196,16 +196,6 @@ public class GameScreen extends BaseScreen {
     private RegionTrigger currentActiveRegion = null; // Track which one is currently "on" to avoid re-triggering
                                                       // constantly
 
-    /**
-     * Constructor de la pantalla de juego principal.
-     * 
-     * @param game        Instancia principal del juego.
-     * @param texturePath Ruta de la textura (sprite sheet) del jugador.
-     * @param cols        Número de columnas en el sprite sheet.
-     * @param rows        Número de filas en el sprite sheet.
-     * @param playerName  Nombre del jugador.
-     * @param gameName    Nombre de la partida (nombre del archivo o identificador).
-     */
     public GameScreen(final PokemonMain game, String texturePath, int cols, int rows, String playerName,
             String gameName) {
         super(game);
@@ -550,11 +540,6 @@ public class GameScreen extends BaseScreen {
     private boolean fadingOut = false;
     private BaseScreen nextScreen; // Screen to switch to after fade
 
-    /**
-     * Se llama cuando esta pantalla se convierte en la pantalla actual.
-     * Inicializa el manejo de entrada, reinicia las transiciones de fade y
-     * establece la conexión de red.
-     */
     @Override
     public void show() {
         inEncounter = false;
@@ -675,12 +660,6 @@ public class GameScreen extends BaseScreen {
 
     // ...
 
-    /**
-     * Ciclo principal de renderizado y lógica del juego.
-     * Gestiona actualizaciones, input, renderizado del mapa, jugadores y UI.
-     * 
-     * @param delta Tiempo transcurrido desde el último frame.
-     */
     @Override
     public void render(float delta) {
         // --- 1. UPDATE AND LOGIC ---
@@ -1384,20 +1363,11 @@ public class GameScreen extends BaseScreen {
         return defaultValue;
     }
 
-    /**
-     * Actualiza el viewport al redimensionar la ventana de juego.
-     * 
-     * @param width  Nuevo ancho de la ventana.
-     * @param height Nuevo alto de la ventana.
-     */
     @Override
     public void resize(int width, int height) {
         viewport.update(width, height);
     }
 
-    /**
-     * Libera los recursos gráficos, de audio y gestores de juego.
-     */
     @Override
     public void dispose() {
         if (playerSheet != null)

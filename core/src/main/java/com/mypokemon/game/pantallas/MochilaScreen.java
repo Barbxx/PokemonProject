@@ -133,13 +133,6 @@ public class MochilaScreen extends BaseScreen {
     private String feedbackMessage = "";
     private float feedbackTimer = 0;
 
-    /**
-     * Constructor de la pantalla de mochila.
-     * 
-     * @param game         Instancia principal del juego.
-     * @param returnScreen Pantalla a la que regresar.
-     * @param explorador   Datos del explorador (inventario).
-     */
     public MochilaScreen(PokemonMain game, Screen returnScreen, Explorador explorador) {
         super(game);
         this.returnScreen = returnScreen;
@@ -266,21 +259,11 @@ public class MochilaScreen extends BaseScreen {
         updateVisibleItems();
     }
 
-    /**
-     * Se llama cuando esta pantalla se convierte en la pantalla actual.
-     * Desactiva el InputProcessor actual para evitar interferencias.
-     */
     @Override
     public void show() {
         Gdx.input.setInputProcessor(null); // Clear input processor to avoid previous screen interference
     }
 
-    /**
-     * Renderiza el contenido de la mochila, incluyendo pestañas, cuadrícula y
-     * menús.
-     * 
-     * @param delta Tiempo transcurrido desde el último frame.
-     */
     @Override
     public void render(float delta) {
         // Feedback Timer
@@ -969,12 +952,6 @@ public class MochilaScreen extends BaseScreen {
         // ignored there
     }
 
-    /**
-     * Actualiza el viewport al redimensionar la ventana.
-     * 
-     * @param width  Nuevo ancho.
-     * @param height Nuevo alto.
-     */
     @Override
     public void resize(int width, int height) {
         viewport.update(width, height, true);
@@ -1055,10 +1032,6 @@ public class MochilaScreen extends BaseScreen {
 
     }
 
-    /**
-     * Libera las texturas y recursos no administrados automáticamente por
-     * BaseScreen.
-     */
     @Override
     public void dispose() {
         Gdx.app.log("MochilaScreen", "Disposing textures...");

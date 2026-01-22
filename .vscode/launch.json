@@ -6,13 +6,6 @@
     "configurations": [
         {
             "type": "java",
-            "name": "ServidorJuego",
-            "request": "launch",
-            "mainClass": "com.mypokemon.game.servidor.ServidorJuego",
-            "projectName": "core"
-        },
-        {
-            "type": "java",
             "name": "GameServer",
             "request": "launch",
             "mainClass": "com.mypokemon.game.servidor.GameServer",

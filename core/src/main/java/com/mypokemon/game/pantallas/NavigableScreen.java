@@ -7,9 +7,9 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 
 /**
- * Clase base abstracta para pantallas que soportan navegación hacia atrás.
- * Proporciona manejo automático de la tecla ESC para regresar a la pantalla
- * anterior.
+ * Abstract base class for screens that support navigation back to a previous
+ * screen.
+ * Provides automatic ESC key handling to return to the previous screen.
  */
 public abstract class NavigableScreen extends BaseScreen implements INavigable {
 
@@ -21,8 +21,8 @@ public abstract class NavigableScreen extends BaseScreen implements INavigable {
     }
 
     /**
-     * Navega hacia atrás a la pantalla de retorno.
-     * Libera automáticamente la pantalla actual.
+     * Navigates back to the return screen.
+     * Automatically disposes this screen.
      */
     @Override
     public void navigateBack() {
@@ -35,10 +35,10 @@ public abstract class NavigableScreen extends BaseScreen implements INavigable {
     }
 
     /**
-     * Navega a una nueva pantalla.
-     * Libera automáticamente la pantalla actual.
+     * Navigates to a new screen.
+     * Automatically disposes this screen.
      * 
-     * @param screen La pantalla a la que navegar.
+     * @param screen The screen to navigate to
      */
     @Override
     public void navigateTo(Screen screen) {
@@ -47,9 +47,9 @@ public abstract class NavigableScreen extends BaseScreen implements INavigable {
     }
 
     /**
-     * Obtiene la pantalla de retorno.
+     * Gets the screen to return to when navigating back.
      * 
-     * @return La pantalla a la que regresar.
+     * @return The return screen, or null if none is set
      */
     @Override
     public Screen getReturnScreen() {
@@ -57,10 +57,10 @@ public abstract class NavigableScreen extends BaseScreen implements INavigable {
     }
 
     /**
-     * Maneja la pulsación de la tecla ESC para navegar hacia atrás.
-     * Las subclases pueden sobrescribir esto para personalizar el comportamiento.
+     * Handles the ESC key press to navigate back.
+     * Subclasses can override this to customize escape behavior.
      * 
-     * @return true si se manejó ESC, false en caso contrario.
+     * @return true if ESC was handled, false otherwise
      */
     protected boolean handleEscapeKey() {
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {

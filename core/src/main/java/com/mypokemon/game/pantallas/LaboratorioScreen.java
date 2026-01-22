@@ -16,29 +16,25 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.GL20;
 
-/**
- * Pantalla que representa el Laboratorio del Profesor, donde se elige el
- * Pokémon inicial.
- */
 public class LaboratorioScreen extends BaseScreen {
     private GameScreen gameScreen;
     private com.badlogic.gdx.graphics.Texture backgroundTexture;
-    private com.badlogic.gdx.graphics.Texture feidSprite; // Sprite para Feid
-    // Sprites de los Iniciales
+    private com.badlogic.gdx.graphics.Texture feidSprite; // Sprite for Feid
+    // Starter Sprites
     private com.badlogic.gdx.graphics.Texture rowletTexture, cyndaquilTexture, oshawottTexture;
 
-    // Recursos de Diálogo
+    // Dialog Resources
     private com.badlogic.gdx.graphics.Texture dialogIconTexture;
     private com.badlogic.gdx.graphics.Texture uiWhitePixel;
     private boolean showDialog = false;
     private int currentDialogPage = 0;
-    private String[] currentDialogText; // Cambiado a array dinámico
+    private String[] currentDialogText; // Changed to dynamic array
 
-    // Texturas de Retrato
+    // Portrait Textures
     private com.badlogic.gdx.graphics.Texture ferxxoRowlet, ferxxoCyndaquil, ferxxoOshawott;
-    private com.badlogic.gdx.graphics.Texture ferxxoCientifico; // Retrato por defecto
+    private com.badlogic.gdx.graphics.Texture ferxxoCientifico; // Default portrait
 
-    // Texto de Introducción por Defecto
+    // Default Introduction Text
     private final String[] INTRO_TEXT = {
             "¡Hágale, mor! Llegó a la parte más firme. Aquí tengo estos tres candidatos que están listos para acompañarte en tu aventura por todo OneFerxxo.",
             "Están guardaditos en las Poké Balls pa' que no se alboroten.",
@@ -62,50 +58,43 @@ public class LaboratorioScreen extends BaseScreen {
             "Entonces, ¿cómo es la vuelta? ¿Se va a montar con el tipo Agua Oshawott?"
     };
 
-    // Textos de Éxito
+    // Success Texts
     private final String[] ROWLET_SUCCESS = { "¡Recibiste el Pokemón Rowlet de manos del Profesor Ferxxo!" };
     private final String[] CYNDAQUIL_SUCCESS = { "¡Recibiste el Pokemón Cyndaquil de manos del Profesor Ferxxo!" };
     private final String[] OSHAWOTT_SUCCESS = { "¡Recibiste el Pokemón Oshawott de manos del Profesor Ferxxo!" };
 
-    // Estado del Fade (Desvanecimiento)
+    // Fade State
     private float fadeAlpha = 1f;
     private boolean fadingIn = true;
     private boolean fadingOut = false;
 
-    // Estado de Selección
+    // Selection State
     private boolean selectionActive = false;
-    private int selectionIndex = 0; // 0 = SÍ, 1 = NO
-    private boolean isTransitioning = false; // Para saber si estamos mostrando el mensaje de éxito
+    private int selectionIndex = 0; // 0 = YES, 1 = NO
+    private boolean isTransitioning = false; // To know if we are showing success message
 
-    // Renderizado
+    // Rendering
     private OrthographicCamera camera;
     private Viewport viewport;
 
-    // Estado del Jugador
-    private float posX = 330; // Centro horizontal
-    private float posY = 60; // Parte inferior vertical
+    // Player State
+    private float posX = 330; // Center horizontal
+    private float posY = 60; // Bottom vertical
     private TextureRegion currentFrame;
     private float playerWidth = 40f;
     private float playerHeight = 32f;
 
-    // Límites de Feid (Bounds)
+    // Feid Bounds
     private float feidX = 350;
     private float feidY = 120;
     private float feidW = 25;
     private float feidH = 35;
 
-    // Límites de los Iniciales (Posicionados a la derecha de Feid)
+    // Starter Bounds (Positioned to the right of Feid)
     private float rowletX = 415, rowletY = 95, starterW = 30, starterH = 30;
     private float cyndaquilX = 445, cyndaquilY = 95;
     private float oshawottX = 480, oshawottY = 95;
 
-    /**
-     * Constructor de la pantalla del Laboratorio.
-     * 
-     * @param game       Instancia principal del juego.
-     * @param gameScreen Referencia a la pantalla de juego principal (para acceder a
-     *                   recursos/datos).
-     */
     public LaboratorioScreen(PokemonMain game, GameScreen gameScreen) {
         super(game);
         this.gameScreen = gameScreen;
@@ -124,9 +113,6 @@ public class LaboratorioScreen extends BaseScreen {
         currentDialogText = INTRO_TEXT; // Default
     }
 
-    /**
-     * Se llama cuando esta pantalla se muestra. Carga los recursos necesarios.
-     */
     @Override
     public void show() {
         try {
@@ -173,11 +159,6 @@ public class LaboratorioScreen extends BaseScreen {
         }
     }
 
-    /**
-     * Renderiza la pantalla del laboratorio.
-     * 
-     * @param delta Tiempo transcurrido desde el último frame.
-     */
     @Override
     public void render(float delta) {
         ScreenUtils.clear(0, 0, 0, 1); // Black background
@@ -405,9 +386,6 @@ public class LaboratorioScreen extends BaseScreen {
         }
     }
 
-    /**
-     * Dibuja la caja de diálogo y las opciones de selección.
-     */
     private void drawDialog() {
         float screenW = 800;
         float dialogHeight = 110;
@@ -508,20 +486,11 @@ public class LaboratorioScreen extends BaseScreen {
         }
     }
 
-    /**
-     * Actualiza el viewport al redimensionar.
-     * 
-     * @param width  Nuevo ancho.
-     * @param height Nuevo alto.
-     */
     @Override
     public void resize(int width, int height) {
         viewport.update(width, height);
     }
 
-    /**
-     * Libera las texturas cargadas.
-     */
     @Override
     public void dispose() {
         if (backgroundTexture != null)

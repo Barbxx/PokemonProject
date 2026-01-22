@@ -13,9 +13,6 @@ import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
-/**
- * Pantalla para elegir el tipo de juego (Solitario o Compartida).
- */
 public class EleccionJuegoScreen extends BaseScreen {
 
     Texture background;
@@ -41,11 +38,6 @@ public class EleccionJuegoScreen extends BaseScreen {
     private static final float VIRTUAL_WIDTH = 1280f;
     private static final float VIRTUAL_HEIGHT = 720f;
 
-    /**
-     * Constructor de la pantalla de elección de juego.
-     * 
-     * @param game Instancia principal del juego.
-     */
     public EleccionJuegoScreen(PokemonMain game) {
         super(game);
         shapeRenderer = new com.badlogic.gdx.graphics.glutils.ShapeRenderer();
@@ -110,11 +102,6 @@ public class EleccionJuegoScreen extends BaseScreen {
         camera.update();
     }
 
-    /**
-     * Renderiza las opciones de juego y maneja la entrada del usuario.
-     * 
-     * @param delta Tiempo transcurrido desde el último frame.
-     */
     @Override
     public void render(float delta) {
         // Clear Screen
@@ -265,9 +252,6 @@ public class EleccionJuegoScreen extends BaseScreen {
         }
     }
 
-    /**
-     * Inicia una partida en solitario verificando que el nombre no exista.
-     */
     private void startSoloGame() {
         if (inputName.trim().isEmpty()) {
             statusMessage = "¡El nombre no puede estar vacío!";
@@ -288,9 +272,6 @@ public class EleccionJuegoScreen extends BaseScreen {
         dispose();
     }
 
-    /**
-     * Inicia el flujo para una partida compartida.
-     */
     private void startCompartidaGame() {
         // No input validation needed as we don't ask for generic password/name anymore
         // Pass a generic temporary ID, the real name is asked in IntroScreen
@@ -298,21 +279,12 @@ public class EleccionJuegoScreen extends BaseScreen {
         dispose();
     }
 
-    /**
-     * Actualiza el viewport al redimensionar la ventana.
-     * 
-     * @param width  Nuevo ancho.
-     * @param height Nuevo alto.
-     */
     @Override
     public void resize(int width, int height) {
         viewport.update(width, height, true);
         camera.position.set(VIRTUAL_WIDTH / 2, VIRTUAL_HEIGHT / 2, 0);
     }
 
-    /**
-     * Libera los recursos gráficos.
-     */
     @Override
     public void dispose() {
         if (background != null)

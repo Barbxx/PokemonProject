@@ -12,10 +12,11 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 /**
- * Clase base abstracta para pantallas estáticas (que solo muestran una imagen).
- * Proporciona renderizado automático de fondo, cámara ortográfica con viewport
- * fijo
- * y manejo de la tecla ESC para regresar.
+ * Abstract base class for static display screens (screens that just show an
+ * image).
+ * Provides automatic background rendering, orthographic camera with fixed
+ * viewport,
+ * and ESC key handling to return.
  */
 public abstract class StaticDisplayScreen extends BaseScreen implements INavigable {
 
@@ -61,7 +62,7 @@ public abstract class StaticDisplayScreen extends BaseScreen implements INavigab
     }
 
     /**
-     * Renderiza la imagen de fondo para llenar la pantalla virtual.
+     * Renders the background image to fill the virtual screen.
      */
     protected void renderBackground() {
         if (background != null) {
@@ -70,9 +71,9 @@ public abstract class StaticDisplayScreen extends BaseScreen implements INavigab
     }
 
     /**
-     * Sobrescribe esto para renderizar contenido adicional sobre el fondo.
+     * Override this to render additional content on top of the background.
      * 
-     * @param delta Tiempo transcurrido desde el último frame.
+     * @param delta Time since last frame
      */
     protected void renderContent(float delta) {
         // Override in subclasses if needed

@@ -19,11 +19,6 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
-/**
- * Pantalla de introducción del juego.
- * Gestiona la selección de género, el nombre del jugador y la animación
- * inicial.
- */
 public class IntroScreen extends BaseScreen {
 
     // States
@@ -87,12 +82,6 @@ public class IntroScreen extends BaseScreen {
     private int caretPosition = 0;
     private boolean isNameConfirmed = true; // For SÍ/NO selection
 
-    /**
-     * Constructor de la pantalla de introducción.
-     * 
-     * @param game     Instancia principal del juego.
-     * @param gameName Nombre de la partida.
-     */
     public IntroScreen(final PokemonMain game, String gameName) {
         super(game);
         this.gameName = gameName;
@@ -275,9 +264,6 @@ public class IntroScreen extends BaseScreen {
         });
     }
 
-    /**
-     * Avanza al siguiente estado de la introducción.
-     */
     private void advanceState() {
         switch (currentState) {
             case INTRO_1:
@@ -347,9 +333,6 @@ public class IntroScreen extends BaseScreen {
 
     }
 
-    /**
-     * Retrocede al estado anterior (navegación básica).
-     */
     private void goBackState() {
         switch (currentState) {
             case INTRO_2:
@@ -380,235 +363,223 @@ public class IntroScreen extends BaseScreen {
         }
     }
 
-    /**
-     * Renderiza la pantalla y maneja la lógica visual frame a frame.
-     * 
-     * @param delta Tiempo transcurrido desde el último frame.
-     */
     @Override
     public void render(float delta) {
         stateTime += delta;
         jigglyStateTime += delta;
-        // ... (render logic would be here, but using tool for doc only, so keeping existing code by using replace_file with smaller scope if needed, or ensuring full replacement. Since scope is large, I'm just adding javadoc before methods)
 
-        // **Wait**, I cannot replace 3 methods in one chunk if they are far apart or large.
-        // It's safer to target the method signature.
-    }
+        Gdx.gl.glClearColor(1f, 1f, 1f, 1); // White background
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-    // RETRACTING complex multi-method replacement. Will do one by one.
+        Gdx.gl.glEnable(GL20.GL_BLEND);
+        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
 
-    stateTime+=delta;jigglyStateTime+=delta;
+        camera.update();
+        game.batch.setProjectionMatrix(camera.combined);
 
-    Gdx.gl.glClearColor(1f,1f,1f,1); // White background
-    Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+        float sysW = viewport.getWorldWidth();
+        float sysH = viewport.getWorldHeight();
 
-    Gdx.gl.glEnable(GL20.GL_BLEND);Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA,GL20.GL_ONE_MINUS_SRC_ALPHA);
+        // Calculate Viewport
+        float vpX = sysW * VP_X_PCT;
+        float vpY = sysH * VP_Y_PCT;
+        float vpW = sysW * VP_W_PCT;
+        float vpH = sysH * VP_H_PCT;
 
-    camera.update();game.batch.setProjectionMatrix(camera.combined);
+        game.batch.begin();
 
-    float sysW = viewport.getWorldWidth();
-    float sysH = viewport.getWorldHeight();
-
-    // Calculate Viewport
-    float vpX = sysW * VP_X_PCT;
-    float vpY = sysH * VP_Y_PCT;
-    float vpW = sysW * VP_W_PCT;
-    float vpH = sysH * VP_H_PCT;
-
-    game.batch.begin();
-
-    // DRAW FRAME (FULL SCREEN)
-    if(frameTexture!=null)
-    {
-        game.batch.draw(frameTexture, 0, 0, sysW, sysH);
-    }
-
-    // Draw Content within Viewport
-    if(currentState!=State.PRE_CLOSING&&currentState!=State.FADE_OUT)
-    {
-        Texture imgToDraw = null;
-        if (currentState == State.INTRO_1 || currentState == State.INTRO_2 || currentState == State.INTRO_3) {
-            // Use ferxxo.png instead of feid.png for the scientist intro
-            imgToDraw = ferxxoImage;
-        } else if (currentState == State.SELECT_GENDER || currentState == State.ASK_NAME
-                || currentState == State.ENTER_NAME || currentState == State.CONFIRM_NAME) {
-            imgToDraw = isMale ? protaMasc : protaFem;
+        // DRAW FRAME (FULL SCREEN)
+        if (frameTexture != null) {
+            game.batch.draw(frameTexture, 0, 0, sysW, sysH);
         }
 
-        if (imgToDraw != null) {
-            float availableH = vpH - TEXT_BOX_HEIGHT - 20; // Space above Text Box
-            float imgScale = 0;
-
-            // Scale to fit available height properly
-            if (imgToDraw.getHeight() > availableH) {
-                imgScale = availableH / imgToDraw.getHeight();
-            } else {
-                imgScale = 1.0f;
-                // Scale Up Ferxxo (Scientist) slightly more if space allows
-                if (imgToDraw == ferxxoImage) {
-                    if (imgToDraw.getHeight() * 1.8f <= availableH)
-                        imgScale = 1.8f; // Increased from 1.5f
-                    else
-                        imgScale = availableH / imgToDraw.getHeight(); // fallback
-                } else {
-                    if (imgToDraw.getHeight() * 1.5f <= availableH)
-                        imgScale = 1.5f;
-                }
+        // Draw Content within Viewport
+        if (currentState != State.PRE_CLOSING && currentState != State.FADE_OUT) {
+            Texture imgToDraw = null;
+            if (currentState == State.INTRO_1 || currentState == State.INTRO_2 || currentState == State.INTRO_3) {
+                // Use ferxxo.png instead of feid.png for the scientist intro
+                imgToDraw = ferxxoImage;
+            } else if (currentState == State.SELECT_GENDER || currentState == State.ASK_NAME
+                    || currentState == State.ENTER_NAME || currentState == State.CONFIRM_NAME) {
+                imgToDraw = isMale ? protaMasc : protaFem;
             }
 
-            float imgW = imgToDraw.getWidth() * imgScale;
-            float imgH = imgToDraw.getHeight() * imgScale;
+            if (imgToDraw != null) {
+                float availableH = vpH - TEXT_BOX_HEIGHT - 20; // Space above Text Box
+                float imgScale = 0;
 
-            float imgX = vpX + (vpW - imgW) / 2;
-            float imgY = vpY + TEXT_BOX_HEIGHT + 10; // Sit on top of text box area
-
-            game.batch.draw(imgToDraw, imgX, imgY, imgW, imgH);
-
-            // JIGGLYPUFF Logic (Intro 2 & 3)
-            if ((currentState == State.INTRO_2 || currentState == State.INTRO_3) && jigglyPoses != null) {
-                TextureRegion regionToDraw = null;
-                float drawW = 60f; // Default Jigglypuff size
-                float drawXOffset = 0.02f;
-                float drawYOffset = 0.62f;
-
-                // PHASE 1: Pokeball (0.0 - 0.8s)
-                if (jigglyStateTime < 0.8f) {
-                    regionToDraw = new TextureRegion(pokeballImage);
-                    drawW = 45f;
-                    // Center Pokeball on hand
-                    drawXOffset = 0f; // Will calculate manually
-                }
-                // PHASE 2: Poof (0.8s - 1.2s)
-                else if (jigglyStateTime < 1.2f) {
-                    regionToDraw = poofAnim.getKeyFrame(jigglyStateTime - 0.8f, false);
-                    drawW = 50f;
-                }
-                // PHASE 3: Jigglypuff (1.2s+)
-                else {
-                    regionToDraw = jigglyPoses.getKeyFrame(jigglyStateTime - 1.2f, true);
+                // Scale to fit available height properly
+                if (imgToDraw.getHeight() > availableH) {
+                    imgScale = availableH / imgToDraw.getHeight();
+                } else {
+                    imgScale = 1.0f;
+                    // Scale Up Ferxxo (Scientist) slightly more if space allows
+                    if (imgToDraw == ferxxoImage) {
+                        if (imgToDraw.getHeight() * 1.8f <= availableH)
+                            imgScale = 1.8f; // Increased from 1.5f
+                        else
+                            imgScale = availableH / imgToDraw.getHeight(); // fallback
+                    } else {
+                        if (imgToDraw.getHeight() * 1.5f <= availableH)
+                            imgScale = 1.5f;
+                    }
                 }
 
-                if (regionToDraw != null) {
-                    float ratio = (float) regionToDraw.getRegionHeight() / regionToDraw.getRegionWidth();
-                    float jH = drawW * ratio;
+                float imgW = imgToDraw.getWidth() * imgScale;
+                float imgH = imgToDraw.getHeight() * imgScale;
 
-                    float jX = imgX + imgW * drawXOffset;
-                    float jY = imgY + imgH * drawYOffset;
+                float imgX = vpX + (vpW - imgW) / 2;
+                float imgY = vpY + TEXT_BOX_HEIGHT + 10; // Sit on top of text box area
 
-                    // Custom Centering for Pokeball & Poof
-                    if (jigglyStateTime < 1.2f) { // Both phases
-                        jX = imgX + imgW * 0.02f + (60 - drawW) / 2; // Center relative to Jigglypuff slot
-                        if (jigglyStateTime < 0.8f) {
-                            jY -= 8; // Pokeball specific offset
-                        }
+                game.batch.draw(imgToDraw, imgX, imgY, imgW, imgH);
+
+                // JIGGLYPUFF Logic (Intro 2 & 3)
+                if ((currentState == State.INTRO_2 || currentState == State.INTRO_3) && jigglyPoses != null) {
+                    TextureRegion regionToDraw = null;
+                    float drawW = 60f; // Default Jigglypuff size
+                    float drawXOffset = 0.02f;
+                    float drawYOffset = 0.62f;
+
+                    // PHASE 1: Pokeball (0.0 - 0.8s)
+                    if (jigglyStateTime < 0.8f) {
+                        regionToDraw = new TextureRegion(pokeballImage);
+                        drawW = 45f;
+                        // Center Pokeball on hand
+                        drawXOffset = 0f; // Will calculate manually
+                    }
+                    // PHASE 2: Poof (0.8s - 1.2s)
+                    else if (jigglyStateTime < 1.2f) {
+                        regionToDraw = poofAnim.getKeyFrame(jigglyStateTime - 0.8f, false);
+                        drawW = 50f;
+                    }
+                    // PHASE 3: Jigglypuff (1.2s+)
+                    else {
+                        regionToDraw = jigglyPoses.getKeyFrame(jigglyStateTime - 1.2f, true);
                     }
 
-                    game.batch.draw(regionToDraw, jX, jY, drawW, jH);
+                    if (regionToDraw != null) {
+                        float ratio = (float) regionToDraw.getRegionHeight() / regionToDraw.getRegionWidth();
+                        float jH = drawW * ratio;
+
+                        float jX = imgX + imgW * drawXOffset;
+                        float jY = imgY + imgH * drawYOffset;
+
+                        // Custom Centering for Pokeball & Poof
+                        if (jigglyStateTime < 1.2f) { // Both phases
+                            jX = imgX + imgW * 0.02f + (60 - drawW) / 2; // Center relative to Jigglypuff slot
+                            if (jigglyStateTime < 0.8f) {
+                                jY -= 8; // Pokeball specific offset
+                            }
+                        }
+
+                        game.batch.draw(regionToDraw, jX, jY, drawW, jH);
+                    }
                 }
             }
+        } else if (currentState == State.PRE_CLOSING || currentState == State.FADE_OUT) {
+            // PRE_CLOSING: Show both Feid and Protagonist side by side
+            // Keep drawing this during FADE_OUT
+            float availableH = vpH - TEXT_BOX_HEIGHT - 20;
+
+            // Draw Protagonist on the left
+            Texture protaImg = isMale ? protaMasc : protaFem;
+            if (protaImg != null) {
+                float imgScale = (protaImg.getHeight() > availableH) ? availableH / protaImg.getHeight() : 1.0f;
+                if (protaImg.getHeight() * 1.2f <= availableH)
+                    imgScale = 1.2f;
+
+                float imgW = protaImg.getWidth() * imgScale;
+                float imgH = protaImg.getHeight() * imgScale;
+                float imgX = vpX + (vpW / 4f) - imgW / 2f;
+                float imgY = vpY + TEXT_BOX_HEIGHT + 10;
+
+                game.batch.draw(protaImg, imgX, imgY, imgW, imgH);
+            }
+
+            // Draw Feid on the right
+            if (feidImage != null) {
+                float imgScale = (feidImage.getHeight() > availableH) ? availableH / feidImage.getHeight() : 1.0f;
+                if (feidImage.getHeight() * 1.2f <= availableH)
+                    imgScale = 1.2f;
+
+                float imgW = feidImage.getWidth() * imgScale;
+                float imgH = feidImage.getHeight() * imgScale;
+                float imgX = vpX + (vpW * 3f / 4f) - imgW / 2f;
+                float imgY = vpY + TEXT_BOX_HEIGHT + 10;
+
+                game.batch.draw(feidImage, imgX, imgY, imgW, imgH);
+            }
         }
-    }else if(currentState==State.PRE_CLOSING||currentState==State.FADE_OUT)
-    {
-        // PRE_CLOSING: Show both Feid and Protagonist side by side
-        // Keep drawing this during FADE_OUT
-        float availableH = vpH - TEXT_BOX_HEIGHT - 20;
 
-        // Draw Protagonist on the left
-        Texture protaImg = isMale ? protaMasc : protaFem;
-        if (protaImg != null) {
-            float imgScale = (protaImg.getHeight() > availableH) ? availableH / protaImg.getHeight() : 1.0f;
-            if (protaImg.getHeight() * 1.2f <= availableH)
-                imgScale = 1.2f;
+        game.batch.end();
 
-            float imgW = protaImg.getWidth() * imgScale;
-            float imgH = protaImg.getHeight() * imgScale;
-            float imgX = vpX + (vpW / 4f) - imgW / 2f;
-            float imgY = vpY + TEXT_BOX_HEIGHT + 10;
+        shapeRenderer.setProjectionMatrix(camera.combined);
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 
-            game.batch.draw(protaImg, imgX, imgY, imgW, imgH);
+        // REMOVED ORANGE BORDERS (Background is handled by Frame Texture now)
+        // 2. Text Box with Rounded Corners (Inside Viewport)
+        float boxX = vpX + 10;
+        float boxY = vpY + 10;
+        float boxW = vpW - 20;
+        float boxH = TEXT_BOX_HEIGHT;
+
+        RenderUtils.drawRoundedRect(shapeRenderer, boxX, boxY, boxW, boxH, 20f, new Color(0.3f, 0.5f, 0.6f, 1f)); // Frame
+        RenderUtils.drawRoundedRect(shapeRenderer, boxX + 6, boxY + 6, boxW - 12, boxH - 12, 16f,
+                new Color(0.6f, 0.8f, 1.0f, 1f)); // Inner (Light Blue)
+
+        // 2.5 Name Tag "Profesor Ferxxo"
+        float nameTagW = 220;
+        float nameTagH = 50;
+        float nameTagX = boxX;
+        float nameTagY = boxY + boxH - 5;
+        RenderUtils.drawRoundedRect(shapeRenderer, nameTagX, nameTagY, nameTagW, nameTagH, 10f,
+                new Color(0.3f, 0.5f, 0.6f, 1f)); // Frame
+        RenderUtils.drawRoundedRect(shapeRenderer, nameTagX + 3, nameTagY + 3, nameTagW - 6, nameTagH - 6, 8f,
+                Color.WHITE); // Inner White
+
+        // 3. Gender Selection Menu (Text only, removed buttons)
+
+        // 4. Name Input UI
+        if (currentState == State.ENTER_NAME) {
+            shapeRenderer.setColor(Color.DARK_GRAY);
+            float lineY = boxY + 45;
+            float lineX = boxX + 100;
+            shapeRenderer.rect(lineX, lineY, 400, 3);
         }
 
-        // Draw Feid on the right
-        if (feidImage != null) {
-            float imgScale = (feidImage.getHeight() > availableH) ? availableH / feidImage.getHeight() : 1.0f;
-            if (feidImage.getHeight() * 1.2f <= availableH)
-                imgScale = 1.2f;
-
-            float imgW = feidImage.getWidth() * imgScale;
-            float imgH = feidImage.getHeight() * imgScale;
-            float imgX = vpX + (vpW * 3f / 4f) - imgW / 2f;
-            float imgY = vpY + TEXT_BOX_HEIGHT + 10;
-
-            game.batch.draw(feidImage, imgX, imgY, imgW, imgH);
+        // 5. Red Arrow Indicator
+        if (stateTime % 1.0f > 0.5f) {
+            if (currentState != State.ENTER_NAME) {
+                shapeRenderer.setColor(new Color(0.8f, 0.1f, 0.1f, 1f));
+                float arrowSize = 15f;
+                float arrowX = boxX + boxW - 40;
+                float arrowY = boxY + 30;
+                shapeRenderer.triangle(arrowX, arrowY, arrowX + arrowSize, arrowY, arrowX + arrowSize / 2,
+                        arrowY - arrowSize);
+            }
         }
-    }
 
-    game.batch.end();
+        shapeRenderer.end();
 
-    shapeRenderer.setProjectionMatrix(camera.combined);shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        // 6. Text Rendering
+        game.batch.begin();
 
-    // REMOVED ORANGE BORDERS (Background is handled by Frame Texture now)
-    // 2. Text Box with Rounded Corners (Inside Viewport)
-    float boxX = vpX + 10;
-    float boxY = vpY + 10;
-    float boxW = vpW - 20;
-    float boxH = TEXT_BOX_HEIGHT;
+        // Name Tag Text
+        game.font.setColor(Color.BLACK);
+        game.font.getData().setScale(1.2f);
+        game.font.draw(game.batch, "Profesor Ferxxo", nameTagX, nameTagY + nameTagH / 2 + 10, nameTagW, Align.center,
+                false);
 
-    RenderUtils.drawRoundedRect(shapeRenderer,boxX,boxY,boxW,boxH,20f,new Color(0.3f,0.5f,0.6f,1f)); // Frame
-    RenderUtils.drawRoundedRect(shapeRenderer,boxX+6,boxY+6,boxW-12,boxH-12,16f,new Color(0.6f,0.8f,1.0f,1f)); // Inner
-                                                                                                               // (Light
-                                                                                                               // Blue)
+        // Main Text
+        game.font.setColor(Color.BLACK);
+        game.font.getData().setScale(1.0f); // Scale 1.0 for clearer text
 
-    // 2.5 Name Tag "Profesor Ferxxo"
-    float nameTagW = 220;
-    float nameTagH = 50;
-    float nameTagX = boxX;
-    float nameTagY = boxY + boxH
-            - 5;RenderUtils.drawRoundedRect(shapeRenderer,nameTagX,nameTagY,nameTagW,nameTagH,10f,new Color(0.3f,0.5f,0.6f,1f)); // Frame
-    RenderUtils.drawRoundedRect(shapeRenderer,nameTagX+3,nameTagY+3,nameTagW-6,nameTagH-6,8f,Color.WHITE); // Inner
-                                                                                                           // White
+        float textX = boxX + 50;
+        float textY = boxY + boxH - 25; // Adjusted Y for smaller box
+        float textWidth = boxW - 100;
 
-    // 3. Gender Selection Menu (Text only, removed buttons)
-
-    // 4. Name Input UI
-    if(currentState==State.ENTER_NAME)
-    {
-        shapeRenderer.setColor(Color.DARK_GRAY);
-        float lineY = boxY + 45;
-        float lineX = boxX + 100;
-        shapeRenderer.rect(lineX, lineY, 400, 3);
-    }
-
-    // 5. Red Arrow Indicator
-    if(stateTime%1.0f>0.5f)
-    {
-        if (currentState != State.ENTER_NAME) {
-            shapeRenderer.setColor(new Color(0.8f, 0.1f, 0.1f, 1f));
-            float arrowSize = 15f;
-            float arrowX = boxX + boxW - 40;
-            float arrowY = boxY + 30;
-            shapeRenderer.triangle(arrowX, arrowY, arrowX + arrowSize, arrowY, arrowX + arrowSize / 2,
-                    arrowY - arrowSize);
-        }
-    }
-
-    shapeRenderer.end();
-
-    // 6. Text Rendering
-    game.batch.begin();
-
-    // Name Tag Text
-    game.font.setColor(Color.BLACK);game.font.getData().setScale(1.2f);game.font.draw(game.batch,"Profesor Ferxxo",nameTagX,nameTagY+nameTagH/2+10,nameTagW,Align.center,false);
-
-    // Main Text
-    game.font.setColor(Color.BLACK);game.font.getData().setScale(1.0f); // Scale 1.0 for clearer text
-
-    float textX = boxX + 50;
-    float textY = boxY + boxH - 25; // Adjusted Y for smaller box
-    float textWidth = boxW - 100;
-
-    String currentText = "";switch(currentState)
-    {
+        String currentText = "";
+        switch (currentState) {
             case INTRO_1:
                 currentText = TEXT_1;
                 break;
@@ -660,108 +631,94 @@ public class IntroScreen extends BaseScreen {
                 break;
         }
 
-    game.font.draw(game.batch,currentText,textX,textY,textWidth,Align.left,true);
+        game.font.draw(game.batch, currentText, textX, textY, textWidth, Align.left, true);
 
-    // Gender Menu Text
-    if(currentState==State.SELECT_GENDER)
-    {
-        game.font.getData().setScale(1.5f);
-        float menuX = genderMenuBounds.x + 40;
-        float menuTopY = genderMenuBounds.y + genderMenuBounds.height - 35;
+        // Gender Menu Text
+        if (currentState == State.SELECT_GENDER) {
+            game.font.getData().setScale(1.5f);
+            float menuX = genderMenuBounds.x + 40;
+            float menuTopY = genderMenuBounds.y + genderMenuBounds.height - 35;
 
-        game.font.draw(game.batch, "CHICO", menuX, menuTopY);
-        game.font.draw(game.batch, "CHICA", menuX, menuTopY - 40);
+            game.font.draw(game.batch, "CHICO", menuX, menuTopY);
+            game.font.draw(game.batch, "CHICA", menuX, menuTopY - 40);
 
-        // Draw Cursor Arrow
-        game.font.setColor(new Color(0.8f, 0.2f, 0.2f, 1f));
-        game.font.draw(game.batch, ">", menuX - 25, isMale ? menuTopY : menuTopY - 40);
-        game.font.setColor(Color.BLACK);
-    }
-
-    // 3.1 Confirmation Menu (SÍ/NO) Text
-    if(currentState==State.CONFIRM_NAME)
-    {
-        float menuX = boxX + 680; // Moved right (was 610)
-        float menuY = boxY + boxH + 20;
-        float menuH = 100;
-
-        game.font.getData().setScale(1.6f); // Larger text (was 1.2)
-        game.font.setColor(Color.BLACK);
-        game.font.draw(game.batch, "SÍ", menuX + 40, menuY + menuH - 25);
-        game.font.draw(game.batch, "NO", menuX + 40, menuY + 35);
-
-        // Cursor Arrow
-        game.font.setColor(new Color(0.8f, 0.2f, 0.2f, 1f));
-        game.font.draw(game.batch, ">", menuX + 15, isNameConfirmed ? menuY + menuH - 25 : menuY + 35);
-        game.font.setColor(Color.BLACK);
-    }
-
-    // Helper Text
-    game.font.getData().setScale(0.9f);game.font.setColor(Color.BLACK);
-    String helper;if(currentState==State.CONFIRM_NAME)
-    {
-        helper = "SELECT (ARROWS)   CONFIRM (ENTER)";
-    }else if(currentState==State.PRE_CLOSING)
-    {
-        helper = "CONTINUE (ENTER / ->)";
-    }else if(currentState==State.SELECT_GENDER)
-    {
-        helper = "NEXT (->)   BACK (<-)";
-    }else
-    {
-        helper = "NEXT (->)";
-    }
-
-    if(currentState!=State.FADE_OUT)
-    {
-        game.font.draw(game.batch, helper, boxX + boxW - 250, boxY + 30, 200, Align.right, false);
-    }
-
-    game.batch.end();
-
-    // 7. FADE OUT OVERLAY
-    if(currentState==State.FADE_OUT)
-    {
-        fadeAlpha += delta * 1.0f; // 1 second fade
-        if (fadeAlpha >= 1f) {
-            fadeAlpha = 1f;
-            // Transition directly to GameScreen (Bypassing IntroWalkScreen as requested)
-            String texturePath = isMale ? "protagonistaMasculino1.png" : "protagonistaFemenino.png";
-            // Pass gameName (Partida Name) AND playerName (Explorer Name)
-            game.setScreen(new GameScreen(game, texturePath, 4, 4, playerName, gameName));
-            dispose();
-            return;
+            // Draw Cursor Arrow
+            game.font.setColor(new Color(0.8f, 0.2f, 0.2f, 1f));
+            game.font.draw(game.batch, ">", menuX - 25, isMale ? menuTopY : menuTopY - 40);
+            game.font.setColor(Color.BLACK);
         }
 
-        Gdx.gl.glEnable(GL20.GL_BLEND);
-        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+        // 3.1 Confirmation Menu (SÍ/NO) Text
+        if (currentState == State.CONFIRM_NAME) {
+            float menuX = boxX + 680; // Moved right (was 610)
+            float menuY = boxY + boxH + 20;
+            float menuH = 100;
 
-        shapeRenderer.setProjectionMatrix(camera.combined);
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        shapeRenderer.setColor(0, 0, 0, fadeAlpha);
-        shapeRenderer.rect(0, 0, sysW, sysH);
-        shapeRenderer.end();
-        Gdx.gl.glDisable(GL20.GL_BLEND);
+            game.font.getData().setScale(1.6f); // Larger text (was 1.2)
+            game.font.setColor(Color.BLACK);
+            game.font.draw(game.batch, "SÍ", menuX + 40, menuY + menuH - 25);
+            game.font.draw(game.batch, "NO", menuX + 40, menuY + 35);
+
+            // Cursor Arrow
+            game.font.setColor(new Color(0.8f, 0.2f, 0.2f, 1f));
+            game.font.draw(game.batch, ">", menuX + 15, isNameConfirmed ? menuY + menuH - 25 : menuY + 35);
+            game.font.setColor(Color.BLACK);
+        }
+
+        // Helper Text
+        game.font.getData().setScale(0.9f);
+        game.font.setColor(Color.BLACK);
+        String helper;
+        if (currentState == State.CONFIRM_NAME) {
+            helper = "SELECT (ARROWS)   CONFIRM (ENTER)";
+        } else if (currentState == State.PRE_CLOSING) {
+            helper = "CONTINUE (ENTER / ->)";
+        } else if (currentState == State.SELECT_GENDER) {
+            helper = "NEXT (->)   BACK (<-)";
+        } else {
+            helper = "NEXT (->)";
+        }
+
+        if (currentState != State.FADE_OUT) {
+            game.font.draw(game.batch, helper, boxX + boxW - 250, boxY + 30, 200, Align.right, false);
+        }
+
+        game.batch.end();
+
+        // 7. FADE OUT OVERLAY
+        if (currentState == State.FADE_OUT) {
+            fadeAlpha += delta * 1.0f; // 1 second fade
+            if (fadeAlpha >= 1f) {
+                fadeAlpha = 1f;
+                // Transition directly to GameScreen (Bypassing IntroWalkScreen as requested)
+                String texturePath = isMale ? "protagonistaMasculino1.png" : "protagonistaFemenino.png";
+                // Pass gameName (Partida Name) AND playerName (Explorer Name)
+                game.setScreen(new GameScreen(game, texturePath, 4, 4, playerName, gameName));
+                dispose();
+                return;
+            }
+
+            Gdx.gl.glEnable(GL20.GL_BLEND);
+            Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+
+            shapeRenderer.setProjectionMatrix(camera.combined);
+            shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+            shapeRenderer.setColor(0, 0, 0, fadeAlpha);
+            shapeRenderer.rect(0, 0, sysW, sysH);
+            shapeRenderer.end();
+            Gdx.gl.glDisable(GL20.GL_BLEND);
+        }
+
+        // Reset Font
+        game.font.setColor(Color.WHITE);
+        game.font.getData().setScale(1.0f);
     }
 
-    // Reset Font
-    game.font.setColor(Color.WHITE);game.font.getData().setScale(1.0f);
-    }
-
-    /**
-     * Ajusta el viewport cuando se redimensiona la ventana.
-     * 
-     * @param width Nuevo ancho.
-     * @param height Nuevo alto.
-     */
     @Override
     public void resize(int width, int height) {
         viewport.update(width, height, true);
     }
 
-    /**
-     * Libera los recursos gráficos cargados.
-     */
     @Override
     public void dispose() {
         shapeRenderer.dispose();
