@@ -40,19 +40,19 @@ public class AssetSplitter {
         String imageFile = inputDir + "Tilesets.png";
         String tsxFile = inputDir + "Tilesets_ambiente_2.tsx";
 
-        System.out.println("Starting AssetSplitter...");
+        System.out.println("Iniciando AssetSplitter...");
 
         try {
-            // 1. Process Image
+            // 1. Procesar Imagen
             File imgFile = new File(imageFile);
             BufferedImage fullImage = ImageIO.read(imgFile);
             int width = fullImage.getWidth();
             int height = fullImage.getHeight();
 
-            System.out.println("Image Loaded: " + width + "x" + height);
+            System.out.println("Imagen cargada: " + width + "x" + height);
 
             int numChunks = (int) Math.ceil((double) height / CHUNK_HEIGHT);
-            System.out.println("Splitting into " + numChunks + " chunks.");
+            System.out.println("Dividiendo en " + numChunks + " trozos (chunks).");
 
             for (int i = 0; i < numChunks; i++) {
                 int y = i * CHUNK_HEIGHT;
@@ -61,17 +61,17 @@ public class AssetSplitter {
                 BufferedImage chunk = fullImage.getSubimage(0, y, width, h);
                 File outputFile = new File(inputDir + "Tilesets_part_" + i + ".png");
                 ImageIO.write(chunk, "png", outputFile);
-                System.out.println("Saved: " + outputFile.getName());
+                System.out.println("Guardado: " + outputFile.getName());
             }
 
-            // 2. Process TSX
+            // 2. Procesar TSX
             File xmlFile = new File(tsxFile);
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
             Document doc = dBuilder.parse(xmlFile);
             doc.getDocumentElement().normalize();
 
-            // Extract all tile properties
+            // Extraer todas las propiedades de los tiles
             Map<Integer, Node> tileProperties = new TreeMap<>();
             NodeList tiles = doc.getElementsByTagName("tile");
 
@@ -80,25 +80,25 @@ public class AssetSplitter {
                 if (tileNode.getNodeType() == Node.ELEMENT_NODE) {
                     Element element = (Element) tileNode;
                     int id = Integer.parseInt(element.getAttribute("id"));
-                    // Deep clone the properties/node so we can reuse it
+                    // Clonado profundo para reutilizar el nodo de propiedades
                     tileProperties.put(id, tileNode.cloneNode(true));
                 }
             }
 
-            System.out.println("Loaded properties for " + tileProperties.size() + " tiles.");
+            System.out.println("Propiedades cargadas para " + tileProperties.size() + " tiles.");
 
-            // Create new TSX files
+            // Crear nuevos archivos TSX
             for (int i = 0; i < numChunks; i++) {
                 createTsxForChunk(i, numChunks, tileProperties, inputDir);
             }
 
-            System.out.println("Asset Splitting Complete!");
+            System.out.println("¡División de assets completada!");
             System.out.println(
-                    "IMPORTANT: Now you must manually update Mapa_Hisui.tmx to replace the single <tileset> with:");
+                    "IMPORTANTE: Ahora debes actualizar manualmente Mapa_Hisui.tmx sustiyendo el único <tileset> por:");
 
             int firstGid = 1;
             for (int i = 0; i < numChunks; i++) {
-                System.out.println("<tileset firstgid=\"" + firstGid + "\" source=\"Tilesets_part_" + i + ".tsx\"/>");
+                System.out.println("  <tileset firstgid=\"" + firstGid + "\" source=\"Tilesets_part_" + i + ".tsx\"/>");
                 firstGid += TILES_PER_CHUNK;
             }
 
@@ -108,13 +108,14 @@ public class AssetSplitter {
     }
 
     /**
-     * Crea un archivo TSX para un chunk específico de tiles.
+     * Crea un archivo TSX para un chunk específico, manteniendo las propiedades de
+     * los tiles correspondientes.
      * 
-     * @param chunkIndex  Índice del chunk actual.
-     * @param totalChunks Número total de chunks.
-     * @param allProps    Mapa de propiedades de los tiles.
-     * @param dir         Directorio de salida.
-     * @throws Exception Si ocurre un error durante la creación del XML.
+     * @param chunkIndex  Índice del chunk.
+     * @param totalChunks Total de chunks creados.
+     * @param allProps    Mapa con todas las propiedades originales.
+     * @param dir         Carpeta de salida.
+     * @throws Exception Si ocurre un error en el procesamiento XML.
      */
     private static void createTsxForChunk(int chunkIndex, int totalChunks, Map<Integer, Node> allProps, String dir)
             throws Exception {
@@ -125,22 +126,25 @@ public class AssetSplitter {
         Element rootElement = doc.createElement("tileset");
         doc.appendChild(rootElement);
 
-        // Calculate tile range for this chunk
+        // Calcular rango de tiles para este chunk
         int startId = chunkIndex * TILES_PER_CHUNK;
         int endId = startId + TILES_PER_CHUNK - 1;
 
-        // Determine height of this specific chunk (last one might be smaller)
-        // Note: For TSX metadata, we primarily need the image source.
-        // We assume standard chunks are 2048, checking properties against what we have.
-        // For simplicity, we just reference the generated image.
+        // Determinar la altura de este chunk específico (el último podría ser más
+        // pequeño)
+        // Nota: Para los metadatos TSX, principalmente necesitamos la fuente de la
+        // imagen.
+        // Asumimos que los chunks estándar son de 2048, verificando las propiedades con
+        // lo que tenemos.
+        // Para simplificar, solo referenciamos la imagen generada.
 
         rootElement.setAttribute("version", "1.10");
         rootElement.setAttribute("tiledversion", "1.11.2");
         rootElement.setAttribute("name", "Tilesets_part_" + chunkIndex);
         rootElement.setAttribute("tilewidth", String.valueOf(TILE_WIDTH));
         rootElement.setAttribute("tileheight", String.valueOf(TILE_HEIGHT));
-        rootElement.setAttribute("tilecount", String.valueOf(TILES_PER_CHUNK)); // Close enough, Tiled recalculates
-                                                                                // usually
+        rootElement.setAttribute("tilecount", String.valueOf(TILES_PER_CHUNK)); // Suficientemente cerca, Tiled
+                                                                                // usualmente recalcula
         rootElement.setAttribute("columns", String.valueOf(COLUMNS));
 
         Element image = doc.createElement("image");

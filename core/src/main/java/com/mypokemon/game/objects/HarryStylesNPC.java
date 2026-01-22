@@ -1,5 +1,9 @@
 package com.mypokemon.game.objects;
 
+/**
+ * Clase que representa al NPC Harry Styles.
+ * Ofrece diálogos amigables y consejos sobre el inventario y crafteo.
+ */
 public class HarryStylesNPC extends NPC {
     private static final String[] DIALOG = {
             "¡Hola, cariño! Bienvenido a la región OneFerxxo. Es un lugar verdaderamente maravilloso, ¿no te parece? Tiene una energía mágic, distinta a de donde vengo. Pero también tiene su lado salvaje, como habrás podido notar.",
@@ -10,6 +14,12 @@ public class HarryStylesNPC extends NPC {
             "Con todo mi amor, H."
     };
 
+    /**
+     * Constructor para Harry Styles.
+     * 
+     * @param startX Posición inicial en X.
+     * @param startY Posición inicial en Y.
+     */
     public HarryStylesNPC(float startX, float startY) {
         super(startX - 20, startY - 15, 25, 35, "harryStylesSprite.png", "Cartógrafo Harry Styles", DIALOG);
         setPortrait("harryStyles.png");

@@ -19,6 +19,10 @@ import com.badlogic.gdx.math.Vector3;
 
 import java.util.List;
 
+/**
+ * Pantalla de crafteo (fabricación de objetos).
+ * Permite al jugador crear nuevos ítems combinando recursos recolectados.
+ */
 public class CrafteoScreen extends BaseScreen {
 
     private Texture background;
@@ -53,6 +57,12 @@ public class CrafteoScreen extends BaseScreen {
     private String craftingMessage = "";
     private float craftingMessageTimer = 0;
 
+    /**
+     * Constructor de la pantalla de crafteo.
+     * 
+     * @param game         Instancia principal del juego.
+     * @param returnScreen Pantalla de juego para regresar y acceder al explorador.
+     */
     public CrafteoScreen(PokemonMain game, GameScreen returnScreen) {
         super(game);
         this.returnScreen = returnScreen;
@@ -149,6 +159,20 @@ public class CrafteoScreen extends BaseScreen {
         return ItemFactory.crearCrafteado(id, 1).getDescripcion();
     }
 
+    /**
+     * Se llama cuando esta pantalla se muestra.
+     * Limpia el procesador de entrada para evitar conflictos.
+     */
+    @Override
+    public void show() {
+        Gdx.input.setInputProcessor(null);
+    }
+
+    /**
+     * Renderiza la interfaz de crafteo, lista de recetas y detalles.
+     * 
+     * @param delta Tiempo transcurrido desde el último frame.
+     */
     @Override
     public void render(float delta) {
         handleInput();
@@ -398,11 +422,20 @@ public class CrafteoScreen extends BaseScreen {
         game.font.draw(game.batch, owned + "/" + cantidadReq, detailsX + 390, ingY - 10);
     }
 
+    /**
+     * Actualiza el viewport al redimensionar la ventana.
+     * 
+     * @param width  Nuevo ancho.
+     * @param height Nuevo alto.
+     */
     @Override
     public void resize(int width, int height) {
         viewport.update(width, height);
     }
 
+    /**
+     * Libera las texturas cargadas manualmente.
+     */
     @Override
     public void dispose() {
         if (background != null)

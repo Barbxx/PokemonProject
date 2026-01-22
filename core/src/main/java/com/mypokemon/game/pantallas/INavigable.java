@@ -3,28 +3,29 @@ package com.mypokemon.game.pantallas;
 import com.badlogic.gdx.Screen;
 
 /**
- * Interface for screens that support navigation between screens.
- * Implementing classes should maintain a return screen and handle navigation.
+ * Interfaz para pantallas que soportan navegación entre pantallas.
+ * Las clases que la implementen deben mantener una referencia a una pantalla de
+ * retorno y gestionar la navegación.
  */
 public interface INavigable {
 
     /**
-     * Navigates back to the previous screen.
-     * Disposes the current screen and sets the return screen as active.
+     * Navega hacia atrás a la pantalla anterior.
+     * Libera la pantalla actual y establece la pantalla de retorno como activa.
      */
     void navigateBack();
 
     /**
-     * Navigates to a new screen.
+     * Navega a una nueva pantalla.
      * 
-     * @param screen The screen to navigate to
+     * @param screen La pantalla a la que navegar.
      */
     void navigateTo(Screen screen);
 
     /**
-     * Gets the screen to return to when navigating back.
+     * Obtiene la pantalla a la que regresar al navegar hacia atrás.
      * 
-     * @return The return screen, or null if none is set
+     * @return La pantalla de retorno, o null si no hay ninguna establecida.
      */
     Screen getReturnScreen();
 }

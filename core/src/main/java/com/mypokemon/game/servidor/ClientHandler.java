@@ -29,7 +29,7 @@ public class ClientHandler extends Thread {
         this.socket = socket;
         this.server = server;
         try {
-            out = new DataOutputStream(socket.getOutputStream()); // Initialize OUT first
+            out = new DataOutputStream(socket.getOutputStream()); // Inicializar OUT primero
             in = new DataInputStream(socket.getInputStream());
         } catch (IOException e) {
             e.printStackTrace();

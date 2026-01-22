@@ -11,34 +11,41 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Utility class to fix GID issues in TMX maps, translated from update_map.py.
+ * Clase de utilidad para corregir problemas de GID en mapas TMX.
+ * Traducida de update_map.py.
  */
 public class CorregidorMapa {
 
     public static void main(String[] args) {
-        // Path to the TMX file
+        // Ruta al archivo TMX
         String tmxPath = "assets/Mapa_Hisui.tmx";
 
-        // If run from the root of the project, this path should work.
-        // Otherwise, absolute path can be used.
+        // Si se ejecuta desde la raíz del proyecto, esta ruta debería funcionar.
+        // De lo contrario, se puede usar una ruta absoluta.
         Path path = Paths.get(tmxPath);
         if (!Files.exists(path)) {
-            // Fallback for some IDE environments where CWD is different
+            // Fallback para entornos de IDE donde el CWD es diferente
             path = Paths.get("c:/Users/User/PokemonProject/assets/Mapa_Hisui.tmx");
         }
 
         try {
             fixMap(path);
-            System.out.println("Map updated successfully (Java version).");
+            System.out.println("Mapa actualizado correctamente (versión Java).");
         } catch (IOException e) {
-            System.err.println("Error updating map: " + e.getMessage());
+            System.err.println("Error al actualizar el mapa: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
+    /**
+     * Corrige el mapa eliminando tilesets problemáticos y remapeando GIDs.
+     * 
+     * @param path Ruta del archivo del mapa.
+     * @throws IOException Si ocurre un error de lectura/escritura.
+     */
     public static void fixMap(Path path) throws IOException {
         if (!Files.exists(path)) {
-            throw new IOException("File not found: " + path.toAbsolutePath());
+            throw new IOException("Archivo no encontrado: " + path.toAbsolutePath());
         }
 
         byte[] encoded = Files.readAllBytes(path);
@@ -46,12 +53,12 @@ public class CorregidorMapa {
 
         long problematicGid = 268430755L;
 
-        // 1. Remove the problematic tileset line
+        // 1. Eliminar la línea del tileset problemático
         // <tileset firstgid="268430755" source="Tilesets_ambiente_2.tsx"/>
         String tilesetRegex = "\\s*<tileset firstgid=\"" + problematicGid + "\" source=\"Tilesets_ambiente_2\\.tsx\"/>";
         content = content.replaceAll(tilesetRegex, "");
 
-        // 2. Remap GIDs in the <data encoding="csv"> sections
+        // 2. Remapear GIDs en las secciones <data encoding="csv">
         Pattern dataPattern = Pattern.compile("(<data encoding=\"csv\">)(.*?)(</data>)", Pattern.DOTALL);
         Matcher matcher = dataPattern.matcher(content);
         StringBuilder sb = new StringBuilder();
@@ -70,16 +77,17 @@ public class CorregidorMapa {
                     continue;
 
                 try {
-                    // Tiles GID can be large due to flip flags, so use long
+                    // Los GID de los tiles pueden ser grandes debido a los flags de
+                    // rotación/espejo, se usa long
                     long val = Long.parseLong(trimmed);
 
-                    // Mask for the actual GID (lower 28 bits)
+                    // Máscara para el GID real (28 bits inferiores)
                     long mask = 0x0FFFFFFFL;
                     long baseGid = val & mask;
                     long flags = val & ~mask;
 
                     if (baseGid >= problematicGid) {
-                        // Remap: subtract offset and add 1
+                        // Remapear: restar el offset y sumar 1
                         long newBase = baseGid - problematicGid + 1;
                         long newVal = flags | newBase;
                         newGids.add(String.valueOf(newVal));
@@ -92,7 +100,7 @@ public class CorregidorMapa {
             }
 
             String remappedData = String.join(",", newGids);
-            // Reconstruct the data tag
+            // Reconstruir el tag de datos
             matcher.appendReplacement(sb, Matcher.quoteReplacement(prefix + remappedData + suffix));
         }
         matcher.appendTail(sb);
@@ -101,7 +109,3 @@ public class CorregidorMapa {
         Files.write(path, content.getBytes(StandardCharsets.UTF_8));
     }
 }
-
-
-
-

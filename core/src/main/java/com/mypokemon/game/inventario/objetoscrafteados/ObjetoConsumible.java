@@ -9,7 +9,7 @@ import com.mypokemon.game.inventario.ResultadoUso;
 
 /**
  * Clase abstracta base para todos los ƒÂ­tems consumibles que se pueden usar en
- * PokƒÂ©mon.
+ * Pokemon.
  * Implementa la interfaz IUsable.
  */
 public abstract class ObjetoConsumible extends ObjetoCrafteado implements IUsable {

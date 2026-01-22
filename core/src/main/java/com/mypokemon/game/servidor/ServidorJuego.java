@@ -2,8 +2,6 @@ package com.mypokemon.game.servidor;
 
 import java.io.IOException;
 import java.net.*;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Servidor principal del juego multijugador.

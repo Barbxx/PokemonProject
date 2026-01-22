@@ -11,6 +11,10 @@ import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.mypokemon.game.PokemonMain;
 import com.mypokemon.game.Explorador;
 
+/**
+ * Pantalla que muestra el perfil del entrenador.
+ * Incluye información como nombre, género, progreso de mochila y Pokédex.
+ */
 public class PerfilScreen extends ScreenAdapter {
 
     private final PokemonMain game;
@@ -21,6 +25,13 @@ public class PerfilScreen extends ScreenAdapter {
     private BitmapFont font;
     private BitmapFont titleFont;
 
+    /**
+     * Constructor de la pantalla de perfil.
+     * 
+     * @param game         Instancia principal del juego.
+     * @param parentScreen Pantalla desde la que se accedió (para volver).
+     * @param explorador   Datos del jugador a mostrar.
+     */
     public PerfilScreen(PokemonMain game, BaseScreen parentScreen, Explorador explorador) {
         this.game = game;
         this.parentScreen = parentScreen;
@@ -48,6 +59,11 @@ public class PerfilScreen extends ScreenAdapter {
         }
     }
 
+    /**
+     * Renderiza la información del perfil del jugador.
+     * 
+     * @param delta Tiempo transcurrido desde el último frame.
+     */
     @Override
     public void render(float delta) {
         Gdx.gl.glClearColor(0, 0, 0, 1);
@@ -97,6 +113,13 @@ public class PerfilScreen extends ScreenAdapter {
         game.batch.end();
     }
 
+    /**
+     * Dibuja texto centrado en la pantalla.
+     * 
+     * @param f    Fuente a utilizar.
+     * @param text Texto a dibujar.
+     * @param y    Posición vertical Y.
+     */
     private void drawCenteredText(BitmapFont f, String text, float y) {
         GlyphLayout layout = new GlyphLayout(f, text);
         f.draw(game.batch, text, (800 - layout.width) / 2, y);

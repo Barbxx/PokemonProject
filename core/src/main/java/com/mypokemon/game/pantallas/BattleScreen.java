@@ -20,6 +20,10 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import java.util.List;
 
+/**
+ * Pantalla que gestiona los combates Pokémon por turnos.
+ * Maneja la lógica de ataque, captura, uso de objetos y la IA del enemigo.
+ */
 public class BattleScreen extends ScreenAdapter {
 
     private final PokemonMain game;
@@ -116,6 +120,14 @@ public class BattleScreen extends ScreenAdapter {
 
     private BattleState currentState;
 
+    /**
+     * Constructor de la pantalla de batalla.
+     * 
+     * @param game         Instancia principal del juego.
+     * @param parentScreen Pantalla desde la que se inició la batalla (para volver).
+     * @param explorador   Datos del jugador.
+     * @param enemigo      Pokémon salvaje a enfrentar.
+     */
     public BattleScreen(PokemonMain game, com.badlogic.gdx.Screen parentScreen, Explorador explorador,
             Pokemon enemigo) {
         this.game = game;

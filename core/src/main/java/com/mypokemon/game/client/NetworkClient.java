@@ -19,16 +19,34 @@ public class NetworkClient {
     private DataOutputStream out;
     private volatile boolean listening = true;
 
+    /**
+     * Interfaz para manejar mensajes recibidos desde la red.
+     */
     public interface EscuchaRed {
+        /**
+         * Se llama cuando se recibe un mensaje del servidor.
+         * 
+         * @param msg El mensaje recibido.
+         */
         void onMessageReceived(String msg);
     }
 
     private EscuchaRed listener;
 
+    /**
+     * Establece el escuchador de eventos de red.
+     * 
+     * @param listener El objeto que implementa EscuchaRed.
+     */
     public void setListener(EscuchaRed listener) {
         this.listener = listener;
     }
 
+    /**
+     * Busca la dirección IP del servidor en la red local mediante broadcast UDP.
+     * 
+     * @return La IP del servidor encontrada o "127.0.0.1" si no se detecta.
+     */
     public String discoverServerIP() {
         DatagramSocket socket = null;
         try {
@@ -76,6 +94,13 @@ public class NetworkClient {
         }
     }
 
+    /**
+     * Conecta al servidor TCP especificado.
+     * 
+     * @param ip         Dirección IP del servidor.
+     * @param playerName Nombre que se enviará al conectar.
+     * @return true si la conexión fue exitosa, false en caso contrario.
+     */
     public boolean connect(String ip, String playerName) {
         try {
             System.out.println("[Client] Conectando a TCP " + ip + ":" + TCP_PORT);
@@ -94,6 +119,11 @@ public class NetworkClient {
         }
     }
 
+    /**
+     * Envía un mensaje al servidor a través del socket TCP.
+     * 
+     * @param msg El mensaje a enviar.
+     */
     public void sendMessage(String msg) {
         try {
             if (out != null) {

@@ -37,6 +37,7 @@ public class InputHandler extends InputAdapter {
                         jugador.getRegistro().verificarProgreso());
                 break;
         }
-        return false; // Return false to let event propagate (e.g. for movement)
+        return false; // Retorna false para permitir que el evento se propague (ej. para el
+                      // movimiento)
     }
 }

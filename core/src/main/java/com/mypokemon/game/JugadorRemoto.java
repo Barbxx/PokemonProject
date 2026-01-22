@@ -20,9 +20,9 @@ public class JugadorRemoto {
     /** Tiempo de estado acumulado para animaciones. */
     public float stateTime;
     /** Nombre del jugador remoto. */
-    public String name = ""; // Default empty
+    public String name = ""; // Vacío por defecto
 
-    // Animations (Reusing same texture logic as local player)
+    // Animaciones (Reutilizando la misma lógica de texturas que el jugador local)
     private Animation<TextureRegion> walkDown, walkLeft, walkRight, walkUp;
 
     /**

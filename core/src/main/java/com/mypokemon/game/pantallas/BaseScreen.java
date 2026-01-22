@@ -11,9 +11,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Abstract base class for screens with automatic texture management.
- * All screens should extend this class to benefit from resource management and
- * helper methods.
+ * Clase base abstracta para pantallas con gestión automática de texturas.
+ * Todas las pantallas deben extender esta clase para beneficiarse de la gestión
+ * de recursos y métodos auxiliares.
  */
 public abstract class BaseScreen implements Screen, ITextureManager {
 
@@ -26,10 +26,10 @@ public abstract class BaseScreen implements Screen, ITextureManager {
     }
 
     /**
-     * Loads a texture and registers it for automatic disposal.
+     * Carga una textura y la registra para su liberación automática.
      * 
-     * @param path Path to the texture file
-     * @return Loaded texture, or null if loading fails
+     * @param path Ruta al archivo de textura.
+     * @return La textura cargada, o null si la carga falla.
      */
     @Override
     public Texture loadTexture(String path) {
@@ -44,9 +44,9 @@ public abstract class BaseScreen implements Screen, ITextureManager {
     }
 
     /**
-     * Registers a texture for automatic disposal.
+     * Registra una textura para su liberación automática.
      * 
-     * @param texture Texture to register
+     * @param texture Textura a registrar.
      */
     @Override
     public void addTexture(Texture texture) {
@@ -56,7 +56,7 @@ public abstract class BaseScreen implements Screen, ITextureManager {
     }
 
     /**
-     * Disposes all registered textures.
+     * Libera todas las texturas registradas.
      */
     @Override
     public void disposeTextures() {

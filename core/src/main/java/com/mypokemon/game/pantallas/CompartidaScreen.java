@@ -1,7 +1,6 @@
 package com.mypokemon.game.pantallas;
 
 import com.mypokemon.game.PokemonMain;
-import com.mypokemon.game.Explorador;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;

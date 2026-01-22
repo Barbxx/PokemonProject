@@ -74,6 +74,12 @@ public class PartidasScreen extends BaseScreen {
         camera.update();
     }
 
+    /**
+     * Renderiza la lista de partidas, gestiona la entrada de teclado/ratón y las
+     * acciones de jugar/borrar.
+     * 
+     * @param delta Tiempo transcurrido desde el último frame.
+     */
     @Override
     public void render(float delta) {
         // Manejo de entrada
@@ -297,12 +303,21 @@ public class PartidasScreen extends BaseScreen {
         game.batch.end();
     }
 
+    /**
+     * Actualiza el viewport al redimensionar la ventana.
+     * 
+     * @param width  Nuevo ancho.
+     * @param height Nuevo alto.
+     */
     @Override
     public void resize(int width, int height) {
         viewport.update(width, height, true);
         camera.position.set(VIRTUAL_WIDTH / 2, VIRTUAL_HEIGHT / 2, 0);
     }
 
+    /**
+     * Libera las texturas cargadas.
+     */
     @Override
     public void dispose() {
         if (background != null)

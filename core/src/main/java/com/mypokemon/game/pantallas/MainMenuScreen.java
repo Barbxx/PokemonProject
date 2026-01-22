@@ -12,6 +12,10 @@ import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
+/**
+ * Pantalla principal del menú del juego.
+ * Muestra las opciones principales (Jugar, Cargar, Ayuda, Acerca de, Salir).
+ */
 public class MainMenuScreen extends BaseScreen {
 
     Texture background;
@@ -41,6 +45,11 @@ public class MainMenuScreen extends BaseScreen {
     private static final float VIRTUAL_WIDTH = 1280f;
     private static final float VIRTUAL_HEIGHT = 720f;
 
+    /**
+     * Constructor de la pantalla del menú principal.
+     * 
+     * @param game Instancia principal del juego.
+     */
     public MainMenuScreen(final PokemonMain game) {
         super(game);
 
@@ -73,11 +82,20 @@ public class MainMenuScreen extends BaseScreen {
         camera.update();
     }
 
+    /**
+     * Configura la pantalla al mostrarse. Libera el procesador de entrada manual
+     * ya que esta pantalla usa polling en render.
+     */
     @Override
     public void show() {
         Gdx.input.setInputProcessor(null);
     }
 
+    /**
+     * Renderiza el menú principal y gestiona la navegación por teclado.
+     * 
+     * @param delta Tiempo transcurrido desde el último frame.
+     */
     @Override
     public void render(float delta) {
         // --- 1. Update Logic ---
@@ -207,12 +225,21 @@ public class MainMenuScreen extends BaseScreen {
         game.batch.end();
     }
 
+    /**
+     * Actualiza el viewport al redimensionar la ventana.
+     * 
+     * @param width  Nuevo ancho.
+     * @param height Nuevo alto.
+     */
     @Override
     public void resize(int width, int height) {
         viewport.update(width, height, true);
         camera.position.set(VIRTUAL_WIDTH / 2, VIRTUAL_HEIGHT / 2, 0);
     }
 
+    /**
+     * Libera los recursos gráficos (texturas y fondo).
+     */
     @Override
     public void dispose() {
         if (background != null)

@@ -3,9 +3,9 @@ package com.mypokemon.game.pantallas;
 import com.mypokemon.game.PokemonMain;
 
 /**
- * Screen displaying information "About" the game.
- * Extends StaticDisplayScreen for automatic background rendering and
- * navigation.
+ * Pantalla que muestra información "Acerca de" del juego.
+ * Extiende StaticDisplayScreen para el renderizado automático del fondo y la
+ * navegación.
  */
 public class AcercaDeScreen extends StaticDisplayScreen {
 
