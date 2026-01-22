@@ -7,9 +7,7 @@ import com.mypokemon.game.inventario.ResultadoUso;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * Elixir de Piel de Piedra - Aumenta ataque.
- */
+// Elixir de Piel de Piedra - Aumenta ataque.
 public class ElixirPielPiedra extends ItemConsumible {
 
     public ElixirPielPiedra(int cantidad) {

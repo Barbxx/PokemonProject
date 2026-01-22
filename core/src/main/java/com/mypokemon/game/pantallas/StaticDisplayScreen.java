@@ -11,13 +11,7 @@ import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
-/**
- * Clase base abstracta para pantallas estáticas (pantallas que solo muestran
- * una imagen).
- * Proporciona renderizado automático de fondo, cámara ortográfica con viewport
- * fijo
- * y manejo de tecla ESC para regresar.
- */
+// Clase base abstracta para pantallas estáticas. Proporciona renderizado automático de fondo, cámara ortográfica con viewport fijo y manejo de tecla ESC para regresar.
 public abstract class StaticDisplayScreen extends BaseScreen implements INavigable {
 
     protected Texture background;
@@ -61,9 +55,7 @@ public abstract class StaticDisplayScreen extends BaseScreen implements INavigab
         game.batch.end();
     }
 
-    /**
-     * Renderiza la imagen de fondo para llenar la pantalla virtual.
-     */
+    // Renderiza la imagen de fondo para llenar la pantalla virtual.
     protected void renderBackground() {
         if (background != null) {
             game.batch.draw(background, 0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);

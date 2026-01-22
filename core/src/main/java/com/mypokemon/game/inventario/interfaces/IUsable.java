@@ -4,10 +4,7 @@ import com.mypokemon.game.Pokemon;
 import com.mypokemon.game.inventario.Inventario;
 import com.mypokemon.game.inventario.ResultadoUso;
 
-/**
- * Interfaz para ítems que pueden ser usados en Pokémon.
- * Implementada por ítems consumibles como pociones, bayas, etc.
- */
+// Interfaz para ítems que pueden ser usados en Pokémon. Implementada por ítems consumibles como pociones, bayas, etc.
 public interface IUsable {
 
     /**

@@ -2,11 +2,9 @@ package com.mypokemon.game.inventario;
 
 import java.io.Serializable;
 
-/**
- * Clase que representa el resultado de usar un ítem.
- * Contiene información sobre si el uso fue exitoso, un mensaje descriptivo,
- * y si el ítem debe ser consumido.
- */
+// Clase que representa el resultado de usar un ítem.
+// Contiene información sobre si el uso fue exitoso, un mensaje descriptivo, y si el ítem debe ser consumido.
+
 public class ResultadoUso implements Serializable {
     private static final long serialVersionUID = 1L;
 

@@ -3,10 +3,8 @@ package com.mypokemon.game.inventario;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Factory para crear recetas de crafteo.
- * Centraliza todas las recetas del juego.
- */
+// Factory para crear recetas de crafteo. Centraliza todas las recetas del juego.
+
 public class RecetaFactory {
 
     /**
@@ -47,7 +45,7 @@ public class RecetaFactory {
     /**
      * Crea una receta específica basada en su identificador.
      * 
-     * @param id Identificador de la receta (ej: "pokeball").
+     * @param id Identificador de la receta
      * @return La receta correspondiente o null si no existe.
      */
     public static Receta crearReceta(String id) {

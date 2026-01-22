@@ -6,9 +6,7 @@ import com.mypokemon.game.inventario.ResultadoUso;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * Poción Herbal - Cura 20 HP.
- */
+// Poción Herbal - Cura 20 HP.
 public class PocionHerbal extends ItemCurativo {
 
     public PocionHerbal(int cantidad) {

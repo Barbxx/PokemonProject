@@ -2,20 +2,17 @@ package com.mypokemon.game.inventario;
 
 import com.mypokemon.game.inventario.objetoscrafteados.*;
 
-/**
- * Factory para crear ítems del inventario.
- * Ahora crea instancias de clases concretas específicas en lugar de genéricas.
- */
+// Factory para crear ítems del inventario.
+
 public class ItemFactory {
 
     /**
      * Crea un recurso básico a partir de su ID.
-     * Solo para recursos simples (Planta, Guijarro) y algunos especiales como
-     * BayaAranja.
+     * Solo para recursos simples (Planta, Guijarro) y algunos especiales como BayaAranja.
      * 
      * @param id       Identificador del recurso.
      * @param cantidad Cantidad a crear.
-     * @return Instancia de Recurso (o subclase apropiada).
+     * @return Instancia de Recurso (o subclase apropiada)
      */
     public static Recurso crearRecurso(String id, int cantidad) {
         switch (id.toLowerCase()) {
@@ -32,10 +29,9 @@ public class ItemFactory {
     }
 
     /**
-     * Crea un objeto crafteado instanciando la clase concreta correspondiente al
-     * ID.
+     * Crea un objeto crafteado instanciando la clase concreta correspondiente al ID.
      * 
-     * @param id       Identificador del objeto (ej: "pokeball", "pocion").
+     * @param id       Identificador del objeto (pokeball, pocion)
      * @param cantidad Cantidad a crear.
      * @return Instancia específica de ObjetoCrafteado.
      */
@@ -63,10 +59,8 @@ public class ItemFactory {
         }
     }
 
-    /**
-     * Clase interna para ítems crafteados genéricos (fallback).
-     * Solo se usa si se intenta crear un ítem no reconocido.
-     */
+    // Clase interna para ítems crafteados genéricos (fallback).
+    // Solo se usa si se intenta crear un ítem no reconocido.
     private static class ObjetoCrafteadoGenerico extends ObjetoCrafteado {
         public ObjetoCrafteadoGenerico(String id, String nombre, String descripcion, int cantidad) {
             super(id, nombre, descripcion, cantidad);

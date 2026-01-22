@@ -3,10 +3,9 @@ package com.mypokemon.game.inventario;
 import java.io.Serializable;
 import java.util.List;
 
-/**
- * Clase abstracta base para todos los ítems del inventario.
- * Implementa Serializable para compatibilidad con guardado de juego.
- */
+// Clase abstracta base para todos los ítems del inventario.
+// Implementa Serializable para compatibilidad con guardado de juego.
+
 public abstract class Item implements Serializable {
     protected String id;
     protected String nombre;
@@ -90,7 +89,7 @@ public abstract class Item implements Serializable {
 
     /**
      * Obtiene las opciones disponibles para este ítem.
-     * Cada subclase define sus propias opciones (ej: "Curar", "Tirar", etc.)
+     * Cada subclase define sus propias opciones 
      * 
      * @return Lista de opciones disponibles
      */
@@ -106,7 +105,7 @@ public abstract class Item implements Serializable {
     }
 
     /**
-     * Verifica si este ítem es lanzable (implementa ILanzable).
+     * Verifica si este ítem es lanzable (implementa ILanzable)
      * 
      * @return true si el ítem puede ser lanzado
      */

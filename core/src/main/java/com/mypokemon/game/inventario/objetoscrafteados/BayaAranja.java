@@ -8,11 +8,7 @@ import com.mypokemon.game.inventario.ResultadoUso;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * Baya Aranja - Cura 10% HP.
- * Ahora es un Recurso para que funcione correctamente en el
- * crafteo/recolección.
- */
+// Baya Aranja - Cura 10% HP.
 public class BayaAranja extends Recurso implements IUsable {
 
     public BayaAranja(int cantidad) {
@@ -21,6 +17,7 @@ public class BayaAranja extends Recurso implements IUsable {
 
     @Override
     public boolean puedeUsar(Pokemon pokemon) {
+        
         // Se puede usar siempre que no esté FULL HP
         return pokemon.getHpActual() < pokemon.getHpMaximo();
     }

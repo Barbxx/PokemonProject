@@ -7,9 +7,8 @@ import com.mypokemon.game.inventario.ResultadoUso;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * Guante de Reflejo Cuarcítico - Equipa guante para recolectar doble recurso.
- */
+// Guante de Reflejo Cuarcítico - Equipa guante para recolectar doble recurso.
+
 public class GuanteReflejo extends ItemConsumible {
 
     public GuanteReflejo(int cantidad) {

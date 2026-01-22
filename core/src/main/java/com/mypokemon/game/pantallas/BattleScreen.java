@@ -20,11 +20,8 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import java.util.List;
 
-/**
- * Pantalla de combate entre el jugador y un Pokémon salvaje (o Boss).
- * Gestiona turnos, estados (captura, huida, victoria), animaciones simples y la
- * interfaz de batalla.
- */
+// Pantalla de combate entre el jugador y un Pokémon salvaje (o Boss).
+
 public class BattleScreen extends ScreenAdapter {
 
     private final PokemonMain game;

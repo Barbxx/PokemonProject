@@ -5,9 +5,7 @@ import com.mypokemon.game.inventario.Inventario;
 
 import com.mypokemon.game.inventario.ResultadoUso;
 
-/**
- * Clase abstracta base para ítems que curan HP.
- */
+// Clase abstracta base para ítems que curan HP.
 public abstract class ItemCurativo extends ItemConsumible {
     protected final float cantidadCuracion;
 

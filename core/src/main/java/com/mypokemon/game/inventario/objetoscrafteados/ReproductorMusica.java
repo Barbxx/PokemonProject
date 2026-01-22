@@ -6,9 +6,7 @@ import com.mypokemon.game.inventario.ResultadoUso;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * Reproductor de Música - Activa música de fondo.
- */
+// Reproductor de Música - Activa música de fondo.
 public class ReproductorMusica extends ItemConsumible {
 
     private boolean activo = false;

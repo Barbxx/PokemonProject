@@ -10,12 +10,8 @@ import com.badlogic.gdx.graphics.Texture;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Clase base abstracta para pantallas con gestión automática de texturas.
- * Todas las pantallas deben extender esta clase para beneficiarse de la gestión
- * de recursos
- * y métodos auxiliares.
- */
+// Clase base abstracta para pantallas con gestión automática de texturas.
+
 public abstract class BaseScreen implements Screen, ITextureManager {
 
     protected final PokemonMain game;

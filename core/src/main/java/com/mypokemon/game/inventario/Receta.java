@@ -1,9 +1,7 @@
 package com.mypokemon.game.inventario;
 
-/**
- * Representa una receta de crafteo.
- * Actúa como DTO (Data Transfer Object) - solo contiene datos, sin lógica.
- */
+// Representa una receta de crafteo.
+// Actúa como DTO (Data Transfer Object) - solo contiene datos, sin lógica.
 public class Receta {
     private String idResultado;
     private String nombreResultado;
@@ -36,5 +34,4 @@ public class Receta {
         return nombreResultado;
     }
 
-    // Map getter removed per user constraint
 }

@@ -7,9 +7,7 @@ import com.mypokemon.game.inventario.ResultadoUso;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * Revivir Casero - Revive Pokémon debilitados con 50% HP.
- */
+// Revivir Casero - Revive Pokémon debilitados con 50% HP.
 public class RevivirCasero extends ItemConsumible {
 
     public RevivirCasero(int cantidad) {
@@ -18,6 +16,7 @@ public class RevivirCasero extends ItemConsumible {
 
     @Override
     public boolean puedeUsar(Pokemon pokemon) {
+        
         // Se puede usar siempre que no esté FULL HP
         return pokemon.getHpActual() < pokemon.getHpMaximo();
     }

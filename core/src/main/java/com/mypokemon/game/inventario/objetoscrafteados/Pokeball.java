@@ -5,9 +5,7 @@ import com.mypokemon.game.inventario.interfaces.ILanzable;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * Poké Ball estándar - Dispositivo para atrapar Pokémon.
- */
+// Poké Ball estándar - Dispositivo para atrapar Pokémon.
 public class Pokeball extends ObjetoCrafteado implements ILanzable {
 
     public Pokeball(int cantidad) {

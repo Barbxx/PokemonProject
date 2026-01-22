@@ -1,9 +1,7 @@
 package com.mypokemon.game.inventario.interfaces;
 
-/**
- * Interfaz para ítems que pueden ser lanzados.
- * Implementada principalmente por Pokeballs.
- */
+// Interfaz para pokebolas porque pueden ser lanzadas.
+
 public interface ILanzable {
 
     /**
@@ -16,7 +14,7 @@ public interface ILanzable {
     /**
      * Obtiene el tipo de pokeball para la lógica de captura.
      * 
-     * @return El ID interno del tipo de pokeball (ej: "pokeball", "heavyball")
+     * @return El ID interno del tipo de pokeball
      */
     String getTipoLanzable();
 }

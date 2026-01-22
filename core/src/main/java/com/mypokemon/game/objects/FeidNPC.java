@@ -8,7 +8,7 @@ public class FeidNPC extends NPC {
             "Ese que nos mandó a toditos para acá... ¡y yo que estaba re-rela comiéndome un chicharrón! Imagínese esa vuelta...",
             "En el camino se va a encontrar con una mano de bichos; para que no se pierda, chequee la Pokédex, que ahí es donde guardamos todos los encuentros con esas criaturas.",
             "¡Ojo pues! Que en la hierba viven unos Pokémon que están es locos, mor, ¡re-tostados de la cabeza! Y ni hablemos de ese tal Arceus, ese man es otro nivel. Por eso usted necesita su propio Pokémon, pa’ que le cuide la espalda y no me lo dejen solo.",
-            "¡Hágale pues! Arranque de una pa’ mi laboratorio que allá le uno. ¡Lo espero, no se me demore pues!"
+            "¡Hágale pues! Arranque de una pa mi laboratorio que allá le uno. ¡Lo espero, no se me demore pues!"
     };
 
     public FeidNPC(float startX, float startY) {

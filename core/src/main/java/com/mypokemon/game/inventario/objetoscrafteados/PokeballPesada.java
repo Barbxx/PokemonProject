@@ -5,9 +5,7 @@ import com.mypokemon.game.inventario.interfaces.ILanzable;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * Poké Ball de Peso (Heavy Ball) - Mejor captura para Pokémon de nivel bajo.
- */
+// Poké Ball de Peso (Heavy Ball) - Mejor captura para Pokémon de nivel bajo.
 public class PokeballPesada extends ObjetoCrafteado implements ILanzable {
 
     public PokeballPesada(int cantidad) {

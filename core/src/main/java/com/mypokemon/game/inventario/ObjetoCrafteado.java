@@ -1,10 +1,8 @@
 package com.mypokemon.game.inventario;
 
-/**
- * Clase abstracta que representa un ítem crafteado mediante recetas.
- * Cada tipo específico de ítem crafteado debe extender esta clase.
- * Ejemplos: Poké Ball, Poción Herbal, Elixir, etc.
- */
+// Clase abstracta que representa un ítem crafteado mediante recetas.
+// Cada tipo específico de ítem crafteado extiende esta clase.
+
 public abstract class ObjetoCrafteado extends Item {
     protected String descripcion;
 
@@ -31,10 +29,9 @@ public abstract class ObjetoCrafteado extends Item {
     }
 
     /**
-     * Obtiene las opciones disponibles para este objeto.
-     * Debe ser implementado por subclases concretas.
+     * Obtiene las opciones disponibles para este objeto. Debe ser implementado por subclases concretas.
      * 
-     * @return Lista de acciones disponibles (ej: "Usar", "Tirar").
+     * @return Lista de acciones disponibles
      */
     @Override
     public abstract java.util.List<String> getOpciones();

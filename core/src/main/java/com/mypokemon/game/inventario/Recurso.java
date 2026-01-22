@@ -3,10 +3,8 @@ package com.mypokemon.game.inventario;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Representa un recurso básico recolectable.
- * Ejemplos: Planta, Baya, Guijarro.
- */
+// Representa un recurso básico recolectable.
+
 public class Recurso extends Item {
 
     /**
@@ -21,7 +19,7 @@ public class Recurso extends Item {
     }
 
     /**
-     * Obtiene las opciones disponibles para el recurso (normalmente solo 'Tirar').
+     * Obtiene las opciones disponibles para el recurso
      * Recursos especiales deben sobrescribir esto en subclases.
      * 
      * @return Lista de opciones.
@@ -30,9 +28,7 @@ public class Recurso extends Item {
     public List<String> getOpciones() {
         List<String> opciones = new ArrayList<>();
 
-        // Todos los recursos básicos solo se pueden tirar
-        // Los recursos con funcionalidad especial (como Baya Aranja para curar)
-        // deben ser creados como sus clases específicas (BayaAranja)
+        // Todos los recursos básicos se pueden tirar
         opciones.add("Tirar");
 
         return opciones;

@@ -12,10 +12,8 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.mypokemon.game.client.NetworkClient;
 
-/**
- * Pantalla para la conexión en modo multijugador compartido (Red Local).
- * Busca servidores automáticamente y gestiona la conexión.
- */
+// Pantalla para la conexión en modo multijugador compartido (Red Local).
+
 public class CompartidaScreen extends BaseScreen {
 
     private String playerName;
@@ -51,10 +49,8 @@ public class CompartidaScreen extends BaseScreen {
         startDiscovery();
     }
 
-    /**
-     * Inicia el proceso de descubrimiento de servidores en un hilo separado.
-     * Utiliza UDP para encontrar el servidor y luego TCP para conectar.
-     */
+    // Inicia el proceso de descubrimiento de servidores en un hilo separado.
+    // Utiliza UDP para encontrar el servidor y luego TCP para conectar.
     private void startDiscovery() {
         statusText = "Buscando Servidor en RED LOCAL...";
         isConnecting = true;

@@ -6,11 +6,8 @@ import com.mypokemon.game.inventario.exceptions.EspacioException;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Maneja la lógica de crafteo (creación de objetos).
- * Responsable de validar requisitos, consumir materiales y producir nuevos
- * ítems.
- */
+// Maneja la lógica de crafteo - Valida requisitos, consume materiales y produce nuevos ítems.
+
 public class Crafteo {
     private List<Receta> recetas;
 
@@ -23,31 +20,29 @@ public class Crafteo {
      * Consume los materiales del inventario si es posible.
      * 
      * @param idReceta   ID de la receta a utilizar.
-     * @param inventario Inventario del jugador donde se consumirán recursos y
-     *                   guardará el resultado.
+     * @param inventario Inventario del jugador donde se consumirán recursos y guardará el resultado.
      * @return El objeto crafteado exitosamente.
      * @throws IllegalArgumentException Si la receta no existe o faltan materiales.
-     * @throws EspacioException         Si no hay espacio suficiente en el
-     *                                  inventario.
+     * @throws EspacioException         Si no hay espacio suficiente en el inventario.
      */
+
     public ObjetoCrafteado craftear(String idReceta, Inventario inventario) throws EspacioException {
         Receta receta = obtenerReceta(idReceta);
         if (receta == null) {
             throw new IllegalArgumentException("Receta no encontrada: " + idReceta);
         }
 
-        // 1. Validar materiales
+        // 1. Valida materiales
         if (!tieneMateriales(receta, inventario)) {
             throw new IllegalArgumentException("Materiales insuficientes para craftear " + receta.getNombreResultado());
         }
 
-        // 2. Validar espacio
+        // 2. Valida espacio
         if (!inventario.validarEspacio(1)) {
             throw new EspacioException("¡Inventario lleno! No se puede craftear " + receta.getNombreResultado());
         }
 
-        // 3. Consumir materiales
-        // 3. Consumir materiales (Direct removal without Map)
+        // 3. Consume materiales
         if (receta.reqPlantas > 0) {
             if (!inventario.consumirItem("planta", receta.reqPlantas))
                 throw new IllegalStateException("Error al consumir planta");
@@ -61,15 +56,14 @@ public class Crafteo {
                 throw new IllegalStateException("Error al consumir baya");
         }
 
-        // 4. Crear objeto crafteado
+        // 4. Crea objeto crafteado
         ObjetoCrafteado resultado = ItemFactory.crearCrafteado(receta.getIdResultado(), 1);
 
-        // 5. Añadir al inventario
+        // 5. Agrega al inventario
         try {
             inventario.agregarItem(resultado);
         } catch (EspacioException e) {
-            // Revertir consumo de materiales si falla (aunque ya validamos espacio)
-            // En producción podría implementarse un sistema de transacciones
+            // Revertir consumo de materiales si falla
             throw e;
         }
 

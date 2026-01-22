@@ -8,11 +8,9 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Gestiona el almacenamiento de ítems del jugador.
- * Permite almacenar, añadir y consumir recursos y objetos crafteados.
- * Valida la capacidad disponible mediante excepciones.
- */
+// Gestiona el almacenamiento de ítems del jugador. 
+// Permite almacenar, añadir y consumir recursos y objetos crafteados.
+// Valida la capacidad disponible mediante excepciones.
 public class Inventario implements Serializable {
     private int capacidadMaxima;
     private List<Recurso> listRecursos;
@@ -39,8 +37,7 @@ public class Inventario implements Serializable {
         listObjCrafteados.add(ItemFactory.crearCrafteado("frijol", 0));
     }
 
-    // ========== VALIDACIÓN ==========
-
+    // Validación
     public int getCapacidadMaxima() {
         return capacidadMaxima;
     }
@@ -64,7 +61,7 @@ public class Inventario implements Serializable {
         return getCantidad(id);
     }
 
-    // ========== EXCEPCIONES ==========
+    // Excepciones
 
     public void espacioException() throws EspacioException {
         throw new EspacioException("¡Inventario lleno! No hay espacio disponible.");
@@ -74,7 +71,7 @@ public class Inventario implements Serializable {
         throw new PokeballException("¡No tienes Pokéballs disponibles!");
     }
 
-    // ========== MÉTODOS AUXILIARES ==========
+    // Métodos auxiliares
 
     private Recurso encontrarRecurso(String id) {
         for (Recurso r : listRecursos) {
@@ -94,7 +91,7 @@ public class Inventario implements Serializable {
         return null;
     }
 
-    // ========== OPERACIONES CRUD ==========
+    // Operaciones CRUD
 
     /**
      * Añade un ítem (Recurso u ObjetoCrafteado) al inventario.
@@ -126,8 +123,7 @@ public class Inventario implements Serializable {
      * 
      * @param id       ID del ítem a consumir.
      * @param cantidad Cantidad a restar.
-     * @return true si se consumió exitosamente, false si no existe o no hay
-     *         suficiente.
+     * @return true si se consumió exitosamente, false si no existe o no hay suficiente.
      */
     public boolean consumirItem(String id, int cantidad) {
         String idLower = id.toLowerCase();
@@ -167,10 +163,7 @@ public class Inventario implements Serializable {
         return 0;
     }
 
-    // Métodos de compatibilidad eliminados para cumplir con diseño OO estricto.
-    // Usar getCantidad(String id) en su lugar.
-
-    // ========== MÉTODOS DE VALIDACIÓN SIMPLE ==========
+    // Métodos de validación simple
 
     /**
      * Verifica si se puede agregar una cantidad de ítems al inventario.
@@ -191,8 +184,7 @@ public class Inventario implements Serializable {
     }
 
     /**
-     * Elimina un objeto crafteado del inventario (ej: penalización por perder
-     * batalla).
+     * Penalización por perder batalla.
      * 
      * @return El nombre del objeto eliminado, o null si no se eliminó nada.
      */
@@ -206,7 +198,7 @@ public class Inventario implements Serializable {
         return null;
     }
 
-    // ========== MÉTODOS PARA ACCEDER A ÍTEMS REALES ==========
+    // Métodos para acceder a ítems reales
 
     /**
      * Obtiene la lista de recursos almacenados.
@@ -227,8 +219,7 @@ public class Inventario implements Serializable {
     }
 
     /**
-     * Busca un ítem específico por su ID en todo el inventario (recursos y
-     * objetos).
+     * Busca un ítem específico por su ID en todo el inventario (recursos y objetos)
      * 
      * @param id ID del ítem a buscar.
      * @return El ítem encontrado, o null si no existe.

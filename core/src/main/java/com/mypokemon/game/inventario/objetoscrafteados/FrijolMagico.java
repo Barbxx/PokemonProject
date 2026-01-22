@@ -6,9 +6,7 @@ import com.mypokemon.game.inventario.ResultadoUso;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * Frijol Mágico - Restaura 100% HP.
- */
+// Frijol Mágico - Restaura 100% HP.
 public class FrijolMagico extends ItemCurativo {
 
     public FrijolMagico(int cantidad) {
@@ -17,6 +15,7 @@ public class FrijolMagico extends ItemCurativo {
 
     @Override
     public boolean puedeUsar(Pokemon pokemon) {
+        
         // Se puede usar siempre que no esté FULL HP
         return pokemon.getHpActual() < pokemon.getHpMaximo();
     }
