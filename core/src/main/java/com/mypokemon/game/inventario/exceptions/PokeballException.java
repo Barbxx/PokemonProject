@@ -1,14 +1,11 @@
 package com.mypokemon.game.inventario.exceptions;
 
-// Excepción lanzada cuando se intenta realizar una acción que requiere Pokéballs pero no hay ninguna disponible en el inventario.
-
+/**
+ * Excepción lanzada cuando no hay Pokéballs disponibles en el inventario.
+ * Checked exception - debe ser manejada explícitamente.
+ */
 public class PokeballException extends Exception {
 
-    /**
-     * Crea una nueva excepción con un mensaje detallado.
-     * 
-     * @param m El mensaje que describe el error (ej: "No tienes Pokéballs").
-     */
     public PokeballException(String m) {
         super(m);
     }

@@ -1,6 +1,10 @@
 package com.mypokemon.game.objects;
 
-// Representa al NPC Harry Potter. Ofrece diálogos temáticos y explica el sistema de investigación.
+/**
+ * Clase que representa al NPC Harry Potter.
+ * Ofrece diálogos con referencias temáticas y explica el sistema de
+ * investigación.
+ */
 public class HarryPotterNPC extends NPC {
     private static final String[] DIALOG = {
             "Expecto Patronum!... ¡Rayos! Ni una chispa, aquí tampoco sale el ciervo.",
@@ -11,10 +15,15 @@ public class HarryPotterNPC extends NPC {
             "¡Ánimo! Ponle el mismo empeño que a un partido de Quidditch, que no tengo un Giratiempo para repetir el día. ¡Date prisa!",
     };
 
-    // Constructor para Harry Potter.
+    /**
+     * Constructor para Harry Potter.
+     * 
+     * @param startX Posición inicial en X.
+     * @param startY Posición inicial en Y.
+     */
     public HarryPotterNPC(float startX, float startY) {
         super(startX, startY, 25, 35, "harryPotterSprite.png", "Entrenador Harry Potter", DIALOG);
-        setRetrato("harryPotter.png");
-        cargarMusica("MusicaHarryPotter.mp3");
+        setPortrait("harryPotter.png");
+        loadMusic("MusicaHarryPotter.mp3");
     }
 }

@@ -7,6 +7,7 @@ import java.net.*;
  * Servidor principal del juego multijugador.
  * Gestiona conexiones TCP y UDP, sincronización de estado y comunicación entre
  * jugadores.
+ * Versión duplicada/legacy de ServidorJuego.
  */
 public class GameServer {
     private static final int TCP_PORT = 54321;

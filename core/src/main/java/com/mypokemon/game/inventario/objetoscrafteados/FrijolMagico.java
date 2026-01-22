@@ -6,29 +6,34 @@ import com.mypokemon.game.inventario.ResultadoUso;
 import java.util.Arrays;
 import java.util.List;
 
-// Frijol Mágico - Restaura el 100% de HP del Pokémon.
+/**
+ * Frijol Mágico - Restaura 100% HP.
+ */
 public class FrijolMagico extends ItemCurativo {
 
     public FrijolMagico(int cantidad) {
-        super("frijol", "Frijol mágico", "Restaura el total de HP del Pokémon.", cantidad, 0);
+        super("frijol", "Frijol mágico", "Restaura el 100% de los PS del Pokémon.", cantidad, 0);
     }
 
     @Override
     public boolean puedeUsar(Pokemon pokemon) {
-        return pokemon.obtenerHpActual() < pokemon.obtenerHpMaximo();
+        // Se puede usar siempre que no esté FULL HP
+        return pokemon.getHpActual() < pokemon.getHpMaximo();
     }
 
     @Override
     public ResultadoUso usar(Pokemon pokemon, Inventario inventario) {
-        if (!puedeUsar(pokemon))
-            return ResultadoUso.fallo("El Pokémon ya tiene la salud al máximo.");
-        pokemon.curar(pokemon.obtenerHpMaximo());
+        if (pokemon.getHpActual() >= pokemon.getHpMaximo()) {
+            return ResultadoUso.fallo("El Pokémon ya está al máximo de salud.");
+        }
+
+        pokemon.recuperarSalud(pokemon.getHpMaximo());
         inventario.consumirItem(id, 1);
         return ResultadoUso.exito("¡HP restaurado al 100%!");
     }
 
     @Override
-    public List<String> obtenerOpciones() {
+    public List<String> getOpciones() {
         return Arrays.asList("Curar", "Tirar");
     }
 }

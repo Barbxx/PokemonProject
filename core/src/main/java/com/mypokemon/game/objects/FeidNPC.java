@@ -1,6 +1,9 @@
 package com.mypokemon.game.objects;
 
-// Representa al NPC Profesor Ferxxo (Feid). Proporciona diálogos de introducción y guía.
+/**
+ * Clase que representa al NPC Profesor Ferxxo (Feid).
+ * Proporciona diálogos de introducción al mundo y guía inicial.
+ */
 public class FeidNPC extends NPC {
     private static final String[] DIALOG = {
             "¡Epaaa! ¿Qué más pues, mor? ¡Bienvenido a la región OneFerxxo, el lugar más chimba del mundo!",
@@ -12,10 +15,15 @@ public class FeidNPC extends NPC {
             "¡Hágale pues! Arranque de una pa’ mi laboratorio que allá le uno. ¡Lo espero, no se me demore pues!"
     };
 
-    // Constructor para el Profesor Ferxxo.
+    /**
+     * Constructor para el Profesor Ferxxo.
+     * 
+     * @param startX Posición inicial en X.
+     * @param startY Posición inicial en Y.
+     */
     public FeidNPC(float startX, float startY) {
         super(startX, startY + 5, 25, 35, "feidSprite.png", "Profesor Ferxxo", DIALOG);
-        setRetrato("ferxxoCientifico.png");
-        cargarMusica("MusicaFeid.mp3");
+        setPortrait("ferxxoCientifico.png");
+        loadMusic("MusicaFeid.mp3");
     }
 }

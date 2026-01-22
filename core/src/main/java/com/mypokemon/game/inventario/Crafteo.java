@@ -1,10 +1,19 @@
 package com.mypokemon.game.inventario;
 
+import com.mypokemon.game.inventario.Inventario;
 import com.mypokemon.game.inventario.exceptions.SpaceException;
+
 import java.util.ArrayList;
 import java.util.List;
 
-// Maneja la lógica de fabricación (crafteo) de objetos: validación, consumo de recursos y creación.
+/**
+ * Maneja toda la lógica de crafteo.
+ * Responsabilidades:
+ * - Validar si se puede craftear
+ * - Consumir materiales del inventario
+ * - Crear objetos usando ItemFactory
+ * - Añadir resultados al inventario
+ */
 public class Crafteo {
     private List<Receta> recetas;
 
@@ -12,22 +21,33 @@ public class Crafteo {
         this.recetas = RecetaFactory.crearTodasLasRecetas();
     }
 
-    // Intenta fabricar un objeto consumiendo materiales y validando el espacio en
-    // el inventario.
-    public ItemCrafteado craftear(String idReceta, Inventario inventario) throws SpaceException {
-        Receta receta = buscarRecetaPorId(idReceta);
+    /**
+     * Intenta craftear un ítem.
+     * 
+     * @param idReceta   ID de la receta a craftear
+     * @param inventario Inventario del jugador
+     * @return ObjetoCrafteado creado
+     * @throws IllegalArgumentException si no existe la receta o faltan materiales
+     * @throws EspacioException         si no hay espacio en el inventario
+     */
+    public ObjetoCrafteado craftear(String idReceta, Inventario inventario) throws SpaceException {
+        Receta receta = obtenerReceta(idReceta);
         if (receta == null) {
             throw new IllegalArgumentException("Receta no encontrada: " + idReceta);
         }
 
-        if (!verificarMateriales(receta, inventario)) {
-            throw new IllegalArgumentException("Materiales insuficientes para fabricar " + receta.getNombreResultado());
+        // 1. Validar materiales
+        if (!tieneMateriales(receta, inventario)) {
+            throw new IllegalArgumentException("Materiales insuficientes para craftear " + receta.getNombreResultado());
         }
 
+        // 2. Validar espacio
         if (!inventario.validarEspacio(1)) {
-            throw new SpaceException("¡Inventario lleno! No se puede fabricar " + receta.getNombreResultado());
+            throw new SpaceException("¡Inventario lleno! No se puede craftear " + receta.getNombreResultado());
         }
 
+        // 3. Consumir materiales
+        // 3. Consumir materiales (Direct removal without Map)
         if (receta.reqPlantas > 0) {
             if (!inventario.consumirItem("planta", receta.reqPlantas))
                 throw new IllegalStateException("Error al consumir planta");
@@ -41,48 +61,75 @@ public class Crafteo {
                 throw new IllegalStateException("Error al consumir baya");
         }
 
-        ItemCrafteado resultado = ObjectFactory.crearCrafteado(receta.getIdResultado(), 1);
+        // 4. Crear objeto crafteado
+        ObjetoCrafteado resultado = ItemFactory.crearCrafteado(receta.getIdResultado(), 1);
+
+        // 5. Añadir al inventario
         try {
             inventario.agregarItem(resultado);
         } catch (SpaceException e) {
+            // Revertir consumo de materiales si falla (aunque ya validamos espacio)
+            // En producción podría implementarse un sistema de transacciones
             throw e;
         }
 
-        System.out.println("¡Fabricación exitosa: " + resultado.obtenerNombre() + "!");
+        System.out.println("¡Crafteado exitoso: " + resultado.getNombre() + "!");
         return resultado;
     }
 
-    // Verifica si es posible fabricar un objeto (materiales y espacio).
-    public boolean puedeFabricar(String idReceta, Inventario inventario) {
-        Receta receta = buscarRecetaPorId(idReceta);
-        return receta != null && verificarMateriales(receta, inventario) && inventario.validarEspacio(1);
+    /**
+     * Verifica si se puede craftear una receta.
+     * 
+     * @param idReceta   ID de la receta
+     * @param inventario Inventario del jugador
+     * @return true si se puede craftear
+     */
+    public boolean puedeCrear(String idReceta, Inventario inventario) {
+        Receta receta = obtenerReceta(idReceta);
+        if (receta == null) {
+            return false;
+        }
+
+        return tieneMateriales(receta, inventario) && inventario.validarEspacio(1);
     }
 
-    // Obtiene las recetas que se pueden fabricar con los materiales actuales.
+    /**
+     * Obtiene todas las recetas que se pueden craftear actualmente.
+     * 
+     * @param inventario Inventario del jugador
+     * @return Lista de recetas disponibles
+     */
     public List<Receta> obtenerRecetasDisponibles(Inventario inventario) {
         List<Receta> disponibles = new ArrayList<>();
-        for (Receta r : recetas) {
-            if (puedeFabricar(r.getIdResultado(), inventario))
-                disponibles.add(r);
+        for (Receta receta : recetas) {
+            if (puedeCrear(receta.getIdResultado(), inventario)) {
+                disponibles.add(receta);
+            }
         }
         return disponibles;
     }
 
+    /**
+     * Obtiene todas las recetas del juego.
+     */
     public List<Receta> obtenerTodasLasRecetas() {
         return new ArrayList<>(recetas);
     }
 
-    private Receta buscarRecetaPorId(String id) {
-        for (Receta r : recetas) {
-            if (r.getIdResultado().equalsIgnoreCase(id))
-                return r;
+    // Métodos privados auxiliares
+
+    private Receta obtenerReceta(String idReceta) {
+        for (Receta receta : recetas) {
+            if (receta.getIdResultado().equalsIgnoreCase(idReceta)) {
+                return receta;
+            }
         }
         return null;
     }
 
-    private boolean verificarMateriales(Receta r, Inventario inv) {
-        return inv.verificarDisponibilidad("planta") >= r.reqPlantas &&
-                inv.verificarDisponibilidad("guijarro") >= r.reqGuijarros &&
-                inv.verificarDisponibilidad("baya") >= r.reqBayas;
+    private boolean tieneMateriales(Receta receta, Inventario inventario) {
+        return inventario.verificarDisponibilidad("planta") >= receta.reqPlantas &&
+                inventario.verificarDisponibilidad("guijarro") >= receta.reqGuijarros &&
+                inventario.verificarDisponibilidad("baya") >= receta.reqBayas;
     }
 }

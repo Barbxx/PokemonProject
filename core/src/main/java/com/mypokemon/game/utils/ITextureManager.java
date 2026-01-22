@@ -2,16 +2,32 @@ package com.mypokemon.game.utils;
 
 import com.badlogic.gdx.graphics.Texture;
 
-// Interfaz para la gestión consistente de texturas en las pantallas.
+/**
+ * Interface for consistent texture management across screens.
+ * Implementing classes should handle texture loading and disposal
+ * automatically.
+ */
 public interface ITextureManager {
 
-    // Carga una textura desde la ruta especificada y la registra para su
-    // liberación.
-    Texture cargarTextura(String ruta);
+    /**
+     * Loads a texture from the specified path and registers it for automatic
+     * disposal.
+     * 
+     * @param path Path to the texture file
+     * @return Loaded texture, or null if loading fails
+     */
+    Texture loadTexture(String path);
 
-    // Registra una textura para su liberación automática al cerrar la pantalla.
-    void agregarTextura(Texture textura);
+    /**
+     * Registers a texture for automatic disposal when the screen is disposed.
+     * 
+     * @param texture Texture to register
+     */
+    void addTexture(Texture texture);
 
-    // Libera todas las texturas registradas.
-    void liberarTexturas();
+    /**
+     * Disposes all registered textures.
+     * This is called automatically by the screen's dispose method.
+     */
+    void disposeTextures();
 }

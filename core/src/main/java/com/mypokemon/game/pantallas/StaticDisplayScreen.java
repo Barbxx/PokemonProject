@@ -1,6 +1,7 @@
 package com.mypokemon.game.pantallas;
 
 import com.mypokemon.game.PokemonMain;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
@@ -10,76 +11,95 @@ import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
-// Clase base abstracta para pantallas estáticas que solo muestran una imagen de fondo.
+/**
+ * Clase base abstracta para pantallas estáticas (que solo muestran una imagen).
+ * Proporciona renderizado automático de fondo, cámara ortográfica con viewport
+ * fijo
+ * y manejo de la tecla ESC para regresar.
+ */
 public abstract class StaticDisplayScreen extends BaseScreen implements INavigable {
 
-    protected Texture texturaFondo;
-    protected final Screen pantallaRetorno;
+    protected Texture background;
+    protected final Screen returnScreen;
 
-    protected OrthographicCamera camara;
-    protected Viewport vista;
-    protected static final float ANCHO_VIRTUAL = 1280f;
-    protected static final float ALTO_VIRTUAL = 720f;
+    // Camera and Viewport for fixed aspect ratio
+    protected OrthographicCamera camera;
+    protected Viewport viewport;
+    protected static final float VIRTUAL_WIDTH = 1280f;
+    protected static final float VIRTUAL_HEIGHT = 720f;
 
-    public StaticDisplayScreen(PokemonMain juego, Screen pantallaRetorno, String rutaFondo) {
-        super(juego);
-        this.pantallaRetorno = pantallaRetorno;
-        this.texturaFondo = cargarTextura(rutaFondo);
+    public StaticDisplayScreen(PokemonMain game, Screen returnScreen, String backgroundPath) {
+        super(game);
+        this.returnScreen = returnScreen;
+        this.background = loadTexture(backgroundPath);
 
-        camara = new OrthographicCamera();
-        vista = new FitViewport(ANCHO_VIRTUAL, ALTO_VIRTUAL, camara);
-        vista.apply();
-        camara.position.set(ANCHO_VIRTUAL / 2, ALTO_VIRTUAL / 2, 0);
-        camara.update();
+        // Setup camera and viewport
+        camera = new OrthographicCamera();
+        viewport = new FitViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, camera);
+        viewport.apply();
+        camera.position.set(VIRTUAL_WIDTH / 2, VIRTUAL_HEIGHT / 2, 0);
+        camera.update();
     }
 
     @Override
     public void render(float delta) {
+        // Handle ESC to go back
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE) || Gdx.input.isKeyJustPressed(Input.Keys.BACKSPACE)) {
-            navegarAtras();
+            navigateBack();
             return;
         }
+
         ScreenUtils.clear(0f, 0f, 0f, 1f);
-        camara.update();
-        juego.batch.setProjectionMatrix(camara.combined);
-        juego.batch.begin();
-        dibujarFondo();
-        dibujarContenido(delta);
-        juego.batch.end();
+
+        camera.update();
+        game.batch.setProjectionMatrix(camera.combined);
+
+        game.batch.begin();
+        renderBackground();
+        renderContent(delta);
+        game.batch.end();
     }
 
-    // Renderiza la imagen de fondo para llenar la pantalla virtual.
-    protected void dibujarFondo() {
-        if (texturaFondo != null)
-            juego.batch.draw(texturaFondo, 0, 0, ANCHO_VIRTUAL, ALTO_VIRTUAL);
+    /**
+     * Renderiza la imagen de fondo para llenar la pantalla virtual.
+     */
+    protected void renderBackground() {
+        if (background != null) {
+            game.batch.draw(background, 0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
+        }
     }
 
-    // Sobrescribir para renderizar contenido adicional.
-    protected void dibujarContenido(float delta) {
+    /**
+     * Sobrescribe esto para renderizar contenido adicional sobre el fondo.
+     * 
+     * @param delta Tiempo transcurrido desde el último frame.
+     */
+    protected void renderContent(float delta) {
+        // Override in subclasses if needed
     }
 
     @Override
     public void resize(int width, int height) {
-        vista.update(width, height, true);
-        camara.position.set(ANCHO_VIRTUAL / 2, ALTO_VIRTUAL / 2, 0);
+        viewport.update(width, height, true);
+        camera.position.set(VIRTUAL_WIDTH / 2, VIRTUAL_HEIGHT / 2, 0);
     }
 
     @Override
-    public void navegarAtras() {
-        if (pantallaRetorno != null) {
-            juego.setScreen(pantallaRetorno);
+    public void navigateBack() {
+        if (returnScreen != null) {
+            game.setScreen(returnScreen);
             dispose();
         }
     }
 
     @Override
-    public void navegarA(Screen pantalla) {
-        juego.setScreen(pantalla);
+    public void navigateTo(Screen screen) {
+        game.setScreen(screen);
         dispose();
     }
 
     @Override
-    public Screen obtenerPantallaRetorno() {
-        return pantallaRetorno;
+    public Screen getReturnScreen() {
+        return returnScreen;
     }
 }

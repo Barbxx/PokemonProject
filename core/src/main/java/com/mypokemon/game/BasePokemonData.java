@@ -1,5 +1,8 @@
 package com.mypokemon.game;
 
+import java.util.TreeMap;
+import java.util.Map;
+
 /**
  * Alias para DatosBasePokemon - mantiene compatibilidad con código existente.
  * 

@@ -4,6 +4,7 @@ import com.mypokemon.game.PokemonMain;
 import com.mypokemon.game.Explorador;
 import com.mypokemon.game.inventario.Inventario;
 import com.mypokemon.game.Pokemon;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
@@ -13,602 +14,1103 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
+
 import java.util.ArrayList;
 import java.util.List;
-import com.badlogic.gdx.Screen;
-import com.mypokemon.game.inventario.Item;
 
-// Pantalla del inventario (Mochila). Permite gestionar objetos y el equipo Pokémon.
+import com.badlogic.gdx.Screen;
+import com.mypokemon.game.inventario.Objeto;
+
+/**
+ * Pantalla del inventario (Mochila).
+ * Utiliza lógica de SpriteBatch para renderizar la cuadrícula de objetos y
+ * Pokémon.
+ * Gestiona el uso de ítems y el equipo Pokémon del jugador.
+ */
 public class MochilaScreen extends BaseScreen {
     private final Explorador explorador;
-    private Texture texturaFondo;
-    private Texture[] botonesNormales, botonesSeleccionados;
-    private String[] nombresBotones = { "botonIrojo", "botonIazul", "botonIamarillo", "botonImorado" };
+    private Texture background;
+    private Texture[] buttonsNormal;
+    private Texture[] buttonsSelected;
+    private String[] buttonNames = { "botonIrojo", "botonIazul", "botonIamarillo", "botonImorado" };
 
-    private Texture texturaPokebola, texturaPlanta, texturaGuijarro, texturaBaya;
-    private Texture texturaPocionHerbal, texturaElixir, texturaRevivir, texturaReproductor, texturaGuante;
-    private Texture texturaHeavyBall, texturaFrijol, texturaFondoEspacio, pixelBlanco;
-    private com.badlogic.gdx.graphics.g2d.BitmapFont fuenteContador;
+    // Item Textures
+    private Texture texPokeball;
+    private Texture texPlanta;
+    private Texture texGuijarro;
+    private Texture texBaya;
 
-    private java.util.Map<String, Texture> cacheTexturasPokemon = new java.util.TreeMap<>();
+    // New Potion/Item Textures
+    private Texture texPocionHerbal;
+    private Texture texElixir;
+    private Texture texRevivir;
+    private Texture texReproductor;
+    private Texture texGuante;
 
-    public class DatosElemento {
-        public String nombre, descripcion;
+    // New Textures for Heavy Ball and Lure
+    private Texture texHeavyBall;
+    private Texture texFrijol;
+
+    // New Texture for Green Frame
+    private Texture texMarcoVerde;
+
+    /**
+     * Cache de texturas para los Pokémon del equipo, para evitar recargas
+     * constantes.
+     */
+    private java.util.Map<String, Texture> pokemonTextureCache = new java.util.TreeMap<>();
+
+    /**
+     * Modelo de datos para representar un elemento (ítem o Pokémon) en la
+     * cuadrícula.
+     */
+    public class ItemData {
+        /** Nombre legible del elemento. */
+        public String nombre;
+        /** Descripción breve del efecto o naturaleza del elemento. */
+        public String descripcion;
+        /** Textura visual para mostrar en la mochila. */
         public Texture textura;
+        /** Cantidad disponible en el inventario. */
         public int cantidad;
-        public Item objetoReal;
+        /** Referencia al objeto lógico del sistema de inventario (si aplica). */
+        public Objeto itemReal;
 
-        public DatosElemento(String n, String d, Texture t, int c, Item o) {
-            this.nombre = n;
-            this.descripcion = d;
-            this.textura = t;
-            this.cantidad = c;
-            this.objetoReal = o;
+        public ItemData(String nombre, String descripcion, Texture textura, int cantidad, Objeto itemReal) {
+            this.nombre = nombre;
+            this.descripcion = descripcion;
+            this.textura = textura;
+            this.cantidad = cantidad;
+            this.itemReal = itemReal;
         }
 
-        public DatosElemento(String n, String d, Texture t, int c) {
-            this(n, d, t, c, null);
+        /** Constructor de compatibilidad para Pokémon. */
+        public ItemData(String nombre, String descripcion, Texture textura, int cantidad) {
+            this(nombre, descripcion, textura, cantidad, null);
         }
     }
 
-    private List<DatosElemento> elementosVisibles = new ArrayList<>();
-    private float anchoBoton = 140, altoBoton = 140;
-    private float[][] posicionesBotones;
-    private int indiceCategoriaSeleccionada = 0, indiceElementoSeleccionado = 0;
-    private OrthographicCamera camara;
+    private List<ItemData> visibleItems = new ArrayList<>();
+
+    private float buttonWidth = 140; // Increased size as requested
+    private float buttonHeight = 140;
+    private float[][] buttonPositions;
+    private int selectedIndex = 0; // Category Selection
+
+    // User requested fields
+    private Texture textureFondoSlot; // Will generate procedurally if missing
+    private com.badlogic.gdx.graphics.g2d.BitmapFont fontContador;
+    private int indexSeleccionado = 0; // 0 to 20
+    private Texture whitePixel; // Kept for selection box if needed
+
+    private OrthographicCamera camera;
     private Viewport viewport;
-    private final Screen pantallaRetorno;
+    private final Screen returnScreen;
+    private final float VIRTUAL_WIDTH = 1280;
+    private final float VIRTUAL_HEIGHT = 720;
+
     private Vector3 mousePos = new Vector3();
 
-    private enum EstadoInventario {
-        NAVEGANDO, MENU_OPCIONES, SELECCIONAR_POKEMON_OBJETIVO
+    /**
+     * Estados del flujo de la mochila.
+     */
+    private enum InventoryState {
+        BROWSING, // Navegando por el inventario
+        OPTIONS_MENU, // Menú de opciones abierto para un ítem
+        SELECT_POKEMON_TARGET, // Seleccionando un Pokémon para usar un ítem
+        SELECT_MOVE_TARGET // Reservado para futura expansión
     }
 
-    private EstadoInventario estadoActual = EstadoInventario.NAVEGANDO;
-    private List<String> opcionesActuales = new ArrayList<>();
-    private int indiceOpcionSeleccionada = 0;
-    private DatosElemento elementoSeleccionadoParaAccion = null;
-    private String mensajeFeedback = "";
-    private float temporizadorFeedback = 0;
+    private InventoryState currentState = InventoryState.BROWSING;
 
-    public MochilaScreen(PokemonMain juego, Screen pantallaRetorno, Explorador explorador) {
-        super(juego);
-        this.pantallaRetorno = pantallaRetorno;
+    // Options Menu Data
+    private List<String> currentOptions = new ArrayList<>();
+    private int selectedOptionIndex = 0;
+    private ItemData selectedItemForAction = null;
+    // currentActionType eliminado - ya no se necesita con el sistema OO
+
+    // Feedback
+    private String feedbackMessage = "";
+    private float feedbackTimer = 0;
+
+    /**
+     * Constructor de la pantalla de mochila.
+     * 
+     * @param game         Instancia principal del juego.
+     * @param returnScreen Pantalla a la que regresar.
+     * @param explorador   Datos del explorador (inventario).
+     */
+    public MochilaScreen(PokemonMain game, Screen returnScreen, Explorador explorador) {
+        super(game);
+        this.returnScreen = returnScreen;
         this.explorador = explorador;
-        camara = new OrthographicCamera();
-        viewport = new FitViewport(1280, 720, camara);
-        camara.position.set(640, 360, 0);
+        Gdx.app.log("MochilaScreen", "Constructor call started");
 
-        botonesNormales = new Texture[nombresBotones.length];
-        botonesSeleccionados = new Texture[nombresBotones.length];
+        // Initialize Camera and Viewport
+        camera = new OrthographicCamera();
+        viewport = new FitViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, camera);
+        camera.position.set(VIRTUAL_WIDTH / 2, VIRTUAL_HEIGHT / 2, 0);
+
+        // Initialize arrays early to avoid NullPointerException in render
+        buttonsNormal = new Texture[buttonNames.length];
+        buttonsSelected = new Texture[buttonNames.length];
+
+        // Load Background and Buttons
         try {
-            texturaFondo = cargarTextura("fondoMochila.png");
-            for (int i = 0; i < nombresBotones.length; i++) {
-                botonesNormales[i] = cargarTextura(nombresBotones[i] + ".png");
-                botonesSeleccionados[i] = cargarTextura(nombresBotones[i] + "_seleccionado.png");
+            background = new Texture(Gdx.files.internal("fondoMochila.png"));
+            Gdx.app.log("MochilaScreen", "Background loaded successfully");
+
+            for (int i = 0; i < buttonNames.length; i++) {
+                buttonsNormal[i] = new Texture(Gdx.files.internal(buttonNames[i] + ".png"));
+                buttonsSelected[i] = new Texture(Gdx.files.internal(buttonNames[i] + "_seleccionado.png"));
             }
-            texturaPokebola = cargarTextura("pokeball.png");
-            texturaPlanta = cargarTextura("planta.png");
-            texturaGuijarro = cargarTextura("guijarro.png");
-            texturaBaya = cargarTextura("baya.png");
-            texturaPocionHerbal = cargarTextura("pocionherbal.png");
-            texturaElixir = cargarTextura("elixirPielPiedra.png");
-            texturaRevivir = cargarTextura("revivircasero.png");
-            texturaReproductor = cargarTextura("reproductor.png");
-            texturaGuante = cargarTextura("guanteReflejo.png");
-            texturaHeavyBall = cargarTextura("pokeballpeso.png");
-            texturaFrijol = cargarTextura("frijolMagico.png");
+            Gdx.app.log("MochilaScreen", "Buttons loaded successfully");
+
+            // Load Item Textures
+            try {
+                texPokeball = new Texture(Gdx.files.internal("pokeball.png"));
+            } catch (Exception e) {
+                Gdx.app.error("Mochila", "Missing pokeball.png");
+            }
+            try {
+                texPlanta = new Texture(Gdx.files.internal("planta.png"));
+            } catch (Exception e) {
+                Gdx.app.error("Mochila", "Missing planta.png");
+            }
+            try {
+                texGuijarro = new Texture(Gdx.files.internal("guijarro.png"));
+            } catch (Exception e) {
+                Gdx.app.error("Mochila", "Missing guijarro.png");
+            }
+            try {
+                texBaya = new Texture(Gdx.files.internal("baya.png"));
+            } catch (Exception e) {
+                Gdx.app.error("Mochila", "Missing baya.png");
+            }
+
+            // Load new textures
+            try {
+                texPocionHerbal = new Texture(Gdx.files.internal("pocionherbal.png"));
+            } catch (Exception e) {
+                Gdx.app.error("Mochila", "Missing pocionherbal.png");
+            }
+            try {
+                texElixir = new Texture(Gdx.files.internal("elixirPielPiedra.png"));
+            } catch (Exception e) {
+                Gdx.app.error("Mochila", "Missing elixirPielPiedra.png");
+            }
+            try {
+                texRevivir = new Texture(Gdx.files.internal("revivircasero.png"));
+            } catch (Exception e) {
+                Gdx.app.error("Mochila", "Missing revivircasero.png");
+            }
+            try {
+                texReproductor = new Texture(Gdx.files.internal("reproductor.png"));
+            } catch (Exception e) {
+                Gdx.app.error("Mochila", "Missing reproductor.png");
+            }
+            try {
+                texGuante = new Texture(Gdx.files.internal("guanteReflejo.png"));
+            } catch (Exception e) {
+                Gdx.app.error("Mochila", "Missing guanteReflejo.png");
+            }
+            try {
+                texHeavyBall = new Texture(Gdx.files.internal("pokeballpeso.png"));
+            } catch (Exception e) {
+                Gdx.app.error("Mochila", "Missing pokeballpeso.png");
+            }
+            try {
+                texFrijol = new Texture(Gdx.files.internal("frijolMagico.png"));
+            } catch (Exception e) {
+                Gdx.app.error("Mochila", "Missing frijolMagico.png");
+            }
+            try {
+                texMarcoVerde = new Texture(Gdx.files.internal("marcoVerde.png"));
+            } catch (Exception e) {
+                Gdx.app.error("Mochila", "Missing marcoVerde.png");
+            }
+
         } catch (Exception e) {
-            Gdx.app.error("Mochila", "Error cargando texturas");
+            Gdx.app.error("MochilaScreen", "Error loading textures: " + e.getMessage());
         }
 
-        posicionesBotones = new float[nombresBotones.length][2];
-        float anchoTotal = (nombresBotones.length * anchoBoton) + ((nombresBotones.length - 1) * 20);
-        float startX = (1280 - anchoTotal) / 2, startY = 720 - 220;
-        for (int i = 0; i < nombresBotones.length; i++) {
-            posicionesBotones[i][0] = startX + i * (anchoBoton + 20);
-            posicionesBotones[i][1] = startY;
+        // Define Button Positions
+        buttonPositions = new float[buttonNames.length][2];
+        float totalWidth = (buttonNames.length * buttonWidth) + ((buttonNames.length - 1) * 20);
+        float startX = (VIRTUAL_WIDTH - totalWidth) / 2;
+        float startY = VIRTUAL_HEIGHT - 220;
+
+        for (int i = 0; i < buttonNames.length; i++) {
+            buttonPositions[i][0] = startX + i * (buttonWidth + 20);
+            buttonPositions[i][1] = startY;
         }
 
-        com.badlogic.gdx.graphics.Pixmap px = new com.badlogic.gdx.graphics.Pixmap(1, 1,
+        // Create white pixel
+        com.badlogic.gdx.graphics.Pixmap pixmap = new com.badlogic.gdx.graphics.Pixmap(1, 1,
                 com.badlogic.gdx.graphics.Pixmap.Format.RGBA8888);
-        px.setColor(Color.WHITE);
-        px.fill();
-        pixelBlanco = new Texture(px);
-        agregarTextura(pixelBlanco);
-        px.setColor(0, 0, 0, 0.5f);
-        px.fill();
-        texturaFondoEspacio = new Texture(px);
-        agregarTextura(texturaFondoEspacio);
-        px.dispose();
+        pixmap.setColor(Color.WHITE);
+        pixmap.fill();
+        whitePixel = new Texture(pixmap);
 
-        fuenteContador = new com.badlogic.gdx.graphics.g2d.BitmapFont();
-        fuenteContador.getData().setScale(2.0f);
-        actualizarElementosVisibles();
+        // Create dark gray pixel
+        pixmap.setColor(0.0f, 0.0f, 0.0f, 0.5f);
+        pixmap.fill();
+        textureFondoSlot = new Texture(pixmap);
+        pixmap.dispose();
+
+        // Configuración de fuentes
+        fontContador = new com.badlogic.gdx.graphics.g2d.BitmapFont();
+        fontContador.getData().setScale(2.0f); // Aumentado de 1.5f a 2.0f
+
+        Gdx.app.log("MochilaScreen", "Positions and assets initialized");
+        updateVisibleItems();
     }
 
+    /**
+     * Se llama cuando esta pantalla se convierte en la pantalla actual.
+     * Desactiva el InputProcessor actual para evitar interferencias.
+     */
     @Override
     public void show() {
-        Gdx.input.setInputProcessor(null);
+        Gdx.input.setInputProcessor(null); // Clear input processor to avoid previous screen interference
     }
 
-    public void establecerIndiceSeleccion(int i) {
-        this.indiceCategoriaSeleccionada = i;
-        actualizarElementosVisibles();
-        this.indiceElementoSeleccionado = 0;
-    }
-
+    /**
+     * Renderiza el contenido de la mochila, incluyendo pestañas, cuadrícula y
+     * menús.
+     * 
+     * @param delta Tiempo transcurrido desde el último frame.
+     */
     @Override
     public void render(float delta) {
-        if (temporizadorFeedback > 0)
-            temporizadorFeedback -= delta;
+        // Feedback Timer
+        if (feedbackTimer > 0) {
+            feedbackTimer -= delta;
+        }
+
         ScreenUtils.clear(Color.BLACK);
+
         viewport.apply();
-        juego.batch.setProjectionMatrix(camara.combined);
+        game.batch.setProjectionMatrix(camera.combined);
+
+        // Track mouse position
         mousePos.set(Gdx.input.getX(), Gdx.input.getY(), 0);
         viewport.unproject(mousePos);
 
-        juego.batch.begin();
-        if (texturaFondo != null)
-            juego.batch.draw(texturaFondo, 0, 0, 1280, 720);
+        game.batch.begin();
 
-        if (estadoActual == EstadoInventario.NAVEGANDO)
-            gestionarEntradaNavegacion();
-        else if (estadoActual == EstadoInventario.MENU_OPCIONES)
-            gestionarEntradaMenuOpciones();
-        else if (estadoActual == EstadoInventario.SELECCIONAR_POKEMON_OBJETIVO)
-            gestionarEntradaSeleccionPokemon();
-
-        if (estadoActual == EstadoInventario.SELECCIONAR_POKEMON_OBJETIVO && indiceCategoriaSeleccionada != 3) {
-            indiceCategoriaSeleccionada = 3;
-            actualizarElementosVisibles();
+        if (background != null) {
+            game.batch.draw(background, 0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
         }
 
-        dibujarPestanas(juego.batch);
-        dibujarEspaciosCuadricula(juego.batch);
-        dibujarContenidoCuadricula(juego.batch);
-
-        if (estadoActual == EstadoInventario.NAVEGANDO)
-            dibujarExplicacion(juego.batch);
-        else if (estadoActual == EstadoInventario.MENU_OPCIONES) {
-            dibujarMenuOpciones(juego.batch);
-            dibujarExplicacion(juego.batch);
-        } else if (estadoActual == EstadoInventario.SELECCIONAR_POKEMON_OBJETIVO)
-            dibujarInstruccionSeleccion(juego.batch);
-
-        if (temporizadorFeedback > 0) {
-            juego.fuente.setColor(Color.RED);
-            juego.fuente.getData().setScale(2.0f);
-            juego.fuente.draw(juego.batch, mensajeFeedback, 100, 80);
-            juego.fuente.getData().setScale(1.0f);
-            juego.fuente.setColor(Color.WHITE);
+        // STATE DELEGATION
+        if (currentState == InventoryState.BROWSING) {
+            handleBrowsingInput();
+        } else if (currentState == InventoryState.OPTIONS_MENU) {
+            handleOptionsMenuInput();
+        } else if (currentState == InventoryState.SELECT_POKEMON_TARGET) {
+            handlePokemonTargetInput();
         }
-        juego.batch.end();
+
+        // Draw Main UI (Always visible mostly)
+        // If selecting pokemon, we might want to highlight the pokemon tab
+        if (currentState == InventoryState.SELECT_POKEMON_TARGET && selectedIndex != 3) {
+            selectedIndex = 3; // Force view to Pokemon
+            updateVisibleItems(); // Refresh view
+        }
+
+        drawTabs(game.batch);
+        drawGridSlots(game.batch);
+        drawGridContent(game.batch);
+
+        // Contextual overlays
+        if (currentState == InventoryState.BROWSING) {
+            dibujarExplicacion(game.batch);
+        } else if (currentState == InventoryState.OPTIONS_MENU) {
+            drawOptionsMenu(game.batch);
+            dibujarExplicacion(game.batch); // Still show info
+        } else if (currentState == InventoryState.SELECT_POKEMON_TARGET) {
+            drawPokemonSelectionPrompt(game.batch);
+        }
+
+        // Draw Feedback Message (abajo a la izquierda, en rojo)
+        if (feedbackTimer > 0) {
+            game.font.setColor(Color.RED);
+            game.font.getData().setScale(2.0f); // Aumentado de 1.2f a 2.0f
+            game.font.draw(game.batch, feedbackMessage, 100, 80);
+            game.font.getData().setScale(1.0f);
+            game.font.setColor(Color.WHITE);
+        }
+
+        game.batch.end();
     }
 
-    private void gestionarEntradaNavegacion() {
+    // -- INPUT HANDLERS --
+
+    private void handleBrowsingInput() {
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE) || Gdx.input.isKeyJustPressed(Input.Keys.I)) {
-            juego.setScreen(pantallaRetorno);
-            return;
-        }
-        gestionarNavegacionCuadricula();
-        if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
-            int total = (indiceCategoriaSeleccionada == 3) ? explorador.obtenerEquipo().size()
-                    : elementosVisibles.size();
-            if (indiceElementoSeleccionado < total) {
-                elementoSeleccionadoParaAccion = (indiceCategoriaSeleccionada < 3)
-                        ? elementosVisibles.get(indiceElementoSeleccionado)
-                        : null;
-                abrirMenuOpciones(elementoSeleccionadoParaAccion);
-            }
-        }
-        if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
-            if (mousePos.x >= 100 && mousePos.x <= 250 && mousePos.y >= 160 && mousePos.y <= 200) {
-                int total = (indiceCategoriaSeleccionada == 3) ? explorador.obtenerEquipo().size()
-                        : elementosVisibles.size();
-                if (indiceElementoSeleccionado < total) {
-                    elementoSeleccionadoParaAccion = (indiceCategoriaSeleccionada < 3)
-                            ? elementosVisibles.get(indiceElementoSeleccionado)
-                            : null;
-                    abrirMenuOpciones(elementoSeleccionadoParaAccion);
-                }
-            }
-        }
-    }
-
-    private void gestionarEntradaMenuOpciones() {
-        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
-            estadoActual = EstadoInventario.NAVEGANDO;
-            return;
-        }
-        if (Gdx.input.isKeyJustPressed(Input.Keys.UP)) {
-            indiceOpcionSeleccionada = (indiceOpcionSeleccionada <= 0) ? opcionesActuales.size() - 1
-                    : indiceOpcionSeleccionada - 1;
-        }
-        if (Gdx.input.isKeyJustPressed(Input.Keys.DOWN)) {
-            indiceOpcionSeleccionada = (indiceOpcionSeleccionada >= opcionesActuales.size() - 1) ? 0
-                    : indiceOpcionSeleccionada + 1;
-        }
-        float mx = 100, my = 720 - 150;
-        for (int i = 0; i < opcionesActuales.size(); i++) {
-            float y = my - (i * 50);
-            if (mousePos.x >= mx && mousePos.x <= mx + 250 && mousePos.y >= y - 40 && mousePos.y <= y) {
-                if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
-                    indiceOpcionSeleccionada = i;
-                    ejecutarOpcion(opcionesActuales.get(i));
-                    return;
-                }
-                indiceOpcionSeleccionada = i;
-            }
-        }
-        if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER))
-            ejecutarOpcion(opcionesActuales.get(indiceOpcionSeleccionada));
-    }
-
-    private void gestionarEntradaSeleccionPokemon() {
-        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
-            estadoActual = EstadoInventario.MENU_OPCIONES;
-            indiceCategoriaSeleccionada = 0;
-            actualizarElementosVisibles();
-            return;
-        }
-        gestionarNavegacionCuadricula();
-        if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER) || Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
-            List<Pokemon> e = explorador.obtenerEquipo();
-            if (indiceElementoSeleccionado < e.size())
-                aplicarObjetoAPokemon(e.get(indiceElementoSeleccionado));
-        }
-    }
-
-    private void abrirMenuOpciones(DatosElemento el) {
-        opcionesActuales.clear();
-        if (indiceCategoriaSeleccionada == 3)
-            opcionesActuales.add("Cambiar a principal");
-        else if (el != null && el.objetoReal != null)
-            opcionesActuales.addAll(el.objetoReal.obtenerOpciones());
-        else
-            opcionesActuales.add("Tirar");
-        indiceOpcionSeleccionada = 0;
-        estadoActual = EstadoInventario.MENU_OPCIONES;
-    }
-
-    private void ejecutarOpcion(String op) {
-        if (elementoSeleccionadoParaAccion == null && indiceCategoriaSeleccionada != 3)
-            return;
-        if (op.equals("Cambiar a principal")) {
-            int idx = indiceElementoSeleccionado;
-            List<Pokemon> eq = explorador.obtenerEquipo();
-            if (idx > 0 && idx < eq.size()) {
-                Pokemon sel = eq.get(idx), act = eq.get(0);
-                eq.set(0, sel);
-                eq.set(idx, act);
-                mostrarFeedback("¡" + sel.obtenerNombre() + " es ahora el principal!");
-                if (pantallaRetorno instanceof BattleScreen)
-                    ((BattleScreen) pantallaRetorno).cambiarPokemon(sel);
-            } else
-                mostrarFeedback("Ya es el principal.");
-            estadoActual = EstadoInventario.NAVEGANDO;
-            return;
-        }
-        if (op.equals("Tirar")) {
-            explorador.obtenerMochila().consumirItem(mapearNombreAInterno(elementoSeleccionadoParaAccion.nombre), 1);
-            mostrarFeedback("Tiraste 1 " + elementoSeleccionadoParaAccion.nombre);
-            actualizarElementosVisibles();
-            estadoActual = EstadoInventario.NAVEGANDO;
-            return;
-        }
-        if (op.equals("Lanzar")) {
-            if (pantallaRetorno instanceof BattleScreen) {
-                if (explorador.obtenerMochila().consumirItem(
-                        mapearNombreAInterno(elementoSeleccionadoParaAccion.nombre),
-                        1)) {
-                    ((BattleScreen) pantallaRetorno)
-                            .usarItemEnBatalla(mapearNombreAInterno(elementoSeleccionadoParaAccion.nombre));
-                    juego.setScreen(pantallaRetorno);
-                }
-            } else {
-                mostrarFeedback("Solo en batalla.");
-                estadoActual = EstadoInventario.NAVEGANDO;
-            }
-            return;
-        }
-        if (op.equals("Información")) {
-            estadoActual = EstadoInventario.NAVEGANDO;
-            return;
-        }
-        if (elementoSeleccionadoParaAccion.objetoReal != null && elementoSeleccionadoParaAccion.objetoReal.esUsable()) {
-            if (op.equals("Equipar") || op.equals("Encender") || op.equals("Apagar") || op.equals("Tomar")) {
-                if (op.equals("Tomar") && !(pantallaRetorno instanceof BattleScreen)) {
-                    mostrarFeedback("Solo en batalla.");
-                    estadoActual = EstadoInventario.NAVEGANDO;
-                    return;
-                }
-                if (op.equals("Equipar") && elementoSeleccionadoParaAccion.objetoReal.obtenerId().equals("guante"))
-                    explorador.activarGuante(300f);
-                Pokemon target = (op.equals("Tomar") && pantallaRetorno instanceof BattleScreen)
-                        ? ((BattleScreen) pantallaRetorno).obtenerPokemonJugador()
-                        : null;
-                com.mypokemon.game.inventario.ResultadoUso res = ((com.mypokemon.game.inventario.interfaces.IUsable) elementoSeleccionadoParaAccion.objetoReal)
-                        .usar(target, explorador.obtenerMochila());
-                mostrarFeedback(res.getMensaje());
-                actualizarElementosVisibles();
-                estadoActual = EstadoInventario.NAVEGANDO;
+            if (currentState == InventoryState.BROWSING) {
+                game.setScreen(returnScreen);
                 return;
             }
-            if (op.equals("Curar") || op.equals("Revivir") || op.equals("Usar") || op.equals("Comer")) {
-                indiceCategoriaSeleccionada = 3;
-                actualizarElementosVisibles();
-                indiceElementoSeleccionado = 0;
-            }
-            estadoActual = EstadoInventario.SELECCIONAR_POKEMON_OBJETIVO;
-        } else {
-            mostrarFeedback("No se puede usar.");
-            estadoActual = EstadoInventario.NAVEGANDO;
         }
-    }
 
-    private void aplicarObjetoAPokemon(Pokemon p) {
-        if (elementoSeleccionadoParaAccion != null && elementoSeleccionadoParaAccion.objetoReal != null
-                && elementoSeleccionadoParaAccion.objetoReal.esUsable()) {
-            com.mypokemon.game.inventario.ResultadoUso res = ((com.mypokemon.game.inventario.interfaces.IUsable) elementoSeleccionadoParaAccion.objetoReal)
-                    .usar(p, explorador.obtenerMochila());
-            mostrarFeedback(res.getMensaje());
-        } else
-            mostrarFeedback("Error con el objeto.");
-        indiceCategoriaSeleccionada = 0;
-        actualizarElementosVisibles();
-        estadoActual = EstadoInventario.NAVEGANDO;
-    }
+        // Grid Navigation input (Arrowns + Mouse) - Existing Logic adapted
+        handleGridNavigation();
 
-    private void gestionarNavegacionCuadricula() {
-        int total = (estadoActual == EstadoInventario.SELECCIONAR_POKEMON_OBJETIVO || indiceCategoriaSeleccionada == 3)
-                ? explorador.obtenerEquipo().size()
-                : elementosVisibles.size();
-        if (estadoActual == EstadoInventario.SELECCIONAR_POKEMON_OBJETIVO)
-            total = 6;
-        if (total == 0)
-            return;
-        if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT))
-            indiceElementoSeleccionado = (indiceElementoSeleccionado + 1) % total;
-        if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT))
-            indiceElementoSeleccionado = (indiceElementoSeleccionado <= 0) ? total - 1 : indiceElementoSeleccionado - 1;
-        if (Gdx.input.isKeyJustPressed(Input.Keys.DOWN)) {
-            indiceElementoSeleccionado += 3;
-            if (indiceElementoSeleccionado >= total)
-                indiceElementoSeleccionado %= 3;
-            if (indiceElementoSeleccionado >= total)
-                indiceElementoSeleccionado = 0;
-        }
-        if (Gdx.input.isKeyJustPressed(Input.Keys.UP)) {
-            indiceElementoSeleccionado -= 3;
-            if (indiceElementoSeleccionado < 0) {
-                int f = (int) Math.ceil((double) total / 3);
-                int b = indiceElementoSeleccionado + (f * 3);
-                if (b >= total)
-                    b -= 3;
-                indiceElementoSeleccionado = b;
+        // Select Item to Open Menu
+        if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
+            // Check if we are in Pokemon Tab (3) or Item Tabs (<3)
+            int totalItems = (selectedIndex == 3) ? explorador.getEquipo().size() : visibleItems.size();
+            if (indexSeleccionado < totalItems) {
+                if (selectedIndex < 3) {
+                    selectedItemForAction = visibleItems.get(indexSeleccionado);
+                    openOptionsMenu(selectedItemForAction);
+                } else if (selectedIndex == 3) {
+                    // Open options for Pokemon
+                    openOptionsMenu(null);
+                }
             }
         }
-    }
 
-    private String mapearNombreAInterno(String d) {
-        if (d.equals("Planta Medicinal"))
-            return "planta";
-        if (d.equals("Baya Aranja"))
-            return "baya";
-        if (d.equals("Guijarro"))
-            return "guijarro";
-        if (d.equals("Poké Ball"))
-            return "pokeball";
-        if (d.equals("Poké Ball de Peso"))
-            return "heavyball";
-        if (d.equals("Poción Herbal"))
-            return "pocion";
-        if (d.equals("Elíxir de Piel de Piedra"))
-            return "elixir";
-        if (d.equals("Revivir Casero"))
-            return "revivir";
-        if (d.equals("Reproductor de música"))
-            return "reproductor";
-        if (d.equals("Guante de reflejo cuarcítico"))
-            return "guante";
-        if (d.equals("Frijol mágico"))
-            return "frijol";
-        return d.toLowerCase();
-    }
+        // Mouse Check for "OPCIONES" button
+        float btnX = 100;
+        float btnY = 160;
+        float btnW = 150;
+        float btnH = 40;
 
-    private void mostrarFeedback(String m) {
-        mensajeFeedback = m;
-        temporizadorFeedback = 3f;
-    }
+        if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
+            if (mousePos.x >= btnX && mousePos.x <= btnX + btnW &&
+                    mousePos.y >= btnY && mousePos.y <= btnY + btnH) {
 
-    private void dibujarPestanas(com.badlogic.gdx.graphics.g2d.SpriteBatch batch) {
-        for (int i = 0; i < nombresBotones.length; i++) {
-            float bx = posicionesBotones[i][0], by = posicionesBotones[i][1];
-            boolean sel = (i == indiceCategoriaSeleccionada);
-            if (estadoActual == EstadoInventario.NAVEGANDO) {
-                if (mousePos.x >= bx && mousePos.x <= bx + anchoBoton && mousePos.y >= by
-                        && mousePos.y <= by + altoBoton) {
-                    sel = true;
-                    if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
-                        indiceCategoriaSeleccionada = i;
-                        actualizarElementosVisibles();
-                        indiceElementoSeleccionado = 0;
+                int totalItems = (selectedIndex == 3) ? explorador.getEquipo().size() : visibleItems.size();
+                if (indexSeleccionado < totalItems) {
+                    if (selectedIndex < 3) {
+                        selectedItemForAction = visibleItems.get(indexSeleccionado);
+                        openOptionsMenu(selectedItemForAction);
+                    } else if (selectedIndex == 3) {
+                        openOptionsMenu(null);
                     }
                 }
             }
-            Texture t = sel ? botonesSeleccionados[i] : botonesNormales[i];
-            if (t != null)
-                batch.draw(t, bx, by, anchoBoton, altoBoton);
         }
     }
 
-    private void dibujarEspaciosCuadricula(com.badlogic.gdx.graphics.g2d.SpriteBatch batch) {
+    private void handleOptionsMenuInput() {
+        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
+            currentState = InventoryState.BROWSING;
+            return;
+        }
+
+        if (Gdx.input.isKeyJustPressed(Input.Keys.UP)) {
+            selectedOptionIndex--;
+            if (selectedOptionIndex < 0)
+                selectedOptionIndex = currentOptions.size() - 1;
+        }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.DOWN)) {
+            selectedOptionIndex++;
+            if (selectedOptionIndex >= currentOptions.size())
+                selectedOptionIndex = 0;
+        }
+
+        // Mouse hover for menu
+        // Check bounds based on draw logic
+        float menuX = 50;
+        float menuY = VIRTUAL_HEIGHT - 150;
+        for (int i = 0; i < currentOptions.size(); i++) {
+            float y = menuY - (i * 50);
+            if (mousePos.x >= menuX && mousePos.x <= menuX + 250 && mousePos.y >= y - 40 && mousePos.y <= y) {
+                if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
+                    selectedOptionIndex = i;
+                    executeOption(currentOptions.get(i));
+                    return;
+                }
+                selectedOptionIndex = i; // Hover select
+            }
+        }
+
+        if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
+            executeOption(currentOptions.get(selectedOptionIndex));
+        }
+    }
+
+    private void handlePokemonTargetInput() {
+        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
+            currentState = InventoryState.OPTIONS_MENU;
+            selectedIndex = 0; // Go back to main tabs? Or stay? Let's reset to materials or whatever we were
+                               // on.
+            // Ideally we remember previous tab.
+            // For simplicity, reset to 0
+            selectedIndex = 0;
+            updateVisibleItems();
+            return;
+        }
+
+        // Allow navigation in pokemon list
+        handleGridNavigation(); // Re-use grid nav
+
+        // Select Pokemon
+        if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER) || Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
+            List<Pokemon> equipo = explorador.getEquipo();
+            if (indexSeleccionado < equipo.size()) {
+                Pokemon target = equipo.get(indexSeleccionado);
+                applyItemToPokemon(target);
+            }
+        }
+    }
+
+    // -- LOGIC --
+
+    public void setSelectedIndex(int index) {
+        this.selectedIndex = index;
+        updateVisibleItems();
+    }
+
+    private void openOptionsMenu(ItemData item) {
+        currentOptions.clear();
+
+        // ** POQUEMON TAB LOGIC **
+        if (selectedIndex == 3) {
+            // Case: Pokemon Selected
+            currentOptions.add("Cambiar a principal");
+            // Add Info or other stuff if desired, but user asked for "una sola opcion"
+            selectedIndex = 3; // Ensure we stick to this tab
+        }
+        // ** ITEM LOGIC **
+        else if (item.itemReal != null) {
+            // NUEVO SISTEMA OO: Usa el método getOpciones() del ítem real
+            currentOptions.addAll(item.itemReal.getOpciones());
+        } else {
+            // Fallback para casos sin itemReal (no debería ocurrir en el futuro)
+            currentOptions.add("Tirar");
+        }
+
+        selectedOptionIndex = 0;
+        currentState = InventoryState.OPTIONS_MENU;
+    }
+
+    private void executeOption(String option) {
+        if (selectedItemForAction == null && selectedIndex != 3)
+            return;
+
+        // **OPCIÓN: Cambiar a principal (POKEMON)**
+        if (option.equals("Cambiar a principal")) {
+            // Logic: Swap selected pokemon with first pokemon in team
+            int index = indexSeleccionado;
+            List<Pokemon> equipo = explorador.getEquipo();
+
+            if (index > 0 && index < equipo.size()) {
+                Pokemon selected = equipo.get(index);
+                Pokemon currentMain = equipo.get(0);
+
+                // If in battle and current main is fainted or simply user wants to switch
+                // context
+                // The team order defines the 'main' pokemon usually.
+
+                // Swap in list
+                equipo.set(0, selected);
+                equipo.set(index, currentMain);
+
+                showFeedback("¡" + selected.getNombre() + " es ahora tu Pokémon principal!");
+
+                if (returnScreen instanceof BattleScreen) {
+                    ((BattleScreen) returnScreen).cambiarPokemon(selected);
+                }
+            } else {
+                showFeedback("Ya es el principal.");
+            }
+            currentState = InventoryState.BROWSING;
+            return;
+        }
+
+        // **OPCIÓN: Tirar**
+        if (option.equals("Tirar")) {
+            explorador.getMochila().consumirItem(mapNameToInternal(selectedItemForAction.nombre), 1);
+            showFeedback("Tiraste 1 " + selectedItemForAction.nombre);
+            updateVisibleItems();
+            if (indexSeleccionado >= visibleItems.size())
+                indexSeleccionado = Math.max(0, visibleItems.size() - 1);
+            currentState = InventoryState.BROWSING;
+            return;
+        }
+
+        // **OPCIÓN: Lanzar** (Pokéballs)
+        if (option.equals("Lanzar")) {
+            if (returnScreen instanceof BattleScreen) {
+                if (explorador.getMochila().consumirItem(mapNameToInternal(selectedItemForAction.nombre), 1)) {
+                    BattleScreen battle = (BattleScreen) returnScreen;
+                    String internalName = mapNameToInternal(selectedItemForAction.nombre);
+                    battle.usarItemEnBatalla(internalName);
+                    game.setScreen(battle);
+                }
+            } else {
+                showFeedback("No puedes lanzar una poke ball, no estas en batalla.");
+                currentState = InventoryState.BROWSING;
+            }
+            return;
+        }
+
+        // **OPCIÓN: Información**
+        if (option.equals("Información")) {
+            currentState = InventoryState.BROWSING;
+            return;
+        }
+
+        // **SISTEMA OO: Opciones de uso (Curar, Revivir, Usar, Comer, Encender,
+        // Equipar)**
+        if (selectedItemForAction.itemReal != null && selectedItemForAction.itemReal.esUsable()) {
+
+            // Caso especial: Equipar, Encender, Apagar o Tomar (No requieren target Pokemon
+            // manual o requieren validación especial)
+            if (option.equals("Equipar") || option.equals("Encender") || option.equals("Apagar")
+                    || option.equals("Tomar")) {
+                com.mypokemon.game.inventario.interfaces.IUsable itemUsable = (com.mypokemon.game.inventario.interfaces.IUsable) selectedItemForAction.itemReal;
+
+                // Validación para Tomar (Solo en batalla)
+                if (option.equals("Tomar")) {
+                    if (!(returnScreen instanceof BattleScreen)) {
+                        showFeedback("no puedes tomar el elixir porque no estas en batalla.");
+                        currentState = InventoryState.BROWSING;
+                        return;
+                    }
+                }
+
+                // Lógica específica para Guante
+                if (option.equals("Equipar") && selectedItemForAction.itemReal.getId().equals("guante")) {
+                    explorador.activarGuante(300f); // Duración de 5 minutos
+                }
+
+                // Determinar target (para Tomar usamos el pokemon activo en batalla)
+                Pokemon target = null;
+                if (option.equals("Tomar") && returnScreen instanceof BattleScreen) {
+                    target = ((BattleScreen) returnScreen).getPokemonJugador();
+                }
+
+                com.mypokemon.game.inventario.ResultadoUso resultado = itemUsable.usar(target, explorador.getMochila());
+                showFeedback(resultado.getMensaje());
+                updateVisibleItems();
+                currentState = InventoryState.BROWSING;
+                return;
+            }
+
+            // El ítem es usable - ir al selector de Pokémon para opciones que SÍ requieren
+            // target
+            if (option.equals("Curar") || option.equals("Revivir") || option.equals("Usar") || option.equals("Comer")) {
+                // Switch to Pokemon Tab (Index 3)
+                selectedIndex = 3;
+                updateVisibleItems();
+                indexSeleccionado = 0; // Reset selection to first pokemon
+            }
+            currentState = InventoryState.SELECT_POKEMON_TARGET;
+        } else {
+            showFeedback("Este ítem no se puede usar.");
+            currentState = InventoryState.BROWSING;
+        }
+    }
+
+    private void applyItemToPokemon(Pokemon p) {
+        if (selectedItemForAction == null || selectedItemForAction.itemReal == null) {
+            showFeedback("Error: ítem no disponible");
+            currentState = InventoryState.BROWSING;
+            return;
+        }
+
+        Objeto item = selectedItemForAction.itemReal;
+
+        // NUEVO SISTEMA OO: Verificar si el ítem es usable
+        if (item.esUsable()) {
+            com.mypokemon.game.inventario.interfaces.IUsable itemUsable = (com.mypokemon.game.inventario.interfaces.IUsable) item;
+
+            // Usar el ítem en el Pokémon
+            com.mypokemon.game.inventario.ResultadoUso resultado = itemUsable.usar(p,
+                    explorador.getMochila());
+
+            // Mostrar mensaje de resultado
+            showFeedback(resultado.getMensaje());
+        } else {
+            showFeedback("Este ítem no se puede usar en Pokémon.");
+        }
+
+        // Regresar a la pestaña de materiales y actualizar vista
+        selectedIndex = 0;
+        updateVisibleItems();
+        currentState = InventoryState.BROWSING;
+    }
+
+    private void handleGridNavigation() {
+        if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT)) {
+            indexSeleccionado++;
+            int totalItems = (selectedIndex == 3) ? explorador.getEquipo().size() : visibleItems.size();
+            if (currentState == InventoryState.SELECT_POKEMON_TARGET) {
+                if (indexSeleccionado >= 6)
+                    indexSeleccionado = 0;
+            } else {
+                if (indexSeleccionado >= totalItems)
+                    indexSeleccionado = 0;
+            }
+        }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT)) {
+            indexSeleccionado--;
+            int totalItems = (selectedIndex == 3) ? explorador.getEquipo().size() : visibleItems.size();
+            if (currentState == InventoryState.SELECT_POKEMON_TARGET) {
+                if (indexSeleccionado < 0)
+                    indexSeleccionado = 5;
+            } else {
+                if (indexSeleccionado < 0)
+                    indexSeleccionado = Math.max(0, totalItems - 1);
+            }
+        }
+
+        // UP/DOWN Navigation (Grid 3 columns)
+        int columns = 3;
+        int totalItems;
+        if (currentState == InventoryState.SELECT_POKEMON_TARGET || selectedIndex == 3) {
+            totalItems = explorador.getEquipo().size();
+            if (currentState == InventoryState.SELECT_POKEMON_TARGET)
+                totalItems = 6; // Fixed grid for target selection
+        } else {
+            totalItems = visibleItems.size();
+        }
+
+        if (Gdx.input.isKeyJustPressed(Input.Keys.DOWN)) {
+            if (totalItems > 0) {
+                indexSeleccionado += columns;
+                if (indexSeleccionado >= totalItems) {
+                    // Wrap to top same column or just clamp? Standard varies.
+                    // Let's loop to top:
+                    indexSeleccionado = indexSeleccionado % columns;
+                    // Ensure valid
+                    if (indexSeleccionado >= totalItems)
+                        indexSeleccionado = 0;
+                }
+            }
+        }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.UP)) {
+            if (totalItems > 0) {
+                indexSeleccionado -= columns;
+                if (indexSeleccionado < 0) {
+                    // Wrap to bottom
+                    int rows = (int) Math.ceil((double) totalItems / columns);
+                    int bottomIndex = indexSeleccionado + (rows * columns);
+                    if (bottomIndex >= totalItems)
+                        bottomIndex -= columns;
+                    indexSeleccionado = bottomIndex;
+                }
+            }
+        }
+
+    }
+
+    private String mapNameToInternal(String display) {
+        if (display.equals("Planta Medicinal"))
+            return "planta";
+        if (display.equals("Baya Aranja"))
+            return "baya";
+        if (display.equals("Guijarro"))
+            return "guijarro";
+        if (display.equals("Poké Ball"))
+            return "pokeball";
+        if (display.equals("Poké Ball de Peso"))
+            return "heavyball";
+        if (display.equals("Poción Herbal"))
+            return "pocion";
+        if (display.equals("Elíxir de Piel de Piedra"))
+            return "elixir";
+        if (display.equals("Revivir Casero"))
+            return "revivir";
+        if (display.equals("Reproductor de música"))
+            return "reproductor";
+        if (display.equals("Guante de reflejo cuarcítico"))
+            return "guante";
+        if (display.equals("Frijol mágico"))
+            return "frijol";
+        return display.toLowerCase();
+    }
+
+    private void showFeedback(String msg) {
+        feedbackMessage = msg;
+        feedbackTimer = 3.0f;
+    }
+
+    // DRAW HELPER METHODS
+
+    private void drawTabs(com.badlogic.gdx.graphics.g2d.SpriteBatch batch) {
+        if (buttonsNormal != null && buttonsSelected != null && buttonPositions != null) {
+            for (int i = 0; i < buttonNames.length; i++) {
+                if (i >= buttonPositions.length)
+                    break;
+
+                float bx = buttonPositions[i][0];
+                float by = buttonPositions[i][1];
+
+                boolean isSelected = (i == selectedIndex);
+                if (currentState == InventoryState.BROWSING) {
+                    // Check hover only in browsing
+                    boolean isHovered = mousePos.x >= bx && mousePos.x <= bx + buttonWidth &&
+                            mousePos.y >= by && mousePos.y <= by + buttonHeight;
+                    if (isHovered && Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
+                        selectedIndex = i;
+                        updateVisibleItems();
+                        indexSeleccionado = 0;
+                    }
+                    if (isHovered)
+                        isSelected = true;
+                }
+
+                Texture tex = isSelected && i < buttonsSelected.length && buttonsSelected[i] != null
+                        ? buttonsSelected[i]
+                        : (i < buttonsNormal.length ? buttonsNormal[i] : null);
+
+                if (tex != null) {
+                    batch.draw(tex, bx, by, buttonWidth, buttonHeight);
+                }
+            }
+        }
+    }
+
+    private void drawGridSlots(com.badlogic.gdx.graphics.g2d.SpriteBatch batch) {
+        int columnas = 3;
+        float size = 150f;
+        float margen = 15f;
+
         for (int i = 0; i < 6; i++) {
-            float x = 700 + (i % 3) * 165, y = 300 - (i / 3) * 165;
-            if (texturaFondoEspacio != null)
-                batch.draw(texturaFondoEspacio, x, y, 150, 150);
-            if (i == indiceElementoSeleccionado && pixelBlanco != null) {
+            float x = 700 + (i % columnas) * (size + margen);
+            float y = 300 - (i / columnas) * (size + margen);
+
+            if (textureFondoSlot != null) {
+                batch.draw(textureFondoSlot, x, y, size, size);
+            }
+            // Selection Highlight (Border Only)
+            if (i == indexSeleccionado && whitePixel != null) {
                 batch.setColor(Color.YELLOW);
-                batch.draw(pixelBlanco, x, y, 150, 4);
-                batch.draw(pixelBlanco, x, y + 146, 150, 4);
-                batch.draw(pixelBlanco, x, y, 4, 150);
-                batch.draw(pixelBlanco, x + 146, y, 4, 150);
+                batch.draw(whitePixel, x, y, size, 4); // Bottom
+                batch.draw(whitePixel, x, y + size - 4, size, 4); // Top
+                batch.draw(whitePixel, x, y, 4, size); // Left
+                batch.draw(whitePixel, x + size - 4, y, 4, size); // Right
                 batch.setColor(Color.WHITE);
             }
         }
     }
 
-    private void dibujarContenidoCuadricula(com.badlogic.gdx.graphics.g2d.SpriteBatch batch) {
-        if (indiceCategoriaSeleccionada == 3) {
-            List<Pokemon> eq = explorador.obtenerEquipo();
-            for (int i = 0; i < eq.size(); i++) {
-                float x = 700 + (i % 3) * 165, y = 300 - (i / 3) * 165;
-                dibujarSlotPokemon(batch, eq.get(i), x, y, 150);
+    private void drawGridContent(com.badlogic.gdx.graphics.g2d.SpriteBatch batch) {
+        int columnas = 3;
+        float size = 150f;
+        float margen = 15f;
+
+        // Pokemon Drawing
+        if (selectedIndex == 3) {
+            List<Pokemon> equipo = explorador.getEquipo();
+            for (int i = 0; i < 6; i++) {
+                float x = 700 + (i % columnas) * (size + margen);
+                float y = 300 - (i / columnas) * (size + margen);
+                if (i < equipo.size()) {
+                    Pokemon p = equipo.get(i);
+                    drawPokemonSlot(batch, p, x, y, size);
+                }
             }
-        } else {
-            for (int i = 0; i < elementosVisibles.size(); i++) {
-                float x = 700 + (i % 3) * 165, y = 300 - (i / 3) * 165;
-                DatosElemento d = elementosVisibles.get(i);
-                if (d.textura != null)
-                    batch.draw(d.textura, x + 5, y + 5, 140, 140);
-                if (fuenteContador != null)
-                    fuenteContador.draw(batch, "x" + d.cantidad, x + 40, y + 5);
+        }
+        // Item Drawing
+        else {
+            for (int i = 0; i < visibleItems.size(); i++) {
+                float x = 700 + (i % columnas) * (size + margen);
+                float y = 300 - (i / columnas) * (size + margen);
+                ItemData item = visibleItems.get(i);
+                if (item.textura != null)
+                    batch.draw(item.textura, x + 5, y + 5, size - 10, size - 10);
+                if (fontContador != null)
+                    fontContador.draw(batch, "x" + item.cantidad, x + 40, y + 5);
             }
         }
     }
 
-    private void dibujarSlotPokemon(com.badlogic.gdx.graphics.g2d.SpriteBatch batch, Pokemon p, float x, float y,
-            float s) {
-        String n = p.obtenerNombre();
-        if (!cacheTexturasPokemon.containsKey(n)) {
+    private void drawPokemonSlot(com.badlogic.gdx.graphics.g2d.SpriteBatch batch, Pokemon p, float x, float y,
+            float size) {
+        String pName = p.getNombre();
+        // Texture loading check (simplified)
+        if (!pokemonTextureCache.containsKey(pName)) {
             try {
-                String c = n.toLowerCase().replace(" h.", "").replace(" jr.", "-jr").replace(" ", "-");
-                cacheTexturasPokemon.put(n, new Texture(Gdx.files.internal(c + ".png")));
+                String nameClean = pName.toLowerCase().replace(" h.", "").replace(" jr.", "-jr").replace(" ", "-");
+                pokemonTextureCache.put(pName, new Texture(Gdx.files.internal(nameClean + ".png")));
             } catch (Exception e) {
             }
         }
-        Texture t = cacheTexturasPokemon.get(n);
-        if (t != null)
-            batch.draw(t, x + 5, y + 5, s - 10, s - 10);
+        Texture tex = pokemonTextureCache.get(pName);
+        if (tex != null)
+            batch.draw(tex, x + 5, y + 5, size - 10, size - 10);
         else
-            fuenteContador.draw(batch, n, x + 5, y + s / 2);
+            fontContador.draw(batch, pName, x + 5, y + size / 2);
+
+        // HP
         batch.setColor(Color.RED);
-        batch.draw(pixelBlanco, x + 5, y + 5, s - 10, 5);
+        batch.draw(whitePixel, x + 5, y + 5, size - 10, 5);
+        float hpPercent = p.getHpActual() / p.getHpMaximo();
         batch.setColor(Color.GREEN);
-        batch.draw(pixelBlanco, x + 5, y + 5, (s - 10) * (p.obtenerHpActual() / (float) p.obtenerHpMaximo()), 5);
+        batch.draw(whitePixel, x + 5, y + 5, (size - 10) * hpPercent, 5);
         batch.setColor(Color.WHITE);
     }
 
-    private void dibujarMenuOpciones(com.badlogic.gdx.graphics.g2d.SpriteBatch batch) {
-        float x = 100, y = 120, w = 250, h = 40, th = opcionesActuales.size() * h + 10;
+    private void drawOptionsMenu(com.badlogic.gdx.graphics.g2d.SpriteBatch batch) {
+        // Pop-up Menu Style
+        // Position it lower to avoid covering description text
+        float mx = 100;
+        float my = 120; // Bottom of the menu (bajado para no tapar el texto)
+        float mw = 250;
+        float mh = 40;
+
+        // Draw Menu Background
+        float totalH = currentOptions.size() * mh + 10;
         batch.setColor(Color.BLACK);
-        batch.draw(pixelBlanco, x, y, w, th);
+        batch.draw(whitePixel, mx, my, mw, totalH);
         batch.setColor(Color.WHITE);
-        batch.draw(pixelBlanco, x, y, w, 2);
-        batch.draw(pixelBlanco, x, y + th, w, 2);
-        batch.draw(pixelBlanco, x, y, 2, th);
-        batch.draw(pixelBlanco, x + w, y, 2, th + 2);
-        for (int i = 0; i < opcionesActuales.size(); i++) {
-            float oy = y + th - 10 - (i * h);
-            if (i == indiceOpcionSeleccionada) {
+        // Border
+        batch.draw(whitePixel, mx, my, mw, 2);
+        batch.draw(whitePixel, mx, my + totalH, mw, 2);
+        batch.draw(whitePixel, mx, my, 2, totalH);
+        batch.draw(whitePixel, mx + mw, my, 2, totalH + 2);
+
+        for (int i = 0; i < currentOptions.size(); i++) {
+            float y = my + totalH - 10 - (i * mh);
+
+            // Highlight
+            if (i == selectedOptionIndex) {
                 batch.setColor(Color.DARK_GRAY);
-                batch.draw(pixelBlanco, x + 2, oy - h + 5, w - 4, h - 5);
+                batch.draw(whitePixel, mx + 2, y - mh + 5, mw - 4, mh - 5);
                 batch.setColor(Color.WHITE);
             }
-            juego.fuente.setColor(i == indiceOpcionSeleccionada ? Color.CYAN : Color.WHITE);
-            juego.fuente.draw(batch, opcionesActuales.get(i), x + 20, oy - 5);
+
+            game.font.setColor(Color.WHITE);
+            if (i == selectedOptionIndex)
+                game.font.setColor(Color.CYAN);
+            game.font.draw(batch, currentOptions.get(i), mx + 20, y - 5);
         }
-        juego.fuente.setColor(Color.WHITE);
+        game.font.setColor(Color.WHITE);
     }
 
-    private void dibujarInstruccionSeleccion(com.badlogic.gdx.graphics.g2d.SpriteBatch batch) {
-        juego.fuente.setColor(Color.YELLOW);
-        juego.fuente.getData().setScale(2.0f);
-        juego.fuente.draw(batch, "SELECCIONA UN POKÉMON", 700, 720 - 50);
-        juego.fuente.getData().setScale(1.0f);
-        juego.fuente.setColor(Color.WHITE);
+    private void drawPokemonSelectionPrompt(com.badlogic.gdx.graphics.g2d.SpriteBatch batch) {
+        game.font.setColor(Color.YELLOW);
+        game.font.getData().setScale(2.0f); // Aumentado de 1.5f a 2.0f
+        game.font.draw(batch, "SELECCIONA UN POKÉMON", 700, VIRTUAL_HEIGHT - 50);
+        game.font.getData().setScale(1.0f);
+        game.font.setColor(Color.WHITE);
     }
 
-    private void actualizarElementosVisibles() {
-        elementosVisibles.clear();
-        Inventario inv = explorador.obtenerMochila();
-        if (indiceCategoriaSeleccionada == 0) {
-            Item p = inv.getItem("planta");
-            if (p != null && p.obtenerCantidad() > 0)
-                elementosVisibles.add(new DatosElemento("Planta Medicinal", "Ingrediente básico para medicinas.",
-                        texturaPlanta, p.obtenerCantidad(), p));
-            Item b = inv.getItem("baya");
-            if (b != null && b.obtenerCantidad() > 0)
-                elementosVisibles.add(new DatosElemento("Baya Aranja", "Restaura el 10% de HP del Pokémon.",
-                        texturaBaya, b.obtenerCantidad(), b));
-            Item g = inv.getItem("guijarro");
-            if (g != null && g.obtenerCantidad() > 0)
-                elementosVisibles.add(new DatosElemento("Guijarro", "Ingrediente principal para fabricar Poké Balls.",
-                        texturaGuijarro, g.obtenerCantidad(), g));
-        } else if (indiceCategoriaSeleccionada == 1) {
-            Item pk = inv.getItem("pokeball");
-            if (pk != null && pk.obtenerCantidad() > 0)
-                elementosVisibles.add(new DatosElemento("Poké Ball", "Dispositivo para atrapar Pokémon.",
-                        texturaPokebola, pk.obtenerCantidad(), pk));
-            Item hb = inv.getItem("heavyball");
-            if (hb != null && hb.obtenerCantidad() > 0)
-                elementosVisibles.add(new DatosElemento("Poké Ball de Peso",
-                        "Dispositivo con mejor captura en nivel bajo.", texturaHeavyBall, hb.obtenerCantidad(), hb));
-        } else if (indiceCategoriaSeleccionada == 2) {
-            Item po = inv.getItem("pocion");
-            if (po != null && po.obtenerCantidad() > 0)
-                elementosVisibles.add(new DatosElemento("Poción Herbal", "Restaura el 20% de HP del Pokémon.",
-                        texturaPocionHerbal, po.obtenerCantidad(), po));
-            Item el = inv.getItem("elixir");
-            if (el != null && el.obtenerCantidad() > 0)
-                elementosVisibles.add(new DatosElemento("Elíxir de Piel de Piedra",
-                        "Aumenta la potencia del ataque (+3 por ataque).", texturaElixir, el.obtenerCantidad(), el));
-            Item re = inv.getItem("revivir");
-            if (re != null && re.obtenerCantidad() > 0)
-                elementosVisibles.add(new DatosElemento("Revivir Casero", "Restaura el 50% de HP del Pokémon.",
-                        texturaRevivir, re.obtenerCantidad(), re));
-            Item mu = inv.getItem("reproductor");
-            if (mu != null && mu.obtenerCantidad() > 0)
-                elementosVisibles.add(new DatosElemento("Reproductor de música",
-                        "Escucha música de fondo durante el viaje.", texturaReproductor, mu.obtenerCantidad(), mu));
-            Item gu = inv.getItem("guante");
-            if (gu != null && gu.obtenerCantidad() > 0)
-                elementosVisibles.add(new DatosElemento("Guante de reflejo cuarcítico", "Recolecta doble recurso.",
-                        texturaGuante, gu.obtenerCantidad(), gu));
-            Item fr = inv.getItem("frijol");
-            if (fr != null && fr.obtenerCantidad() > 0)
-                elementosVisibles.add(new DatosElemento("Frijol mágico", "Restaura el 100% de HP del Pokémon.",
-                        texturaFrijol, fr.obtenerCantidad(), fr));
+    private void updateVisibleItems() {
+        visibleItems.clear();
+        Inventario inventory = explorador.getMochila();
+
+        if (selectedIndex == 0) { // Red Button: Materiales
+            // Obtener ítems reales del inventario
+            Objeto planta = inventory.getItem("planta");
+            if (planta != null && planta.getCantidad() > 0)
+                visibleItems.add(new ItemData("Planta Medicinal", "Ingrediente básico para medicinas.",
+                        texPlanta, planta.getCantidad(), planta));
+
+            Objeto baya = inventory.getItem("baya");
+            if (baya != null && baya.getCantidad() > 0)
+                visibleItems.add(new ItemData("Baya Aranja", "Restaura el 10% de HP del Pokémon.",
+                        texBaya, baya.getCantidad(), baya));
+
+            Objeto guijarro = inventory.getItem("guijarro");
+            if (guijarro != null && guijarro.getCantidad() > 0)
+                visibleItems.add(new ItemData("Guijarro", "Ingrediente principal para fabricar Poké Balls.",
+                        texGuijarro, guijarro.getCantidad(), guijarro));
+
+        } else if (selectedIndex == 1) { // Blue Button: Pokebolas
+            Objeto pokeball = inventory.getItem("pokeball");
+            if (pokeball != null && pokeball.getCantidad() > 0)
+                visibleItems.add(new ItemData("Poké Ball", "Dispositivo para atrapar Pokémon.",
+                        texPokeball, pokeball.getCantidad(), pokeball));
+
+            Objeto heavyball = inventory.getItem("heavyball");
+            if (heavyball != null && heavyball.getCantidad() > 0)
+                visibleItems.add(new ItemData("Poké Ball de Peso", "Dispositivo con mejor captura en nivel bajo.",
+                        texHeavyBall, heavyball.getCantidad(), heavyball));
+
+        } else if (selectedIndex == 2) { // Yellow Button: Pociones + Crafteo + Lure
+            Objeto pocion = inventory.getItem("pocion");
+            if (pocion != null && pocion.getCantidad() > 0)
+                visibleItems.add(new ItemData("Poción Herbal", "Restaura el 20% de HP del Pokémon.",
+                        texPocionHerbal, pocion.getCantidad(), pocion));
+
+            Objeto elixir = inventory.getItem("elixir");
+            if (elixir != null && elixir.getCantidad() > 0)
+                visibleItems.add(new ItemData("Elíxir de Piel de Piedra",
+                        "Aumenta la potencia del ataque (+3 por ataque).",
+                        texElixir, elixir.getCantidad(), elixir));
+
+            Objeto revivir = inventory.getItem("revivir");
+            if (revivir != null && revivir.getCantidad() > 0)
+                visibleItems.add(new ItemData("Revivir Casero", "Restaura el 50% de HP del Pokémon.",
+                        texRevivir, revivir.getCantidad(), revivir));
+
+            Objeto reproductor = inventory.getItem("reproductor");
+            if (reproductor != null && reproductor.getCantidad() > 0)
+                visibleItems
+                        .add(new ItemData("Reproductor de música", "Permite escuchar música de fondo durante el viaje.",
+                                texReproductor, reproductor.getCantidad(), reproductor));
+
+            Objeto guante = inventory.getItem("guante");
+            if (guante != null && guante.getCantidad() > 0)
+                visibleItems.add(new ItemData("Guante de reflejo cuarcítico",
+                        "Utilizan guijarros brillantes para recolectar doble recurso.",
+                        texGuante, guante.getCantidad(), guante));
+
+            Objeto frijol = inventory.getItem("frijol");
+            if (frijol != null && frijol.getCantidad() > 0)
+                visibleItems.add(new ItemData("Frijol mágico", "Restaura el 100% de HP del Pokémon.",
+                        texFrijol, frijol.getCantidad(), frijol));
+
+        } else if (selectedIndex == 3) { // Brown Button
+            // User moved Lure to Yellow. Leaving empty as implied by "solo aparezcan de
+            // estos..."
         }
+
+        // Pokemon Logic (Category 4) is handled separately in render so visibleItems
+        // ignored there
     }
+
+    /**
+     * Actualiza el viewport al redimensionar la ventana.
+     * 
+     * @param width  Nuevo ancho.
+     * @param height Nuevo alto.
+     */
+    @Override
+    public void resize(int width, int height) {
+        viewport.update(width, height, true);
+    }
+
+    // Old methods replaced by new logic
 
     private void dibujarExplicacion(com.badlogic.gdx.graphics.g2d.SpriteBatch batch) {
-        String t = "", d = "";
-        if (indiceCategoriaSeleccionada == 3) {
-            List<Pokemon> eq = explorador.obtenerEquipo();
-            if (indiceElementoSeleccionado < eq.size()) {
-                Pokemon p = eq.get(indiceElementoSeleccionado);
-                t = p.obtenerNombre();
-                d = "Nivel: " + p.obtenerNivel() + " | HP: " + p.obtenerHpActual() + "/" + p.obtenerHpMaximo();
+        String titulo = "";
+        String desc = "";
+
+        if (selectedIndex < 3) {
+            if (indexSeleccionado < visibleItems.size()) {
+                ItemData item = visibleItems.get(indexSeleccionado);
+                titulo = item.nombre;
+                desc = item.descripcion;
             }
-        } else {
-            if (indiceElementoSeleccionado < elementosVisibles.size()) {
-                DatosElemento de = elementosVisibles.get(indiceElementoSeleccionado);
-                t = de.nombre;
-                d = de.descripcion;
+        } else if (selectedIndex == 3) {
+            // Pokemon Details
+            List<Pokemon> equipo = explorador.getEquipo();
+            if (indexSeleccionado < equipo.size()) {
+                Pokemon p = equipo.get(indexSeleccionado);
+                titulo = p.getNombre() + " Nv." + p.getNivel();
+                desc = "HP: " + (int) p.getHpActual() + "/" + (int) p.getHpMaximo() + " | Tipo: " + p.getTipo();
+
+                // Añadir nivel de investigación
+                com.mypokemon.game.EspeciePokemon especie = explorador.getRegistro().getRegistro().get(p.getNombre());
+                if (especie != null) {
+                    desc += "\nInv: " + especie.getNivelInvestigacion() + "/10";
+                } else {
+                    desc += "\nInv: 0/10";
+                }
+            } else {
+                // Nothing
             }
         }
-        juego.fuente.setColor(Color.WHITE);
-        juego.fuente.getData().setScale(2.5f);
-        juego.fuente.draw(batch, t, 100, 400);
-        juego.fuente.getData().setScale(1.2f);
-        juego.fuente.draw(batch, d, 100, 340, 500, com.badlogic.gdx.utils.Align.left, true);
-        juego.fuente.getData().setScale(1.0f);
+
+        if (!titulo.isEmpty() && game.font != null) {
+            // Special case for "Planta Medicinal" title -> Image
+            if (titulo.equals("Planta Medicinal") && texMarcoVerde != null) {
+                batch.draw(texMarcoVerde, 30, 200, 500, 160);
+                game.font.setColor(Color.WHITE);
+                game.font.getData().setScale(1.0f);
+                game.font.draw(batch, desc, 100, 310);
+            } else {
+                game.font.setColor(Color.YELLOW);
+                game.font.getData().setScale(2.0f); // Aumentado de 1.2f a 2.0f
+                game.font.draw(batch, titulo, 100, 350); // Title
+
+                game.font.setColor(Color.WHITE);
+                game.font.getData().setScale(1.5f); // Aumentado de 1.0f a 1.5f
+                // Wrap text if needed, but existing logic didn't wrap much. Assuming short
+                // descriptions.
+                game.font.draw(batch, desc, 100, 310);
+            }
+
+            // Draw "OPCIONES" button
+            if (currentState == InventoryState.BROWSING && !titulo.isEmpty()) {
+                float btnX = 100;
+                float btnY = 160; // Bajado para no tapar el texto
+                float btnW = 150;
+                float btnH = 40;
+
+                // Hover effect logic is in input, but we can visualize it if wanted
+                // For now just draw standard button
+                batch.setColor(Color.DARK_GRAY);
+                batch.draw(whitePixel, btnX, btnY, btnW, btnH);
+                batch.setColor(Color.WHITE);
+                batch.draw(whitePixel, btnX, btnY, btnW, 2);
+                batch.draw(whitePixel, btnX, btnY + btnH, btnW, 2);
+                batch.draw(whitePixel, btnX, btnY, 2, btnH);
+                batch.draw(whitePixel, btnX + btnW, btnY, 2, btnH);
+
+                game.font.getData().setScale(1.0f);
+                game.font.draw(batch, "OPCIONES", btnX + 30, btnY + 28);
+            }
+        }
+
     }
 
+    /**
+     * Libera las texturas y recursos no administrados automáticamente por
+     * BaseScreen.
+     */
     @Override
-    public void resize(int w, int h) {
-        viewport.update(w, h, true);
+    public void dispose() {
+        Gdx.app.log("MochilaScreen", "Disposing textures...");
+        if (background != null)
+            background.dispose();
+        if (buttonsNormal != null) {
+            for (Texture t : buttonsNormal)
+                if (t != null)
+                    t.dispose();
+        }
+        if (buttonsSelected != null) {
+            for (Texture t : buttonsSelected)
+                if (t != null)
+                    t.dispose();
+        }
+        if (texPokeball != null)
+            texPokeball.dispose();
+        if (texPlanta != null)
+            texPlanta.dispose();
+        if (texGuijarro != null)
+            texGuijarro.dispose();
+        if (texBaya != null)
+            texBaya.dispose();
+        if (whitePixel != null)
+            whitePixel.dispose();
+        if (textureFondoSlot != null)
+            textureFondoSlot.dispose();
+        if (fontContador != null)
+            fontContador.dispose();
+
+        // Dispose new textures
+        if (texPocionHerbal != null)
+            texPocionHerbal.dispose();
+        if (texElixir != null)
+            texElixir.dispose();
+        if (texRevivir != null)
+            texRevivir.dispose();
+        if (texReproductor != null)
+            texReproductor.dispose();
+        if (texGuante != null)
+            texGuante.dispose();
+        if (texHeavyBall != null)
+            texHeavyBall.dispose();
+        if (texFrijol != null)
+            texFrijol.dispose();
+        if (texMarcoVerde != null)
+            texMarcoVerde.dispose();
+
+        for (Texture t : pokemonTextureCache.values()) {
+            if (t != null)
+                t.dispose();
+        }
+        pokemonTextureCache.clear();
     }
 }

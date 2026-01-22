@@ -2,151 +2,252 @@ package com.mypokemon.game.inventario;
 
 import com.mypokemon.game.inventario.exceptions.SpaceException;
 import com.mypokemon.game.inventario.exceptions.PokeballException;
-import com.mypokemon.game.inventario.recursos.BayaAranja;
-import com.mypokemon.game.inventario.recursos.Guijarro;
-import com.mypokemon.game.inventario.recursos.PlantaMedicinal;
+import com.mypokemon.game.inventario.objetoscrafteados.BayaAranja;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-// Gestiona el almacenamiento, validación y consumo de todos los objetos en la mochila del jugador.
+/**
+ * Gestiona el almacenamiento de ítems.
+ * Responsabilidades:
+ * - Almacenar recursos y objetos crafteados
+ * - Validar espacio disponible
+ * - Añadir y consumir ítems
+ * - Lanzar excepciones cuando hay problemas
+ */
 public class Inventario implements Serializable {
     private int capacidadMaxima;
-    private List<Recurso> listaRecursos;
-    private List<ItemCrafteado> listaObjetosFabricados;
+    private List<Recurso> listRecursos;
+    private List<ObjetoCrafteado> listObjCrafteados;
 
     public Inventario(int capacidad) {
         this.capacidadMaxima = capacidad;
-        this.listaRecursos = new ArrayList<>();
-        this.listaObjetosFabricados = new ArrayList<>();
+        this.listRecursos = new ArrayList<>();
+        this.listObjCrafteados = new ArrayList<>();
 
         // Inicializar recursos básicos
-        listaRecursos.add(new PlantaMedicinal(0));
-        listaRecursos.add(new Guijarro(0));
-        listaRecursos.add(new BayaAranja(0));
+        listRecursos.add(new Recurso("planta", "Planta Medicinal", 0));
+        listRecursos.add(new Recurso("guijarro", "Guijarro", 0));
+        listRecursos.add(new BayaAranja(0)); // Baya moved to resources
 
-        // Inicializar objetos fabricados
-        listaObjetosFabricados.add(ObjectFactory.crearCrafteado("pokeball", 0));
-        listaObjetosFabricados.add(ObjectFactory.crearCrafteado("heavyball", 0));
-        listaObjetosFabricados.add(ObjectFactory.crearCrafteado("pocion", 0));
-        listaObjetosFabricados.add(ObjectFactory.crearCrafteado("elixir", 0));
-        listaObjetosFabricados.add(ObjectFactory.crearCrafteado("revivir", 0));
-        listaObjetosFabricados.add(ObjectFactory.crearCrafteado("reproductor", 0));
-        listaObjetosFabricados.add(ObjectFactory.crearCrafteado("guante", 0));
-        listaObjetosFabricados.add(ObjectFactory.crearCrafteado("frijol", 0));
+        // Inicializar items crafteados
+        listObjCrafteados.add(ObjectFactory.crearCrafteado("pokeball", 0));
+        listObjCrafteados.add(ObjectFactory.crearCrafteado("heavyball", 0));
+        listObjCrafteados.add(ObjectFactory.crearCrafteado("pocion", 0));
+        listObjCrafteados.add(ObjectFactory.crearCrafteado("elixir", 0));
+        listObjCrafteados.add(ObjectFactory.crearCrafteado("revivir", 0));
+        listObjCrafteados.add(ObjectFactory.crearCrafteado("reproductor", 0));
+        listObjCrafteados.add(ObjectFactory.crearCrafteado("guante", 0));
+        listObjCrafteados.add(ObjectFactory.crearCrafteado("frijol", 0));
     }
 
-    public int obtenerCapacidadMaxima() {
+    // ========== VALIDACIÓN ==========
+
+    public int getCapacidadMaxima() {
         return capacidadMaxima;
     }
 
-    public int obtenerEspacioOcupado() {
+    public int getEspacioOcupado() {
         int total = 0;
-        for (Recurso r : listaRecursos)
-            total += r.obtenerCantidad();
-        for (ItemCrafteado c : listaObjetosFabricados)
-            total += c.obtenerCantidad();
+        for (Recurso r : listRecursos) {
+            total += r.getCantidad();
+        }
+        for (ObjetoCrafteado c : listObjCrafteados) {
+            total += c.getCantidad();
+        }
         return total;
     }
 
     public boolean validarEspacio(int cantidad) {
-        return obtenerEspacioOcupado() + cantidad <= capacidadMaxima;
+        return getEspacioOcupado() + cantidad <= capacidadMaxima;
     }
 
     public int verificarDisponibilidad(String id) {
-        return obtenerCantidad(id);
+        return getCantidad(id);
     }
 
-    public void lanzarExcepcionEspacio() throws SpaceException {
+    // ========== EXCEPCIONES ==========
+
+    public void espacioException() throws SpaceException {
         throw new SpaceException("¡Inventario lleno! No hay espacio disponible.");
     }
 
-    public void lanzarExcepcionPokeball() throws PokeballException {
+    public void pokeballException() throws PokeballException {
         throw new PokeballException("¡No tienes Pokéballs disponibles!");
     }
 
-    private Recurso buscarRecurso(String id) {
-        for (Recurso r : listaRecursos)
-            if (r.obtenerId().equalsIgnoreCase(id))
+    // ========== MÉTODOS AUXILIARES ==========
+
+    private Recurso encontrarRecurso(String id) {
+        for (Recurso r : listRecursos) {
+            if (r.getId().equalsIgnoreCase(id)) {
                 return r;
-        return null;
-    }
-
-    private ItemCrafteado buscarObjetoFabricado(String id) {
-        for (ItemCrafteado c : listaObjetosFabricados)
-            if (c.obtenerId().equalsIgnoreCase(id))
-                return c;
-        return null;
-    }
-
-    public void agregarItem(Item item) throws SpaceException {
-        if (!validarEspacio(item.obtenerCantidad()))
-            lanzarExcepcionEspacio();
-        item.guardarEn(this);
-    }
-
-    public void agregarRecurso(Recurso r) {
-        Recurso existente = buscarRecurso(r.obtenerId());
-        if (existente != null)
-            existente.agregar(r.obtenerCantidad());
-    }
-
-    public void agregarItemCrafteado(ItemCrafteado item) {
-        ItemCrafteado existente = buscarObjetoFabricado(item.obtenerId());
-        if (existente != null)
-            existente.agregar(item.obtenerCantidad());
-    }
-
-    public boolean consumirItem(String id, int cantidad) {
-        String idMin = id.toLowerCase();
-        ItemCrafteado c = buscarObjetoFabricado(idMin);
-        if (c != null && c.obtenerCantidad() >= cantidad) {
-            c.consumir(cantidad);
-            return true;
-        }
-        Recurso r = buscarRecurso(idMin);
-        if (r != null && r.obtenerCantidad() >= cantidad) {
-            r.consumir(cantidad);
-            return true;
-        }
-        return false;
-    }
-
-    public int obtenerCantidad(String id) {
-        String idMin = id.toLowerCase();
-        Recurso r = buscarRecurso(idMin);
-        if (r != null)
-            return r.obtenerCantidad();
-        ItemCrafteado c = buscarObjetoFabricado(idMin);
-        if (c != null)
-            return c.obtenerCantidad();
-        return 0;
-    }
-
-    public String perderObjetoAleatorio() {
-        for (ItemCrafteado c : listaObjetosFabricados) {
-            if (c.obtenerCantidad() > 0) {
-                c.consumir(1);
-                return c.obtenerNombre();
             }
         }
         return null;
     }
 
-    public List<Recurso> obtenerRecursos() {
-        return listaRecursos;
+    private ObjetoCrafteado encontrarCrafteado(String id) {
+        for (ObjetoCrafteado c : listObjCrafteados) {
+            if (c.getId().equalsIgnoreCase(id)) {
+                return c;
+            }
+        }
+        return null;
     }
 
-    public List<ItemCrafteado> obtenerObjetosFabricados() {
-        return listaObjetosFabricados;
+    // ========== OPERACIONES CRUD ==========
+
+    /**
+     * Añade un ítem al inventario utilizando Double Dispatch.
+     * 
+     * @throws SpaceException si no hay espacio
+     */
+    public void agregarItem(Objeto item) throws SpaceException {
+        if (!validarEspacio(item.getCantidad())) {
+            espacioException();
+        }
+        item.guardarEn(this);
     }
 
-    public Item getItem(String id) {
-        String idMin = id.toLowerCase();
-        Recurso r = buscarRecurso(idMin);
-        if (r != null)
+    /**
+     * Método específico para añadir recursos. Usado por Double Dispatch.
+     */
+    public void agregarRecurso(Recurso recurso) {
+        Recurso existente = encontrarRecurso(recurso.getId());
+        if (existente != null) {
+            existente.agregar(recurso.getCantidad());
+        }
+    }
+
+    /**
+     * Método específico para añadir objetos crafteados. Usado por Double Dispatch.
+     */
+    public void agregarObjetoCrafteado(ObjetoCrafteado objeto) {
+        ObjetoCrafteado existente = encontrarCrafteado(objeto.getId());
+        if (existente != null) {
+            existente.agregar(objeto.getCantidad());
+        }
+    }
+
+    /**
+     * Consume una cantidad de un ítem.
+     * 
+     * @return true si se consumió exitosamente, false si no había suficiente
+     */
+    public boolean consumirItem(String id, int cantidad) {
+        String idLower = id.toLowerCase();
+
+        // Intentar consumir de crafteados
+        ObjetoCrafteado c = encontrarCrafteado(idLower);
+        if (c != null && c.getCantidad() >= cantidad) {
+            c.consumir(cantidad);
+            return true;
+        }
+
+        // Intentar consumir de recursos
+        Recurso r = encontrarRecurso(idLower);
+        if (r != null && r.getCantidad() >= cantidad) {
+            r.consumir(cantidad);
+            return true;
+        }
+
+        return false;
+    }
+
+    public int getCantidad(String id) {
+        String idLower = id.toLowerCase();
+
+        // Buscar en recursos
+        Recurso r = encontrarRecurso(idLower);
+        if (r != null) {
+            return r.getCantidad();
+        }
+
+        // Buscar en crafteados
+        ObjetoCrafteado c = encontrarCrafteado(idLower);
+        if (c != null) {
+            return c.getCantidad();
+        }
+
+        return 0;
+    }
+
+    // Métodos de compatibilidad eliminados para cumplir con diseño OO estricto.
+    // Usar getCantidad(String id) en su lugar.
+
+    // ========== MÉTODOS DE VALIDACIÓN SIMPLE ==========
+
+    public boolean puedeAgregar(int cantidad) {
+        return validarEspacio(cantidad);
+    }
+
+    public void agregarObjeto(Objeto item) {
+        try {
+            agregarItem(item);
+        } catch (SpaceException e) {
+            System.err.println("No se pudo agregar objeto: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Elimina un objeto crafteado del inventario (por ejemplo, al perder una
+     * batalla).
+     * 
+     * @return El nombre del objeto eliminado, o null si no se eliminó nada.
+     */
+    public String perderObjetoCrafteado() {
+        for (ObjetoCrafteado c : listObjCrafteados) {
+            if (c.getCantidad() > 0) {
+                c.consumir(1);
+                return c.getNombre();
+            }
+        }
+        return null;
+    }
+
+    // ========== MÉTODOS PARA ACCEDER A ÍTEMS REALES ==========
+
+    /**
+     * Obtiene la lista de recursos del inventario.
+     * 
+     * @return Lista de recursos
+     */
+    public List<Recurso> getRecursos() {
+        return listRecursos;
+    }
+
+    /**
+     * Obtiene la lista de objetos crafteados del inventario.
+     * 
+     * @return Lista de objetos crafteados
+     */
+    public List<ObjetoCrafteado> getObjetosCrafteados() {
+        return listObjCrafteados;
+    }
+
+    /**
+     * Busca un ítem específico por su ID en todo el inventario.
+     * 
+     * @param id ID del ítem a buscar
+     * @return El ítem encontrado, o null si no existe
+     */
+    public Objeto getItem(String id) {
+        String idLower = id.toLowerCase();
+
+        // Buscar en recursos
+        Recurso r = encontrarRecurso(idLower);
+        if (r != null) {
             return r;
-        ItemCrafteado c = buscarObjetoFabricado(idMin);
-        return c;
+        }
+
+        // Buscar en crafteados
+        ObjetoCrafteado c = encontrarCrafteado(idLower);
+        if (c != null) {
+            return c;
+        }
+
+        return null;
     }
 }

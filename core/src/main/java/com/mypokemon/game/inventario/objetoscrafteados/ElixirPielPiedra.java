@@ -2,11 +2,14 @@ package com.mypokemon.game.inventario.objetoscrafteados;
 
 import com.mypokemon.game.Pokemon;
 import com.mypokemon.game.inventario.Inventario;
+
 import com.mypokemon.game.inventario.ResultadoUso;
 import java.util.Arrays;
 import java.util.List;
 
-// Elíxir de Piel de Piedra - Aumenta temporalmente el ataque del Pokémon.
+/**
+ * Elixir de Piel de Piedra - Aumenta ataque.
+ */
 public class ElixirPielPiedra extends ItemConsumible {
 
     public ElixirPielPiedra(int cantidad) {
@@ -15,20 +18,24 @@ public class ElixirPielPiedra extends ItemConsumible {
 
     @Override
     public boolean puedeUsar(Pokemon pokemon) {
-        return pokemon != null && !pokemon.estaDebilitado();
+        return pokemon != null && !pokemon.isDebilitado();
     }
 
     @Override
     public ResultadoUso usar(Pokemon pokemon, Inventario inventario) {
-        if (!puedeUsar(pokemon))
-            return ResultadoUso.fallo("No se puede usar en este Pokémon.");
-        pokemon.establecerModificadorAtaqueTemporal(pokemon.obtenerModificadorAtaqueTemporal() + 3);
+        if (pokemon == null) {
+            return ResultadoUso.fallo("No se especificó un Pokémon.");
+        }
+
+        // Sumamos +3 al modificador temporal
+        pokemon.setModificadorAtaqueTemporal(pokemon.getModificadorAtaqueTemporal() + 3);
+
         inventario.consumirItem(id, 1);
-        return ResultadoUso.exito("¡Elíxir tomado! Tu ataque subirá +3 en la batalla.");
+        return ResultadoUso.exito("¡Elixir tomado! Ahora tu ataque subirá +3 en la batalla.");
     }
 
     @Override
-    public List<String> obtenerOpciones() {
+    public List<String> getOpciones() {
         return Arrays.asList("Tomar", "Tirar");
     }
 }

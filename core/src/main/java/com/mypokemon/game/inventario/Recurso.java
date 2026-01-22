@@ -2,30 +2,36 @@ package com.mypokemon.game.inventario;
 
 import java.util.ArrayList;
 import java.util.List;
-import com.mypokemon.game.inventario.exceptions.SpaceException;
 
-// Representa un recurso básico recolectable (Planta, Guijarro, etc.).
-public class Recurso extends Item {
+/**
+ * Representa un recurso básico recolectable.
+ * Ejemplos: Planta, Baya, Guijarro
+ */
+public class Recurso extends Objeto {
 
     public Recurso(String id, String nombre, int cantidad) {
         super(id, nombre, cantidad);
     }
 
     @Override
-    public String obtenerDescripcion() {
+    public String getDescripcion() {
         return "Recurso básico: " + nombre;
     }
 
     @Override
-    public List<String> obtenerOpciones() {
+    public List<String> getOpciones() {
         List<String> opciones = new ArrayList<>();
-        // Por defecto, un recurso básico solo permite ser descartado.
+
+        // Todos los recursos básicos solo se pueden tirar
+        // Los recursos con funcionalidad especial (como Baya Aranja para curar)
+        // deben ser creados como sus clases específicas (BayaAranja)
         opciones.add("Tirar");
+
         return opciones;
     }
 
     @Override
-    public void guardarEn(Inventario inventario) throws SpaceException {
+    public void guardarEn(Inventario inventario) throws com.mypokemon.game.inventario.exceptions.SpaceException {
         inventario.agregarRecurso(this);
     }
 }

@@ -2,33 +2,39 @@ package com.mypokemon.game.inventario.objetoscrafteados;
 
 import com.mypokemon.game.Pokemon;
 import com.mypokemon.game.inventario.Inventario;
+
 import com.mypokemon.game.inventario.ResultadoUso;
 import java.util.Arrays;
 import java.util.List;
 
-// Revivir Casero - Revive a un Pokémon debilitado o restaura el 50% de su salud.
+/**
+ * Revivir Casero - Revive Pokémon debilitados con 50% HP.
+ */
 public class RevivirCasero extends ItemConsumible {
 
     public RevivirCasero(int cantidad) {
-        super("revivir", "Revivir Casero", "Restaura la mitad de HP del Pokémon.", cantidad);
+        super("revivir", "Revivir Casero", "Restaura el 50% de los PS del Pokémon.", cantidad);
     }
 
     @Override
     public boolean puedeUsar(Pokemon pokemon) {
-        return pokemon.obtenerHpActual() < pokemon.obtenerHpMaximo();
+        // Se puede usar siempre que no esté FULL HP
+        return pokemon.getHpActual() < pokemon.getHpMaximo();
     }
 
     @Override
     public ResultadoUso usar(Pokemon pokemon, Inventario inventario) {
-        if (!puedeUsar(pokemon))
-            return ResultadoUso.fallo("El Pokémon ya tiene la salud al máximo.");
-        pokemon.curar(pokemon.obtenerHpMaximo() * 0.5f);
+        if (pokemon.getHpActual() >= pokemon.getHpMaximo()) {
+            return ResultadoUso.fallo("El Pokémon ya está al máximo de salud.");
+        }
+
+        pokemon.recuperarSalud(pokemon.getHpMaximo() * 0.5f);
         inventario.consumirItem(id, 1);
-        return ResultadoUso.exito("¡" + pokemon.obtenerNombre() + " recuperó energía!");
+        return ResultadoUso.exito("¡" + pokemon.getNombre() + " recuperó energía!");
     }
 
     @Override
-    public List<String> obtenerOpciones() {
+    public List<String> getOpciones() {
         return Arrays.asList("Curar", "Tirar");
     }
 }

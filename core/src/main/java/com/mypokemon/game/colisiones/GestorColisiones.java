@@ -6,38 +6,29 @@ import com.badlogic.gdx.math.Vector2;
 import java.util.ArrayList;
 import java.util.List;
 
-// Gestor centralizado de todas las colisiones del juego.
+/**
+ * Gestor centralizado de todas las colisiones del juego.
+ */
 public class GestorColisiones {
 
-    // Lista de todos los objetos que implementan IColisionable.
     private List<IColisionable> colisiones;
-
-    // Lista de objetos con los que se puede interactuar.
     private List<IInteractivo> interactivos;
-
-    // Capa del mapa que contiene la información de colisión del terreno.
     private TiledMapTileLayer capaColisionTerreno;
 
-    // Inicializa las listas de colisiones e interactivos.
     public GestorColisiones() {
         colisiones = new ArrayList<>();
         interactivos = new ArrayList<>();
     }
 
     /**
-     * Establece la capa de colisión del terreno del mapa actual.
-     * 
-     * @param capa La capa TiledMapTileLayer que define las colisiones.
+     * Establece la capa de colisión del terreno del mapa.
      */
     public void establecerCapaColisionTerreno(TiledMapTileLayer capa) {
         this.capaColisionTerreno = capa;
     }
 
     /**
-     * Agrega un objeto colisionable al gestor.
-     * Si el objeto también es interactivo, se añade a la lista de interactivos.
-     * 
-     * @param colision El objeto colisionable a añadir.
+     * Agrega una colisión al gestor.
      */
     public void agregarColision(IColisionable colision) {
         colisiones.add(colision);
@@ -47,14 +38,7 @@ public class GestorColisiones {
     }
 
     /**
-     * Verifica si un área específica colisiona con algún tile sólido del terreno.
-     * 
-     * @param x     Posición X central del área.
-     * @param y     Posición Y central del área.
-     * @param ancho Ancho del área.
-     * @param alto  Alto del área.
-     * @return true si alguna esquina del área toca un tile sólido, false en caso
-     *         contrario.
+     * Verifica colisión con el terreno del mapa.
      */
     public boolean verificarColisionTerreno(float x, float y, float ancho, float alto) {
         if (capaColisionTerreno == null)
@@ -74,7 +58,6 @@ public class GestorColisiones {
 
             TiledMapTileLayer.Cell celda = capaColisionTerreno.getCell(celdaX, celdaY);
             if (celda != null && celda.getTile() != null) {
-
                 // Permitir pasar por la grama (solo usarla para encuentros, no para colisión)
                 Object zonaEncuentro = celda.getTile().getProperties().get("ZonaEncuentro");
                 if (zonaEncuentro != null) {
@@ -87,13 +70,7 @@ public class GestorColisiones {
     }
 
     /**
-     * Verifica si un área específica colisiona con algún NPC registrado.
-     * 
-     * @param x     Posición X central del área.
-     * @param y     Posición Y central del área.
-     * @param ancho Ancho del área.
-     * @param alto  Alto del área.
-     * @return true si hay colisión con un NPC, false en caso contrario.
+     * Verifica colisión con NPCs.
      */
     public boolean verificarColisionNPCs(float x, float y, float ancho, float alto) {
         for (IColisionable colision : colisiones) {
@@ -107,16 +84,9 @@ public class GestorColisiones {
     }
 
     /**
-     * Verifica todas las colisiones posibles (terreno + objetos dinámicos)
-     * 
-     * @param x     Posición X central.
-     * @param y     Posición Y central.
-     * @param ancho Ancho del área de verificación.
-     * @param alto  Alto del área de verificación.
-     * @return true si hay alguna colisión, false si el camino está despejado.
+     * Verifica todas las colisiones (terreno + objetos).
      */
     public boolean verificarTodasLasColisiones(float x, float y, float ancho, float alto) {
-
         // Verificar terreno
         if (verificarColisionTerreno(x, y, ancho, alto)) {
             return true;
@@ -126,17 +96,14 @@ public class GestorColisiones {
         if (verificarColisionNPCs(x, y, ancho, alto)) {
             return true;
         }
+
         return false;
     }
 
     /**
-     * Obtiene el objeto interactivo más cercano al jugador que se encuentre dentro
-     * de su rango.
+     * Obtiene el objeto interactivo más cercano al jugador.
      * 
-     * @param x Posición X del jugador.
-     * @param y Posición Y del jugador.
-     * @return El objeto interactivo más cercano en rango, o null si ninguno es
-     *         accesible.
+     * @return El objeto interactivo más cercano, o null si ninguno está en rango
      */
     public IInteractivo obtenerInteractivoMasCercano(float x, float y) {
         IInteractivo masCercano = null;
@@ -160,12 +127,9 @@ public class GestorColisiones {
     }
 
     /**
-     * Obtiene una lista de todos los objetos interactivos que están en el rango del
-     * jugador.
+     * Obtiene todos los objetos interactivos en rango del jugador.
      * 
-     * @param x Posición X del jugador.
-     * @param y Posición Y del jugador.
-     * @return Lista de objetos interactivos en el rango actual.
+     * @return Lista de objetos interactivos en rango
      */
     public List<IInteractivo> obtenerTodosEnRango(float x, float y) {
         List<IInteractivo> resultado = new ArrayList<>();
@@ -177,7 +141,9 @@ public class GestorColisiones {
         return resultado;
     }
 
-    // Borra todas las listas de colisiones y objetos interactivos cargados.
+    /**
+     * Limpia todas las colisiones.
+     */
     public void limpiar() {
         colisiones.clear();
         interactivos.clear();

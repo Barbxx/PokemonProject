@@ -6,41 +6,50 @@ import com.mypokemon.game.inventario.ResultadoUso;
 import java.util.Arrays;
 import java.util.List;
 
-// Reproductor de Música - Permite activar o desactivar la música de fondo del juego.
+/**
+ * Reproductor de Música - Activa música de fondo.
+ */
 public class ReproductorMusica extends ItemConsumible {
+
     private boolean activo = false;
 
     public ReproductorMusica(int cantidad) {
-        super("reproductor", "Reproductor de música", "Permite escuchar música de fondo personalizada.", cantidad);
+        super("reproductor", "Reproductor de música", "Permite escuchar música de fondo.", cantidad);
     }
 
-    public boolean estaActivo() {
+    public boolean isActivo() {
+        // El reproductor solo puede estar activo si tenemos al menos uno
         return activo && cantidad > 0;
     }
 
-    public void establecerActivo(boolean a) {
-        this.activo = a;
+    public void setActivo(boolean activo) {
+        this.activo = activo;
     }
 
     @Override
     public boolean puedeUsar(Pokemon pokemon) {
-        return true;
+        return true; 
     }
 
     @Override
     public ResultadoUso usar(Pokemon pokemon, Inventario inventario) {
+        // Toglear estado
         activo = !activo;
-        if (activo)
-            return ResultadoUso.exito("¡Reproductor ENCENDIDO! Disfruta de la música, mor.");
-        else
+
+        if (activo) {
+            return ResultadoUso.exito(
+                    "¡Reproductor ENCENDIDO! Ahora podrás escuchar algunas canciones que estén en el reproductor guardadas.");
+        } else {
             return ResultadoUso.exito("¡Reproductor APAGADO!");
+        }
     }
 
     @Override
-    public List<String> obtenerOpciones() {
-        if (activo && cantidad > 0)
+    public List<String> getOpciones() {
+        if (activo && cantidad > 0) {
             return Arrays.asList("Apagar", "Tirar");
-        else
+        } else {
             return Arrays.asList("Encender", "Tirar");
+        }
     }
 }

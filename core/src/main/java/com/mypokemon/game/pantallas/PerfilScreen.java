@@ -2,71 +2,135 @@ package com.mypokemon.game.pantallas;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.mypokemon.game.PokemonMain;
 import com.mypokemon.game.Explorador;
 
-// Pantalla que muestra el perfil del entrenador con información de progreso.
-public class PerfilScreen extends BaseScreen {
+/**
+ * Pantalla que muestra el perfil del entrenador.
+ * Incluye información como nombre, género, progreso de mochila y Pokédex.
+ */
+public class PerfilScreen extends ScreenAdapter {
 
-    private final BaseScreen pantallaPadre;
+    private final PokemonMain game;
+    private final BaseScreen parentScreen;
     private final Explorador explorador;
-    private Texture texturaFondo;
 
-    public PerfilScreen(PokemonMain juego, BaseScreen pantallaPadre, Explorador explorador) {
-        super(juego);
-        this.pantallaPadre = pantallaPadre;
+    private Texture backgroundTexture;
+    private BitmapFont font;
+    private BitmapFont titleFont;
+
+    /**
+     * Constructor de la pantalla de perfil.
+     * 
+     * @param game         Instancia principal del juego.
+     * @param parentScreen Pantalla desde la que se accedió (para volver).
+     * @param explorador   Datos del jugador a mostrar.
+     */
+    public PerfilScreen(PokemonMain game, BaseScreen parentScreen, Explorador explorador) {
+        this.game = game;
+        this.parentScreen = parentScreen;
         this.explorador = explorador;
 
-        boolean esChico = com.mypokemon.game.utils.Genero.CHICO.equals(explorador.obtenerGenero());
-        String nFondo = esChico ? "fondoPerfilChico.png" : "fondoPerfilChica.png";
-        texturaFondo = cargarTextura(nFondo);
-        if (texturaFondo == null)
-            texturaFondo = cargarTextura("fondoMochila.png");
+        this.font = new BitmapFont();
+        this.titleFont = new BitmapFont();
+        this.titleFont.getData().setScale(2.0f);
+
+        // Cargar fondo según género
+        boolean esChico = com.mypokemon.game.utils.Genero.CHICO.equals(explorador.getGenero());
+        String bgName = esChico ? "fondoPerfilChico.png" : "fondoPerfilChica.png";
+        try {
+            if (Gdx.files.internal(bgName).exists()) {
+                this.backgroundTexture = new Texture(Gdx.files.internal(bgName));
+            } else {
+                // Fallback si no existe la imagen específica
+                Gdx.app.log("PerfilScreen", "No se encontró " + bgName + ", usando fondo por defecto.");
+                if (Gdx.files.internal("fondoMochila.png").exists()) {
+                    this.backgroundTexture = new Texture(Gdx.files.internal("fondoMochila.png"));
+                }
+            }
+        } catch (Exception e) {
+            Gdx.app.error("PerfilScreen", "Error cargando fondo: " + e.getMessage());
+        }
     }
 
+    /**
+     * Renderiza la información del perfil del jugador.
+     * 
+     * @param delta Tiempo transcurrido desde el último frame.
+     */
     @Override
     public void render(float delta) {
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE) || Gdx.input.isKeyJustPressed(Input.Keys.BACKSPACE)) {
-            juego.setScreen(pantallaPadre);
+            game.setScreen(parentScreen);
             dispose();
             return;
         }
 
-        juego.batch.begin();
-        if (texturaFondo != null)
-            juego.batch.draw(texturaFondo, 0, 0, 800, 480);
+        game.batch.begin();
 
-        juego.fuente.setColor(Color.GOLD);
-        juego.fuente.getData().setScale(2.0f);
-        dibujarTextoCentrado("PERFIL DE ENTRENADOR", 400);
+        // Dibujar Fondo
+        if (backgroundTexture != null) {
+            game.batch.draw(backgroundTexture, 0, 0, 800, 480);
+        }
 
-        juego.fuente.setColor(Color.WHITE);
-        juego.fuente.getData().setScale(1.5f);
-        float y = 300, esp = 40;
-        juego.fuente.draw(juego.batch, "Nombre: " + explorador.obtenerNombre(), 100, y);
-        boolean esChico = com.mypokemon.game.utils.Genero.CHICO.equals(explorador.obtenerGenero());
-        juego.fuente.draw(juego.batch, "Género: " + (esChico ? "Chico" : "Chica"), 100, y - esp);
-        juego.fuente.draw(juego.batch, "Mochila: " + explorador.obtenerMochila().obtenerEspacioOcupado() + "/"
-                + explorador.obtenerMochila().obtenerCapacidadMaxima(), 100, y - esp * 2);
-        juego.fuente.draw(juego.batch, "Pokémon Capturados: " + explorador.obtenerRegistro().getCapturedOrder().size(),
-                100,
-                y - esp * 3);
+        // Título
+        titleFont.setColor(Color.GOLD);
+        drawCenteredText(titleFont, "PERFIL DE ENTRENADOR", 400);
 
-        juego.fuente.getData().setScale(1.0f);
-        juego.fuente.setColor(Color.LIGHT_GRAY);
-        juego.fuente.draw(juego.batch, "Presiona ESC para volver", 20, 30);
-        juego.batch.end();
+        // Información del Entrenador
+        font.setColor(Color.WHITE);
+        font.getData().setScale(1.5f);
+
+        float startY = 300;
+        float spacing = 40;
+
+        font.draw(game.batch, "Nombre: " + explorador.getNombre(), 100, startY);
+        boolean esChico = com.mypokemon.game.utils.Genero.CHICO.equals(explorador.getGenero());
+        font.draw(game.batch, "Género: " + (esChico ? "Chico" : "Chica"), 100, startY - spacing);
+
+        // Info adicional
+        int capacidad = explorador.getMochila().getCapacidadMaxima();
+        int ocupado = explorador.getMochila().getEspacioOcupado();
+        font.draw(game.batch, "Mochila: " + ocupado + "/" + capacidad, 100, startY - spacing * 2);
+
+        int pokemonCapturados = explorador.getRegistro().getCapturedOrder().size();
+        font.draw(game.batch, "Pokémon Capturados: " + pokemonCapturados, 100, startY - spacing * 3);
+
+        // Instrucción para salir
+        font.getData().setScale(1.0f);
+        font.setColor(Color.LIGHT_GRAY);
+        font.draw(game.batch, "Presiona ESC para volver", 20, 30);
+
+        game.batch.end();
     }
 
-    private void dibujarTextoCentrado(String t, float y) {
-        GlyphLayout l = new GlyphLayout(juego.fuente, t);
-        juego.fuente.draw(juego.batch, t, (800 - l.width) / 2, y);
+    /**
+     * Dibuja texto centrado en la pantalla.
+     * 
+     * @param f    Fuente a utilizar.
+     * @param text Texto a dibujar.
+     * @param y    Posición vertical Y.
+     */
+    private void drawCenteredText(BitmapFont f, String text, float y) {
+        GlyphLayout layout = new GlyphLayout(f, text);
+        f.draw(game.batch, text, (800 - layout.width) / 2, y);
+    }
+
+    @Override
+    public void dispose() {
+        font.dispose();
+        titleFont.dispose();
+        if (backgroundTexture != null) {
+            backgroundTexture.dispose();
+        }
     }
 }
