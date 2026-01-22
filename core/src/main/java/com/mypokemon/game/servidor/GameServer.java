@@ -5,6 +5,12 @@ import java.net.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Servidor principal del juego multijugador.
+ * Gestiona conexiones TCP y UDP, sincronización de estado y comunicación entre
+ * jugadores.
+ * Versión duplicada/legacy de ServidorJuego.
+ */
 public class GameServer {
     private static final int TCP_PORT = 54321;
     private static final int UDP_PORT = 54777;
@@ -15,10 +21,18 @@ public class GameServer {
     private ClientHandler player1;
     private ClientHandler player2;
 
+    /**
+     * Punto de entrada principal para ejecutar el servidor.
+     * 
+     * @param args Argumentos de la línea de comandos.
+     */
     public static void main(String[] args) {
         new GameServer().start();
     }
 
+    /**
+     * Inicia el servidor, incluyendo el beacon UDP y la escucha TCP.
+     */
     public void start() {
         isRunning = true;
         System.out.println("Iniciando Servidor de Juego (GameServer)...");
@@ -48,6 +62,10 @@ public class GameServer {
         }
     }
 
+    /**
+     * Emite una señal UDP periódica para que los clientes descubran el servidor en
+     * la red local.
+     */
     private void runUdpBeacon() {
         DatagramSocket udpSocket = null;
         try {
@@ -81,6 +99,12 @@ public class GameServer {
 
     private java.util.Set<String> collectedResources = java.util.Collections.synchronizedSet(new java.util.TreeSet<>());
 
+    /**
+     * Gestiona una nueva conexión entrante de socket.
+     * Asigna el cliente a un slot disponible (Jugador 1 o Jugador 2).
+     * 
+     * @param socket El socket del cliente conectado.
+     */
     private synchronized void handleConnection(Socket socket) {
         ClientHandler handler = new ClientHandler(socket, this);
         boolean assigned = false;
@@ -119,6 +143,11 @@ public class GameServer {
         }
     }
 
+    /**
+     * Elimina a un cliente desconectado y libera su slot.
+     * 
+     * @param client El manejador del cliente a remover.
+     */
     public synchronized void removeClient(ClientHandler client) {
         if (player1 == client) {
             player1 = null;
@@ -133,7 +162,12 @@ public class GameServer {
         }
     }
 
-    // Called by ClientHandler
+    /**
+     * Procesa información recibida de un cliente.
+     * 
+     * @param sender Quien envía el mensaje.
+     * @param msg    El contenido del mensaje.
+     */
     public void onInfoReceived(ClientHandler sender, String msg) {
         if (msg.startsWith("MOVE:")) {
             // Forward movement exactly as is to peer
@@ -157,6 +191,12 @@ public class GameServer {
         }
     }
 
+    /**
+     * Sincroniza el estado del juego para un cliente conectado.
+     * Envía recursos recolectados e información del compañero (peer).
+     * 
+     * @param client El cliente a sincronizar.
+     */
     public synchronized void syncClientState(ClientHandler client) {
         // Send all collected resources to the new client
         if (!collectedResources.isEmpty()) {
@@ -193,13 +233,29 @@ public class GameServer {
         }
     }
 
+    /**
+     * Prepara la sesión compartida (placeholder).
+     */
     private void createSharedSave() {
         System.out.println("Preparando sesion compartida...");
     }
 
+    /**
+     * Notifica el nombre del jugador (no implementado).
+     * 
+     * @param playerId ID del jugador.
+     * @param name     Nombre del jugador.
+     */
     public synchronized void notifyPlayerName(int playerId, String name) {
     }
 
+    /**
+     * Verifica si un nombre de usuario ya está en uso.
+     * 
+     * @param name      Nombre a verificar.
+     * @param requester Quien solicita la verificación.
+     * @return true si el nombre está ocupado, false en caso contrario.
+     */
     public synchronized boolean isNameTaken(String name, ClientHandler requester) {
         if (player1 != null && player1 != requester && name.equalsIgnoreCase(player1.getPlayerName())) {
             return true;

@@ -10,12 +10,19 @@ import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
-import com.mypokemon.game.client.NetworkClient;
+import com.mypokemon.game.client.ClienteRed;
 
+/**
+ * Pantalla que gestiona la conexión multijugador en red local.
+ * Se encarga del auto-descubrimiento del servidor y la sincronización inicial.
+ */
 public class CompartidaScreen extends BaseScreen {
 
+    /** Nombre del jugador que se conecta. */
     private String playerName;
+    /** Texto de estado mostrado en pantalla durante la conexión. */
     private String statusText = "Inicializando...";
+    /** Indica si el cliente está intentando conectar actualmente. */
     private boolean isConnecting = false;
 
     // Camera and Viewport for fixed aspect ratio
@@ -46,13 +53,13 @@ public class CompartidaScreen extends BaseScreen {
         isConnecting = true;
 
         // Inicializar Client en Main si no existe
-        if (game.networkClient == null) {
-            game.networkClient = new NetworkClient();
+        if (game.clienteRed == null) {
+            game.clienteRed = new ClienteRed();
         }
 
         new Thread(() -> {
             // 1. Auto-descubrimiento (UDP Beacon)
-            String serverIP = game.networkClient.discoverServerIP();
+            String serverIP = game.clienteRed.discoverServerIP();
 
             if (serverIP != null) {
                 Gdx.app.postRunnable(() -> statusText = "Servidor encontrado en: " + serverIP + "\nConectando...");
@@ -64,7 +71,7 @@ public class CompartidaScreen extends BaseScreen {
 
                 // 2. Configurar Listener antes de conectar para evitar perder mensajes de
                 // inicio rápidos
-                game.networkClient.setListener(msg -> {
+                game.clienteRed.setListener(msg -> {
                     if (msg.startsWith("MATCH_START")) {
                         Gdx.app.postRunnable(() -> {
                             game.setScreen(new IntroScreen(game, "SharedGame"));
@@ -74,7 +81,7 @@ public class CompartidaScreen extends BaseScreen {
                 });
 
                 // 3. Conexión TCP
-                boolean connected = game.networkClient.connect(serverIP, playerName);
+                boolean connected = game.clienteRed.connect(serverIP, playerName);
 
                 if (connected) {
                     Gdx.app.postRunnable(() -> statusText = "Conectado. Esperando Jugador 2...");
@@ -102,10 +109,10 @@ public class CompartidaScreen extends BaseScreen {
         game.batch.begin();
 
         game.font.setColor(Color.WHITE);
-        game.font.getData().setScale(1.5f);
+        game.font.getData().setScale(2.5f); // Aumentado de 1.5f a 2.5f
         game.font.draw(game.batch, "MODO COMPARTIDO", 0, h - 100, w, Align.center, false);
 
-        game.font.getData().setScale(1.2f);
+        game.font.getData().setScale(2.0f); // Aumentado de 1.2f a 2.0f
         if (isConnecting) {
             game.font.setColor(Color.YELLOW);
             // Efecto de parpadeo simple
@@ -118,16 +125,17 @@ public class CompartidaScreen extends BaseScreen {
             game.font.setColor(Color.RED);
             game.font.draw(game.batch, statusText, 0, h / 2, w, Align.center, false);
             game.font.setColor(Color.WHITE);
-            game.font.draw(game.batch, "Presiona ESC para volver", 0, h / 2 - 60, w, Align.center, false);
+            game.font.getData().setScale(1.5f);
+            game.font.draw(game.batch, "Presiona ESC para volver", 0, h / 2 - 80, w, Align.center, false);
         }
 
         game.batch.end();
 
         if (!isConnecting && Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.ESCAPE)) {
             // Cancelar / Salir
-            if (game.networkClient != null) {
-                game.networkClient.stop();
-                game.networkClient = null;
+            if (game.clienteRed != null) {
+                game.clienteRed.stop();
+                game.clienteRed = null;
             }
             game.setScreen(new EleccionJuegoScreen(game));
             dispose();

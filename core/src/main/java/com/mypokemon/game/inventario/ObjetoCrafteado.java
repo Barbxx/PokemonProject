@@ -23,4 +23,9 @@ public abstract class ObjetoCrafteado extends Objeto {
      */
     @Override
     public abstract java.util.List<String> getOpciones();
+
+    @Override
+    public void guardarEn(Inventario inventario) throws com.mypokemon.game.inventario.exceptions.SpaceException {
+        inventario.agregarObjetoCrafteado(this);
+    }
 }

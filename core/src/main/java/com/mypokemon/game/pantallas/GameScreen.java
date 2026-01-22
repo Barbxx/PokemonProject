@@ -6,7 +6,7 @@ import com.mypokemon.game.Pokemon;
 import com.mypokemon.game.Movimiento;
 import com.mypokemon.game.GestorEncuentros;
 import com.mypokemon.game.InputHandler;
-import com.mypokemon.game.RemotePlayer;
+import com.mypokemon.game.JugadorRemoto;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
@@ -42,10 +42,16 @@ import com.mypokemon.game.colisiones.ColisionPuertaLaboratorio;
 import com.mypokemon.game.colisiones.IInteractivo;
 import com.mypokemon.game.objects.NPC;
 
-// Main Game Screen
+/**
+ * Pantalla principal del juego donde ocurre la exploración y el movimiento.
+ * Gestiona el mapa, colisiones, NPCs, eventos de red y la interfaz de usuario
+ * durante el juego.
+ */
 public class GameScreen extends BaseScreen {
-    // Atributos
+    // Atributos de cámara y renderizado
+    /** Cámara ortográfica para seguir al jugador. */
     private OrthographicCamera camera;
+    /** Viewport para manejar el escalado de resolución. */
     private Viewport viewport;
     private com.badlogic.gdx.math.Matrix4 uiMatrix;
 
@@ -74,12 +80,17 @@ public class GameScreen extends BaseScreen {
     private float playerCollisionHeight = 24f;
     private String playerName;
 
+    /** Explorador que representa al jugador local y su progreso. */
     private Explorador explorador;
 
-    // Network
-    private com.mypokemon.game.client.NetworkClient client;
-    private RemotePlayer otherPlayer;
+    // Componentes de Red
+    /** Cliente de red para comunicación con el servidor. */
+    private com.mypokemon.game.client.ClienteRed client;
+    /** Representación visual del otro jugador en modo multijugador. */
+    private JugadorRemoto otherPlayer;
+    /** Temporizador para limitar la frecuencia de actualizaciones de movimiento. */
     private float moveUpdateTimer = 0;
+    /** Ruta de la textura (skin) del jugador local. */
     private String myTexturePath;
 
     // NPC Management
@@ -104,9 +115,11 @@ public class GameScreen extends BaseScreen {
     private String[] activeDialogPages;
     // actually, let's keep currentPortrait to pass to GameUI.renderDialog
 
-    // Menu State
+    /** Indica si se debe mostrar el menú de opciones lateral. */
     private boolean showMenu = false;
+    /** Índice de la opción seleccionada actualmente en el menú. */
     private int menuSelectedIndex = 0;
+    /** Opciones disponibles en el menú principal de exploración. */
     private String[] menuOptions = { "POKÉDEX", "CRAFTEO", "MOCHILA", "GUARDAR", "PERFIL", "INICIO" };
 
     // Intro Animation State
@@ -148,19 +161,33 @@ public class GameScreen extends BaseScreen {
     private int frameRows;
 
     // Region Triggers
+    /**
+     * Representa una zona en el mapa que dispara un evento visual (letrero).
+     */
     private class RegionTrigger {
         Rectangle bounds;
-        Color color;
+        // Color color; // Unused
         Texture signTexture;
-        boolean active;
-        String name;
+        // boolean active; // Unused
+        // String name; // Unused
 
+        /**
+         * Crea un nuevo disparador de región.
+         * 
+         * @param x Posición X.
+         * @param y Posición Y.
+         * @param w Ancho.
+         * @param h Alto.
+         * @param c Color (no usado).
+         * @param t Textura del letrero.
+         * @param n Nombre (no usado).
+         */
         public RegionTrigger(float x, float y, float w, float h, Color c, Texture t, String n) {
             this.bounds = new Rectangle(x, y, w, h);
-            this.color = c;
+            // this.color = c;
             this.signTexture = t;
-            this.name = n;
-            this.active = false;
+            // this.name = n;
+            // this.active = false;
         }
     }
 
@@ -183,9 +210,9 @@ public class GameScreen extends BaseScreen {
         gestorColisiones = new GestorColisiones();
 
         // Determine Gender from Texture Path (passed from Intro)
-        String genderStr = "CHICO";
+        com.mypokemon.game.utils.Genero genderEnum = com.mypokemon.game.utils.Genero.CHICO;
         if (texturePath != null && texturePath.toLowerCase().contains("fem")) {
-            genderStr = "CHICA";
+            genderEnum = com.mypokemon.game.utils.Genero.CHICA;
         }
 
         // Check for saved progress
@@ -206,10 +233,10 @@ public class GameScreen extends BaseScreen {
 
         if (this.explorador == null) {
             // New Game: Create with Explorer Name, Game Name, Capacity, and Gender
-            this.explorador = new Explorador(playerName, gameName, 80, genderStr);
+            this.explorador = new Explorador(playerName, gameName, 80, genderEnum);
         } else {
             // Loaded Game: Ensure texture matches saved gender and name
-            if ("CHICA".equals(this.explorador.getGenero())) {
+            if (com.mypokemon.game.utils.Genero.CHICA.equals(this.explorador.getGenero())) {
                 this.myTexturePath = "protagonistaFemenino.png";
             } else {
                 this.myTexturePath = "protagonistaMasculino1.png";
@@ -530,7 +557,7 @@ public class GameScreen extends BaseScreen {
 
         // Network Init
         // Network Init
-        this.client = game.networkClient;
+        this.client = game.clienteRed;
         if (this.client != null) {
             // 1. Set Listener FIRST to catch the immediate response (PEER_INFO)
             this.client.setListener(msg -> {
@@ -553,7 +580,10 @@ public class GameScreen extends BaseScreen {
                 if (parts.length >= 4) {
                     float tx = Float.parseFloat(parts[1]);
                     float ty = Float.parseFloat(parts[2]);
-                    String dir = parts[3];
+                    String dirStr = parts[3];
+
+                    // Convert String to Enum using helper
+                    com.mypokemon.game.utils.Direccion dir = com.mypokemon.game.utils.Direccion.fromString(dirStr);
 
                     // ONLY update if we already know who the other player is (via PEER_INFO)
                     // We removed the automatic creation with local sprite here
@@ -584,7 +614,7 @@ public class GameScreen extends BaseScreen {
                     }
 
                     // Re-create remote player with correct sprite
-                    otherPlayer = new RemotePlayer(peerSheet, frameCols, frameRows);
+                    otherPlayer = new JugadorRemoto(peerSheet, frameCols, frameRows);
                     otherPlayer.name = peerName;
                     otherPlayer.x = oldX;
                     otherPlayer.y = oldY;
@@ -727,11 +757,7 @@ public class GameScreen extends BaseScreen {
                     notificationTimer = NOTIFICATION_DURATION;
                     showMenu = false;
                 } else if (selected.equals("PERFIL")) {
-                    boolean esChico = true;
-                    if (myTexturePath != null && myTexturePath.toLowerCase().contains("fem")) {
-                        esChico = false;
-                    }
-                    game.setScreen(new PerfilScreen(game, this, explorador, esChico));
+                    game.setScreen(new PerfilScreen(game, this, explorador));
                 }
                 if (!selected.equals("GUARDAR")) {
                     showMenu = false;
@@ -986,9 +1012,8 @@ public class GameScreen extends BaseScreen {
                             // Force Encounter with Arceus (100% probability)
                             inEncounter = true;
                             Gdx.app.log("GameScreen", "Boss Encounter: " + bossName);
-                            // Arceus created with stats from BasePokemonData (130 HP, moves included)
-                            Pokemon jefe = new Pokemon(bossName, 10, 130, true, "Normal");
-                            game.setScreen(new BattleScreen(game, this, explorador, jefe));
+                            // Mostrar pantalla de introducción antes de la batalla
+                            game.setScreen(new ArceusIntroScreen(game, this, explorador));
                         } else if (foundGrass && nivelDificultad >= 1 && nivelDificultad <= 5) {
                             // Check if an encounter happens based on probability
                             if (GestorEncuentros.verificarEncuentro(nivelDificultad)) {

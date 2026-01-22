@@ -16,23 +16,22 @@ public class PerfilScreen extends ScreenAdapter {
     private final PokemonMain game;
     private final BaseScreen parentScreen;
     private final Explorador explorador;
-    private final boolean esChico;
 
     private Texture backgroundTexture;
     private BitmapFont font;
     private BitmapFont titleFont;
 
-    public PerfilScreen(PokemonMain game, BaseScreen parentScreen, Explorador explorador, boolean esChico) {
+    public PerfilScreen(PokemonMain game, BaseScreen parentScreen, Explorador explorador) {
         this.game = game;
         this.parentScreen = parentScreen;
         this.explorador = explorador;
-        this.esChico = esChico;
 
         this.font = new BitmapFont();
         this.titleFont = new BitmapFont();
         this.titleFont.getData().setScale(2.0f);
 
         // Cargar fondo según género
+        boolean esChico = com.mypokemon.game.utils.Genero.CHICO.equals(explorador.getGenero());
         String bgName = esChico ? "fondoPerfilChico.png" : "fondoPerfilChica.png";
         try {
             if (Gdx.files.internal(bgName).exists()) {
@@ -79,6 +78,7 @@ public class PerfilScreen extends ScreenAdapter {
         float spacing = 40;
 
         font.draw(game.batch, "Nombre: " + explorador.getNombre(), 100, startY);
+        boolean esChico = com.mypokemon.game.utils.Genero.CHICO.equals(explorador.getGenero());
         font.draw(game.batch, "Género: " + (esChico ? "Chico" : "Chica"), 100, startY - spacing);
 
         // Info adicional

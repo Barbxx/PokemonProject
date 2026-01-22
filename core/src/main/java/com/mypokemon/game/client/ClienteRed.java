@@ -3,6 +3,12 @@ package com.mypokemon.game.client;
 import java.io.*;
 import java.net.*;
 
+/**
+ * Cliente de red principal que maneja la comunicación TCP y UDP con el
+ * servidor.
+ * Se encarga del descubrimiento automático del servidor (Beacon UDP) y la
+ * conexión persistente (TCP).
+ */
 public class ClienteRed {
     private static final int TCP_PORT = 54321;
     private static final int UDP_PORT = 54777;
@@ -13,20 +19,36 @@ public class ClienteRed {
     private DataOutputStream out;
     private volatile boolean listening = true;
 
-    // Interface for callbacks
+    /**
+     * Interfaz para recibir notificaciones de mensajes entrantes.
+     */
     public interface EscuchaRed {
+        /**
+         * Método invocado cuando llega un mensaje del servidor.
+         * 
+         * @param msg El mensaje recibido en formato texto.
+         */
         void onMessageReceived(String msg);
     }
 
     private EscuchaRed listener;
 
+    /**
+     * Establece el listener para manejar mensajes entrantes.
+     * 
+     * @param listener Instancia que implementa EscuchaRed.
+     */
     public void setListener(EscuchaRed listener) {
         this.listener = listener;
     }
 
     /**
-     * Listens for the Server's UDP Beacon to auto-discover IP.
-     * Blocking call (should be run in a separate thread).
+     * Escucha el Beacon UDP del servidor para auto-descubrir su dirección IP.
+     * Esta llamada es bloqueante hasta que encuentra un servidor o se agotan los
+     * intentos.
+     * 
+     * @return La IP del servidor encontrado, o "127.0.0.1" si falla o no encuentra
+     *         nada.
      */
     public String discoverServerIP() {
         DatagramSocket socket = null;
@@ -53,7 +75,7 @@ public class ClienteRed {
             int retries = 0;
             int maxRetries = 3; // 3 seconds max wait
 
-            System.out.println("[Client] Buscando seƒÂ±al Faro...");
+            System.out.println("[Client] Buscando señal Faro...");
             while (listening && retries < maxRetries) {
                 try {
                     DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
@@ -62,7 +84,7 @@ public class ClienteRed {
                     String msg = new String(packet.getData(), 0, packet.getLength());
                     if (BEACON_MSG.equals(msg)) {
                         String serverIP = packet.getAddress().getHostAddress();
-                        System.out.println("[Client] ‚¡Faro detectado! Servidor en: " + serverIP);
+                        System.out.println("[Client] ¡Faro detectado! Servidor en: " + serverIP);
                         return serverIP;
                     }
                 } catch (SocketTimeoutException e) {
@@ -84,6 +106,13 @@ public class ClienteRed {
         }
     }
 
+    /**
+     * Intenta conectar al servidor mediante TCP.
+     * 
+     * @param ip         Dirección IP del servidor.
+     * @param playerName Nombre del jugador para el handshake inicial.
+     * @return true si la conexión fue exitosa.
+     */
     public boolean connect(String ip, String playerName) {
         try {
             System.out.println("[Client] Conectando a TCP " + ip + ":" + TCP_PORT);
@@ -99,11 +128,16 @@ public class ClienteRed {
 
             return true;
         } catch (IOException e) {
-            System.err.println("[Client] Error conexiƒÂ³n TCP: " + e.getMessage());
+            System.err.println("[Client] Error conexión TCP: " + e.getMessage());
             return false;
         }
     }
 
+    /**
+     * Envía un mensaje de texto al servidor.
+     * 
+     * @param msg El contenido del mensaje.
+     */
     public void sendMessage(String msg) {
         try {
             if (out != null) {
@@ -114,6 +148,9 @@ public class ClienteRed {
         }
     }
 
+    /**
+     * Bucle principal de escucha TCP. Se ejecuta en su propio hilo.
+     */
     private void listenTcp() {
         try {
             while (listening && !tcpSocket.isClosed()) {
@@ -127,6 +164,9 @@ public class ClienteRed {
         }
     }
 
+    /**
+     * Detiene el cliente y cierra la conexión.
+     */
     public void stop() {
         listening = false;
         try {
@@ -136,6 +176,3 @@ public class ClienteRed {
         }
     }
 }
-
-
-

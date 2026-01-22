@@ -29,4 +29,9 @@ public class Recurso extends Objeto {
 
         return opciones;
     }
+
+    @Override
+    public void guardarEn(Inventario inventario) throws com.mypokemon.game.inventario.exceptions.SpaceException {
+        inventario.agregarRecurso(this);
+    }
 }

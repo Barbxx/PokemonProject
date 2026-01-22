@@ -30,6 +30,11 @@ public class BattleScreen extends ScreenAdapter {
 
     // ...
 
+    /**
+     * Cambia el Pokémon activo del jugador durante la batalla
+     * 
+     * @param nuevo El nuevo Pokémon a usar en batalla
+     */
     public void cambiarPokemon(Pokemon nuevo) {
         this.pokemonJugador = nuevo;
         updateInfo("¡Adelante " + nuevo.getNombre() + "!");
@@ -119,7 +124,28 @@ public class BattleScreen extends ScreenAdapter {
         this.pokemonEnemigo = enemigo;
 
         if (!explorador.getEquipo().isEmpty()) {
-            this.pokemonJugador = explorador.getEquipo().get(0);
+            Pokemon pokemonOriginal = explorador.getEquipo().get(0);
+
+            // Actualizar el nivel del Pokémon del jugador al nivel de investigación actual
+            // de la Pokédex
+            String nombrePokemon = pokemonOriginal.getNombre();
+            int nivelInvestigacionActual = pokemonOriginal.getNivel(); // Nivel por defecto
+
+            if (explorador.getRegistro().getRegistro().containsKey(nombrePokemon)) {
+                nivelInvestigacionActual = explorador.getRegistro().getRegistro().get(nombrePokemon)
+                        .getNivelInvestigacion();
+            }
+
+            // Recrear el Pokémon con el nivel actualizado para que las estadísticas se
+            // recalculen
+            this.pokemonJugador = new Pokemon(nombrePokemon, nivelInvestigacionActual, 0,
+                    pokemonOriginal.isLegendario(), pokemonOriginal.getTipo());
+
+            // Restaurar HP actual si no está en full
+            float hpActualOriginal = pokemonOriginal.getHpActual();
+            if (hpActualOriginal < pokemonJugador.getHpMaximo()) {
+                pokemonJugador.recibirDaño(pokemonJugador.getHpMaximo() - hpActualOriginal);
+            }
         } else {
             // Revertido a Piplup como se solicitó para simulación
             this.pokemonJugador = new Pokemon("Piplup", 5, 20, false, "Agua");
@@ -210,6 +236,12 @@ public class BattleScreen extends ScreenAdapter {
         }
     }
 
+    /**
+     * Crea una textura circular con el color especificado
+     * 
+     * @param color Color del círculo
+     * @return Textura circular creada
+     */
     private Texture createCircleTexture(Color color) {
         Pixmap circle = new Pixmap(128, 128, Pixmap.Format.RGBA8888);
         circle.setColor(color);
@@ -219,6 +251,12 @@ public class BattleScreen extends ScreenAdapter {
         return t;
     }
 
+    /**
+     * Crea una textura de un solo píxel con el color especificado
+     * 
+     * @param color Color de la textura
+     * @return Textura de color sólido
+     */
     private Texture createColorTexture(Color color) {
         Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
         pixmap.setColor(color);
@@ -382,6 +420,9 @@ public class BattleScreen extends ScreenAdapter {
         updateInfo("¡Un " + pokemonEnemigo.getNombre() + " salvaje apareció!");
     }
 
+    /**
+     * Maneja la acción seleccionada en el menú principal de batalla
+     */
     private void handleSelectedAction() {
         switch (selectedOption) {
             case 0: // Atacar
@@ -401,10 +442,18 @@ public class BattleScreen extends ScreenAdapter {
         }
     }
 
+    /**
+     * Abre la pantalla de mochila durante la batalla
+     */
     private void abrirMochila() {
         game.setScreen(new MochilaScreen(game, this, explorador));
     }
 
+    /**
+     * Usa un ítem durante la batalla
+     * 
+     * @param tipo Tipo de ítem a usar (pokeball, heavyball, pocion, etc.)
+     */
     public void usarItemEnBatalla(String tipo) {
         if (tipo.equals("pokeball") || tipo.equals("heavyball")) {
             if (pokemonEnemigo.getNombre().equalsIgnoreCase("Arceus")) {
@@ -472,6 +521,9 @@ public class BattleScreen extends ScreenAdapter {
         }
     }
 
+    /**
+     * Verifica si la captura del Pokémon enemigo fue exitosa
+     */
     private void checkCapture() {
         float hpPercent = pokemonEnemigo.getHpActual() / pokemonEnemigo.getHpMaximo();
         int nivelEnemigo = pokemonEnemigo.getNivel();
@@ -517,10 +569,19 @@ public class BattleScreen extends ScreenAdapter {
         }
     }
 
+    /**
+     * Obtiene el Pokémon activo del jugador
+     * 
+     * @return Pokémon del jugador
+     */
     public Pokemon getPokemonJugador() {
         return pokemonJugador;
     }
 
+    /**
+     * Ejecuta el turno del enemigo con un retraso para mejorar la experiencia
+     * visual
+     */
     private void performEnemyTurnWithDelay() {
         Gdx.app.postRunnable(() -> {
             try {
@@ -531,6 +592,9 @@ public class BattleScreen extends ScreenAdapter {
         });
     }
 
+    /**
+     * Abre la pantalla de Pokémon para cambiar el Pokémon activo
+     */
     private void abrirPokemon() {
         // Redirigir a MochilaScreen en la pestaña de Pokémon (índice 3)
         MochilaScreen mochila = new MochilaScreen(game, this, explorador);
@@ -538,11 +602,19 @@ public class BattleScreen extends ScreenAdapter {
         game.setScreen(mochila);
     }
 
+    /**
+     * Maneja la acción de huir de la batalla
+     */
     private void handleHuir() {
         updateInfo("¡Escapaste sin problemas!");
         endBattle(false);
     }
 
+    /**
+     * Ejecuta un movimiento seleccionado por el jugador
+     * 
+     * @param moveIndex Índice del movimiento a ejecutar
+     */
     private void performMove(int moveIndex) {
         showMoveMenu = false;
         List<Movimiento> movs = pokemonJugador.getMovimientos();
@@ -611,6 +683,9 @@ public class BattleScreen extends ScreenAdapter {
         }
     }
 
+    /**
+     * Ejecuta el turno del Pokémon enemigo
+     */
     private void performEnemyTurn() {
         if (currentState != BattleState.ENEMY_TURN)
             return;
@@ -649,6 +724,9 @@ public class BattleScreen extends ScreenAdapter {
         }
     }
 
+    /**
+     * Verifica el estado de la batalla y determina si hay un ganador
+     */
     private void checkBattleStatus() {
         if (pokemonEnemigo.getHpActual() <= 0) {
             updateInfo("¡" + pokemonEnemigo.getNombre() + " se debilitó!");
@@ -680,10 +758,7 @@ public class BattleScreen extends ScreenAdapter {
         } else if (pokemonJugador.getHpActual() <= 0) {
             updateInfo("¡Tu Pokémon se debilitó!");
 
-            // Derrota: El Pokémon salvaje gana experiencia (+1 investigación)
-            explorador.getRegistro().registrarAccion(pokemonEnemigo.getNombre(), false);
-
-            // Derrota: Penalización
+            // Derrota: Penalización (sin incremento de investigación para el enemigo)
             String perdido = explorador.getMochila().perderObjetoCrafteado();
             if (perdido != null) {
                 updateInfo("Perdiste 1 " + perdido + " en la huida.");
@@ -695,6 +770,9 @@ public class BattleScreen extends ScreenAdapter {
         }
     }
 
+    /**
+     * Actualiza el diseño de los botones según el tamaño de la ventana
+     */
     private void updateLayout() {
         // Actualizar posiciones de botones basándose en el nuevo tamaño del mundo
         float btnWidth = 140; // Menos largos (era 180)
@@ -723,6 +801,11 @@ public class BattleScreen extends ScreenAdapter {
         btnMove3Rect = new Rectangle(startX + btnWidth + spacing, startY, btnWidth, btnHeight);
     }
 
+    /**
+     * Finaliza la batalla y redirige a la pantalla correspondiente
+     * 
+     * @param victory True si el jugador ganó, false si perdió o huyó
+     */
     private void endBattle(final boolean victory) {
         if (battleMusic != null) {
             battleMusic.stop();
@@ -735,15 +818,32 @@ public class BattleScreen extends ScreenAdapter {
         if (pokemonEnemigo != null)
             pokemonEnemigo.resetModificadoresTemporales();
 
-        Gdx.app.postRunnable(() -> {
-            try {
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-            }
-            Gdx.app.postRunnable(() -> game.setScreen(parentScreen));
-        });
+        // Si derrotó a Arceus, ir a créditos finales
+        if (victory && pokemonEnemigo.getNombre().equalsIgnoreCase("Arceus")) {
+            Gdx.app.postRunnable(() -> {
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                }
+                Gdx.app.postRunnable(() -> game.setScreen(new CreditsScreen(game, explorador.getNombre())));
+            });
+        } else {
+            // Batalla normal, volver a la pantalla anterior
+            Gdx.app.postRunnable(() -> {
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                }
+                Gdx.app.postRunnable(() -> game.setScreen(parentScreen));
+            });
+        }
     }
 
+    /**
+     * Actualiza el texto de información mostrado en la batalla
+     * 
+     * @param text Texto a mostrar
+     */
     private void updateInfo(String text) {
         infoText = text;
         System.out.println("[BATTLE] " + text);
@@ -849,6 +949,9 @@ public class BattleScreen extends ScreenAdapter {
         game.batch.end();
     }
 
+    /**
+     * Dibuja la Pokédex en pantalla durante la batalla
+     */
     private void drawPokedex() {
         // Dibujar un fondo oscuro para la pokedex
         game.batch.draw(borderBg, 50, 50, 700, 500);
@@ -878,6 +981,9 @@ public class BattleScreen extends ScreenAdapter {
         font.draw(game.batch, "Presiona B para cerrar", 300, 90);
     }
 
+    /**
+     * Dibuja el cuadro de mensajes en la batalla
+     */
     private void drawMessageBox() {
         // float boxWidth = viewport.getWorldWidth();
         // float boxHeight = 160;
@@ -894,6 +1000,9 @@ public class BattleScreen extends ScreenAdapter {
         font.draw(game.batch, infoText, textX, textY);
     }
 
+    /**
+     * Dibuja la información del Pokémon enemigo y del jugador
+     */
     private void drawEnemyInfo() {
         // Enemy Info (Top Left)
         float infoX = 10;
@@ -964,6 +1073,13 @@ public class BattleScreen extends ScreenAdapter {
         font.setColor(Color.BLACK); // Reset color
     }
 
+    /**
+     * Dibuja un botón en la pantalla
+     * 
+     * @param rect     Rectángulo que define la posición y tamaño del botón
+     * @param text     Texto a mostrar en el botón
+     * @param selected Si el botón está seleccionado
+     */
     private void drawButton(Rectangle rect, String text, boolean selected) {
         Texture border = selected ? selectedBorder : borderBg;
         game.batch.draw(border, rect.x - 4, rect.y - 4, rect.width + 8, rect.height + 8);

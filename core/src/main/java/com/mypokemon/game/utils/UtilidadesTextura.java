@@ -4,10 +4,19 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 
+/**
+ * Utilidades para la creación y manipulación de texturas.
+ * Versión duplicada/alias de TextureUtils.
+ */
 public class UtilidadesTextura {
 
     /**
-     * Creates a solid color texture of specified size.
+     * Crea una textura de color sólido del tamaño especificado.
+     * 
+     * @param width  Ancho de la textura.
+     * @param height Alto de la textura.
+     * @param color  Color de relleno.
+     * @return Textura generada.
      */
     public static Texture createSolidTexture(int width, int height, Color color) {
         // Ensure dimensions are valid
@@ -24,7 +33,3 @@ public class UtilidadesTextura {
         return texture;
     }
 }
-
-
-
-

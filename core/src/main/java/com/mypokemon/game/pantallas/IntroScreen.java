@@ -294,8 +294,8 @@ public class IntroScreen extends BaseScreen {
                 if (isNameConfirmed) {
                     if ("SharedGame".equals(gameName)) {
                         // Check if name is taken via Network
-                        if (game.networkClient != null) {
-                            game.networkClient.setListener(msg -> {
+                        if (game.clienteRed != null) {
+                            game.clienteRed.setListener(msg -> {
                                 if (msg.equals("NAME_OK")) {
                                     Gdx.app.postRunnable(() -> {
                                         this.currentState = State.PRE_CLOSING;
@@ -309,7 +309,7 @@ public class IntroScreen extends BaseScreen {
                                     });
                                 }
                             });
-                            game.networkClient.sendMessage("CHECK_NAME:" + playerName);
+                            game.clienteRed.sendMessage("CHECK_NAME:" + playerName);
                         } else {
                             // Fallback if no network (shouldn't happen in SharedGame)
                             currentState = State.PRE_CLOSING;

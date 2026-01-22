@@ -11,19 +11,33 @@ import java.util.List;
 
 import com.mypokemon.game.inventario.Inventario;
 
+/**
+ * Representa al jugador (Explorador) en el mundo de juego.
+ * Gestiona el progreso, el inventario (mochila), la Pokédex, el equipo Pokémon
+ * y el guardado de datos.
+ */
 public class Explorador implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private String nombreUsuario;
-    private String nombrePartida; // New field for filename
-    private String genero; // CHICO or CHICA
+    private String nombrePartida; // Campo para el nombre del archivo de guardado
+    private com.mypokemon.game.utils.Genero genero; // CHICO o CHICA
     private Inventario mochila;
     private Pokedex registro;
     private List<Pokemon> equipo;
     private int misionesCompletadas;
-    private float tiempoGuanteRestante; // Tiempo restante en segundos para el Guante de Reflejo
+    private float tiempoGuanteRestante; // Segundos restantes para el efecto del Guante de Reflejo
 
-    public Explorador(String nombreUsuario, String nombrePartida, int capacidadInicial, String genero) {
+    /**
+     * Constructor completo del explorador.
+     * 
+     * @param nombreUsuario    Nombre del jugador.
+     * @param nombrePartida    Nombre identificador de la partida.
+     * @param capacidadInicial Capacidad inicial de la mochila.
+     * @param genero           Género del personaje (Enum Genero).
+     */
+    public Explorador(String nombreUsuario, String nombrePartida, int capacidadInicial,
+            com.mypokemon.game.utils.Genero genero) {
         this.nombreUsuario = nombreUsuario;
         this.nombrePartida = nombrePartida;
         this.genero = genero;
@@ -34,12 +48,20 @@ public class Explorador implements Serializable {
         this.tiempoGuanteRestante = 0;
     }
 
+    /**
+     * Constructor por defecto con género masculino.
+     */
     public Explorador(String nombreUsuario, String nombrePartida, int capacidadInicial) {
-        this(nombreUsuario, nombrePartida, capacidadInicial, "CHICO");
+        this(nombreUsuario, nombrePartida, capacidadInicial, com.mypokemon.game.utils.Genero.CHICO);
     }
 
+    /**
+     * Guarda el progreso del explorador en un archivo binario (.dat).
+     * 
+     * @param filename Nombre del archivo.
+     * @return true si se guardó con éxito.
+     */
     public boolean guardarProgreso(String filename) {
-        // Guarda el objeto Explorador completo en el archivo especificado
         try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(filename))) {
             out.writeObject(this);
             System.out.println("Progreso guardado exitosamente en " + filename);
@@ -51,16 +73,21 @@ public class Explorador implements Serializable {
         }
     }
 
+    /**
+     * Guarda el progreso usando un nombre de archivo por defecto generado a partir
+     * de la partida y el usuario.
+     */
     public boolean guardarProgreso() {
-        // Fallback for default behavior if needed, generally shouldn't be used with new
-        // logic
         return guardarProgreso(nombrePartida + "_" + nombreUsuario + ".dat");
     }
 
+    /**
+     * Carga un objeto Explorador desde un archivo de guardado.
+     * 
+     * @param filename Nombre del archivo a cargar.
+     * @return El objeto Explorador reconstruido o null si falla.
+     */
     public static Explorador cargarProgreso(String filename) {
-        // Busca el archivo y reconstruye el objeto usando el nombre del archivo
-        // Ensure extension is handled if not provided (helper logic could go here, but
-        // let's assume valid filenames)
         try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(filename))) {
             return (Explorador) in.readObject();
         } catch (IOException | ClassNotFoundException e) {
@@ -69,27 +96,30 @@ public class Explorador implements Serializable {
         }
     }
 
+    /**
+     * Verifica si se cumplen las condiciones para enfrentar a Arceus.
+     */
     public boolean verificarRequisitosArceus() {
-        // Consulta a la Pokedex para saber si ya tiene las 5 especies investigadas a
-        // nivel 10
         return registro.puedeRetarArceus();
     }
 
+    /**
+     * Finaliza la investigación legendaria y guarda el progreso final.
+     */
     public void finalizarInvestigacionLegendaria() {
         System.out.println("Dr. Brenner: Progreso guardado. El experimento ha concluido.");
-        // Incrementa contador de misiones al completar el hito (opcional, pero buena
-        // práctica)
         misionesCompletadas++;
         guardarProgreso();
     }
 
-    // Getters
+    // Getters y Setters con descripciones breves
+
     public Inventario getMochila() {
         return mochila;
     }
 
     public Inventario getInventario() {
-        return mochila; // Alias para getMochila()
+        return mochila;
     }
 
     public Pokedex getRegistro() {
@@ -104,7 +134,7 @@ public class Explorador implements Serializable {
         return nombrePartida;
     }
 
-    public String getGenero() {
+    public com.mypokemon.game.utils.Genero getGenero() {
         return genero;
     }
 
@@ -116,6 +146,9 @@ public class Explorador implements Serializable {
         return misionesCompletadas;
     }
 
+    /**
+     * Intenta agregar un Pokémon al equipo (máximo 6).
+     */
     public boolean agregarAlEquipo(Pokemon pokemon) {
         if (this.equipo.size() < 6) {
             this.equipo.add(pokemon);
@@ -128,7 +161,7 @@ public class Explorador implements Serializable {
         agregarAlEquipo(pokemon);
     }
 
-    // Sistema de Crafteo Centralizado
+    // Sistema de Crafteo
     private transient com.mypokemon.game.inventario.Crafteo crafteoSystem;
 
     public com.mypokemon.game.inventario.Crafteo getCrafteoSystem() {
@@ -138,6 +171,9 @@ public class Explorador implements Serializable {
         return crafteoSystem;
     }
 
+    /**
+     * Comprueba si el guante recolector está habilitado.
+     */
     public boolean isGuanteEquipado() {
         return tiempoGuanteRestante > 0;
     }
@@ -150,6 +186,9 @@ public class Explorador implements Serializable {
         return tiempoGuanteRestante;
     }
 
+    /**
+     * Verifica si el reproductor de música está activo en la mochila.
+     */
     public boolean isReproductorMusicaActivo() {
         com.mypokemon.game.inventario.Objeto item = mochila.getItem("reproductor");
         if (item instanceof com.mypokemon.game.inventario.objetoscrafteados.ReproductorMusica) {
@@ -166,9 +205,10 @@ public class Explorador implements Serializable {
     }
 
     /**
-     * Actualiza los temporizadores activos (Glove, etc.)
+     * Actualiza los temporizadores de efectos activos (como el guante de
+     * recolección).
      * 
-     * @param delta Tiempo transcurrido
+     * @param delta Tiempo transcurrido por frame.
      */
     public void actualizarTemporizadores(float delta) {
         if (tiempoGuanteRestante > 0) {

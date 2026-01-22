@@ -3,9 +3,15 @@ package com.mypokemon.game.servidor;
 import java.io.*;
 import java.net.Socket;
 
+/**
+ * Maneja la conexión individual de un cliente en el lado del servidor.
+ * Se ejecuta en su propio hilo y gestiona la comunicación bidireccional
+ * con el jugador conectado.
+ */
 public class ClientHandler extends Thread {
     private Socket socket;
     private GameServer server;
+    /** Referencia al otro cliente conectado (para partidas de 2 jugadores). */
     private ClientHandler peer;
     private DataInputStream in;
     private DataOutputStream out;
@@ -13,6 +19,12 @@ public class ClientHandler extends Thread {
     private String playerName;
     private String gender = "CHICO";
 
+    /**
+     * Constructor del manejador de cliente.
+     * 
+     * @param socket Socket conectado al cliente.
+     * @param server Referencia al servidor principal.
+     */
     public ClientHandler(Socket socket, GameServer server) {
         this.socket = socket;
         this.server = server;
@@ -24,6 +36,11 @@ public class ClientHandler extends Thread {
         }
     }
 
+    /**
+     * Asigna el compañero (peer) de este cliente.
+     * 
+     * @param peer El otro ClientHandler.
+     */
     public void setPeer(ClientHandler peer) {
         this.peer = peer;
     }
@@ -48,6 +65,11 @@ public class ClientHandler extends Thread {
         return gender;
     }
 
+    /**
+     * Envía un mensaje al cliente de forma thread-safe.
+     * 
+     * @param msg Mensaje a enviar.
+     */
     public void sendMessage(String msg) {
         try {
             if (out != null) {
@@ -60,6 +82,9 @@ public class ClientHandler extends Thread {
         }
     }
 
+    /**
+     * Bucle principal de escucha de mensajes del cliente.
+     */
     @Override
     public void run() {
         try {
@@ -106,12 +131,18 @@ public class ClientHandler extends Thread {
         }
     }
 
+    /**
+     * Método placeholder para lógica de guardado automático (heredado).
+     */
     private void checkAndCreateSave() {
         // La creación automática de archivo ha sido eliminada.
         // El archivo solo se creará cuando ambos jugadores guarden explícitamente en el
         // juego.
     }
 
+    /**
+     * Cierra la conexión y libera recursos.
+     */
     private void close() {
         server.removeClient(this);
         try {

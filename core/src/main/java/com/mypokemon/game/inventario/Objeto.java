@@ -76,4 +76,15 @@ public abstract class Objeto implements Serializable {
     public boolean esLanzable() {
         return this instanceof com.mypokemon.game.inventario.interfaces.ILanzable;
     }
+
+    /**
+     * Permite que el objeto se guarde a sí mismo en el inventario correspondiente.
+     * Implementa el patrón Double Dispatch para evitar instanceof en Inventario.
+     * 
+     * @param inventario El inventario donde se guardará el ítem.
+     * @throws com.mypokemon.game.inventario.exceptions.SpaceException si no hay
+     *                                                                 espacio.
+     */
+    public abstract void guardarEn(Inventario inventario)
+            throws com.mypokemon.game.inventario.exceptions.SpaceException;
 }

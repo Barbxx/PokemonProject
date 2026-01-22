@@ -22,8 +22,10 @@ import com.badlogic.gdx.Screen;
 import com.mypokemon.game.inventario.Objeto;
 
 /**
- * Screen for the inventory (Mochila).
- * Pure SpriteBatch logic with robust texture loading and coordinate handling.
+ * Pantalla del inventario (Mochila).
+ * Utiliza lógica de SpriteBatch para renderizar la cuadrícula de objetos y
+ * Pokémon.
+ * Gestiona el uso de ítems y el equipo Pokémon del jugador.
  */
 public class MochilaScreen extends BaseScreen {
     private final Explorador explorador;
@@ -52,17 +54,27 @@ public class MochilaScreen extends BaseScreen {
     // New Texture for Green Frame
     private Texture texMarcoVerde;
 
-    // Pokemon Texture Cache
+    /**
+     * Cache de texturas para los Pokémon del equipo, para evitar recargas
+     * constantes.
+     */
     private java.util.Map<String, Texture> pokemonTextureCache = new java.util.TreeMap<>();
 
-    // Helper class for grid items
-    // Data Model
+    /**
+     * Modelo de datos para representar un elemento (ítem o Pokémon) en la
+     * cuadrícula.
+     */
     public class ItemData {
+        /** Nombre legible del elemento. */
         public String nombre;
+        /** Descripción breve del efecto o naturaleza del elemento. */
         public String descripcion;
+        /** Textura visual para mostrar en la mochila. */
         public Texture textura;
+        /** Cantidad disponible en el inventario. */
         public int cantidad;
-        public Objeto itemReal; // Referencia al ítem real del sistema OO
+        /** Referencia al objeto lógico del sistema de inventario (si aplica). */
+        public Objeto itemReal;
 
         public ItemData(String nombre, String descripcion, Texture textura, int cantidad, Objeto itemReal) {
             this.nombre = nombre;
@@ -72,7 +84,7 @@ public class MochilaScreen extends BaseScreen {
             this.itemReal = itemReal;
         }
 
-        // Constructor de compatibilidad para Pokémon (que no son Items)
+        /** Constructor de compatibilidad para Pokémon. */
         public ItemData(String nombre, String descripcion, Texture textura, int cantidad) {
             this(nombre, descripcion, textura, cantidad, null);
         }
@@ -99,12 +111,14 @@ public class MochilaScreen extends BaseScreen {
 
     private Vector3 mousePos = new Vector3();
 
-    // STATE MACHINE
+    /**
+     * Estados del flujo de la mochila.
+     */
     private enum InventoryState {
-        BROWSING,
-        OPTIONS_MENU,
-        SELECT_POKEMON_TARGET,
-        SELECT_MOVE_TARGET // Future expansion
+        BROWSING, // Navegando por el inventario
+        OPTIONS_MENU, // Menú de opciones abierto para un ítem
+        SELECT_POKEMON_TARGET, // Seleccionando un Pokémon para usar un ítem
+        SELECT_MOVE_TARGET // Reservado para futura expansión
     }
 
     private InventoryState currentState = InventoryState.BROWSING;
@@ -237,9 +251,9 @@ public class MochilaScreen extends BaseScreen {
         textureFondoSlot = new Texture(pixmap);
         pixmap.dispose();
 
-        // Font setup
+        // Configuración de fuentes
         fontContador = new com.badlogic.gdx.graphics.g2d.BitmapFont();
-        fontContador.getData().setScale(1.5f);
+        fontContador.getData().setScale(2.0f); // Aumentado de 1.5f a 2.0f
 
         Gdx.app.log("MochilaScreen", "Positions and assets initialized");
         updateVisibleItems();
@@ -305,7 +319,7 @@ public class MochilaScreen extends BaseScreen {
         // Draw Feedback Message (abajo a la izquierda, en rojo)
         if (feedbackTimer > 0) {
             game.font.setColor(Color.RED);
-            game.font.getData().setScale(1.2f);
+            game.font.getData().setScale(2.0f); // Aumentado de 1.2f a 2.0f
             game.font.draw(game.batch, feedbackMessage, 100, 80);
             game.font.getData().setScale(1.0f);
             game.font.setColor(Color.WHITE);
@@ -857,7 +871,7 @@ public class MochilaScreen extends BaseScreen {
 
     private void drawPokemonSelectionPrompt(com.badlogic.gdx.graphics.g2d.SpriteBatch batch) {
         game.font.setColor(Color.YELLOW);
-        game.font.getData().setScale(1.5f);
+        game.font.getData().setScale(2.0f); // Aumentado de 1.5f a 2.0f
         game.font.draw(batch, "SELECCIONA UN POKÉMON", 700, VIRTUAL_HEIGHT - 50);
         game.font.getData().setScale(1.0f);
         game.font.setColor(Color.WHITE);
@@ -984,11 +998,11 @@ public class MochilaScreen extends BaseScreen {
                 game.font.draw(batch, desc, 100, 310);
             } else {
                 game.font.setColor(Color.YELLOW);
-                game.font.getData().setScale(1.2f);
+                game.font.getData().setScale(2.0f); // Aumentado de 1.2f a 2.0f
                 game.font.draw(batch, titulo, 100, 350); // Title
 
                 game.font.setColor(Color.WHITE);
-                game.font.getData().setScale(1.0f);
+                game.font.getData().setScale(1.5f); // Aumentado de 1.0f a 1.5f
                 // Wrap text if needed, but existing logic didn't wrap much. Assuming short
                 // descriptions.
                 game.font.draw(batch, desc, 100, 310);
