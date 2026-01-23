@@ -188,7 +188,8 @@ public class GameUI {
     }
 
     /**
-     * Libera los recursos (fuentes y texturas).
+     * Libera los recursos utilizados por la UI (fuentes y texturas).
+     * Debe llamarse cuando la pantalla que utiliza la UI es destruida.
      */
     public void dispose() {
         if (font != null)

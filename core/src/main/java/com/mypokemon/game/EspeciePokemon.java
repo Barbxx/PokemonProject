@@ -53,6 +53,18 @@ public class EspeciePokemon implements Serializable {
     }
 
     /**
+     * Establece directamente el nivel de investigacion.
+     * 
+     * @param nivel Nivel de investigacion a establecer (0-10)
+     */
+    public void setNivel(int nivel) {
+        this.nivelInvestigacion = Math.max(0, Math.min(10, nivel));
+        if (this.nivelInvestigacion >= 10) {
+            this.completa = true;
+        }
+    }
+
+    /**
      * Sube el nivel de investigacion de la especie.
      * 
      * @param cantidad Cantidad de niveles a subir

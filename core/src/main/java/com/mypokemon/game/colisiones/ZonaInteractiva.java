@@ -43,7 +43,12 @@ public abstract class ZonaInteractiva extends ColisionBase implements IInteracti
         return mensajeInteraccion;
     }
 
-    // Método abstracto que deben implementar las subclases para definir qué sucede al interactuar.
+    /**
+     * Método abstracto que deben implementar las subclases para definir qué sucede
+     * al interactuar.
+     * Define el comportamiento específico cuando el jugador interactúa con esta
+     * zona.
+     */
     @Override
     public abstract void interactuar();
 }

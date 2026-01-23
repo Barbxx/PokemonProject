@@ -88,10 +88,10 @@ public class MochilaScreen extends BaseScreen {
     private int selectedIndex = 0; // Category Selection
 
     // User requested fields
-    private Texture textureFondoSlot; 
+    private Texture textureFondoSlot;
     private com.badlogic.gdx.graphics.g2d.BitmapFont fontContador;
-    private int indexSeleccionado = 0; 
-    private Texture whitePixel; 
+    private int indexSeleccionado = 0;
+    private Texture whitePixel;
 
     private OrthographicCamera camera;
     private Viewport viewport;

@@ -3,7 +3,10 @@ package com.mypokemon.game.colisiones;
 // Interfaz para objetos con los que se puede interactuar.
 public interface IInteractivo extends IColisionable {
 
-    // Ejecuta la interacción con este objeto.
+    /**
+     * Ejecuta la interacción con este objeto.
+     * La implementación específica depende del tipo de objeto interactivo.
+     */
     void interactuar();
 
     /**

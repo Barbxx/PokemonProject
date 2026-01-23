@@ -10,9 +10,6 @@ import com.badlogic.gdx.graphics.Texture;
 public class TextureUtils {
 
     /**
-     * Creates a solid color texture of specified size.
-     */
-    /**
      * Crea una textura de color sólido con el tamaño y color especificados.
      * Útil para crear fondos de menús o elementos de UI simples.
      * 

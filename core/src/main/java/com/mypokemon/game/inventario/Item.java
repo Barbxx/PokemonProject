@@ -89,7 +89,7 @@ public abstract class Item implements Serializable {
 
     /**
      * Obtiene las opciones disponibles para este ítem.
-     * Cada subclase define sus propias opciones 
+     * Cada subclase define sus propias opciones.
      * 
      * @return Lista de opciones disponibles
      */

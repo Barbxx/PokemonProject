@@ -33,12 +33,18 @@ import static org.lwjgl.system.macosx.ObjCRuntime.objc_getClass;
 import static org.lwjgl.system.macosx.ObjCRuntime.sel_getUid;
 
 /**
- * Adds some utilities to ensure that the JVM was started with the
- * {@code -XstartOnFirstThread} argument, which is required on macOS for LWJGL 3
- * to function. Also helps on Windows when users have names with characters from
- * outside the Latin alphabet, a common cause of startup crashes.
+ * Proporciona utilidades para asegurar que la JVM se inicie con el argumento
+ * {@code -XstartOnFirstThread}, necesario en macOS para que LWJGL 3 funcione
+ * correctamente.
+ * También ayuda en Windows cuando los nombres de usuario contienen caracteres
+ * no latinos,
+ * evitando fallos comunes en el arranque.
+ * 
  * <br>
- * <a href="https://jvm-gaming.org/t/starting-jvm-on-mac-with-xstartonfirstthread-programmatically/57547">Based on this java-gaming.org post by kappa</a>
+ * <a href=
+ * "https://jvm-gaming.org/t/starting-jvm-on-mac-with-xstartonfirstthread-programmatically/57547">Basado
+ * en este post de java-gaming.org por kappa</a>
+ * 
  * @author damios
  */
 public class StartupHelper {
@@ -50,45 +56,52 @@ public class StartupHelper {
     }
 
     /**
-     * Starts a new JVM if the application was started on macOS without the
-     * {@code -XstartOnFirstThread} argument. This also includes some code for
-     * Windows, for the case where the user's home directory includes certain
-     * non-Latin-alphabet characters (without this code, most LWJGL3 apps fail
-     * immediately for those users). Returns whether a new JVM was started and
-     * thus no code should be executed.
+     * Inicia una nueva JVM si la aplicación se ejecutó en macOS sin el argumento
+     * {@code -XstartOnFirstThread}. También incluye lógica para Windows en casos
+     * donde
+     * el directorio de usuario contiene caracteres no ASCII, lo cual suele causar
+     * fallos inmediatos.
+     * 
      * <p>
-     * <u>Usage:</u>
+     * <u>Uso:</u>
      *
-     * <pre><code>
+     * <pre>
+     * <code>
      * public static void main(String... args) {
-     * 	if (StartupHelper.startNewJvmIfRequired(true)) return; // This handles macOS support and helps on Windows.
-     * 	// after this is the actual main method code
+     * 	if (StartupHelper.startNewJvmIfRequired(true)) return;
+     * 	// El código real del método main va aquí
      * }
-     * </code></pre>
+     * </code>
+     * </pre>
      *
-     * @param redirectOutput
-     *            whether the output of the new JVM should be rerouted to the
-     *            old JVM, so it can be accessed in the same place; keeps the
-     *            old JVM running if enabled
-     * @return whether a new JVM was started and thus no code should be executed
-     *         in this one
+     * @param redirectOutput Define si la salida de la nueva JVM debe redirigirse a
+     *                       la antigua.
+     * @return true si se inició una nueva JVM y, por lo tanto, no se debe ejecutar
+     *         más código en la actual.
      */
     public static boolean startNewJvmIfRequired(boolean redirectOutput) {
         String osName = System.getProperty("os.name").toLowerCase(java.util.Locale.ROOT);
         if (!osName.contains("mac")) {
             if (osName.contains("windows")) {
-// Here, we are trying to work around an issue with how LWJGL3 loads its extracted .dll files.
-// By default, LWJGL3 extracts to the directory specified by "java.io.tmpdir", which is usually the user's home.
-// If the user's name has non-ASCII (or some non-alphanumeric) characters in it, that would fail.
-// By extracting to the relevant "ProgramData" folder, which is usually "C:\ProgramData", we avoid this.
-// We also temporarily change the "user.name" property to one without any chars that would be invalid.
-// We revert our changes immediately after loading LWJGL3 natives.
+                // Here, we are trying to work around an issue with how LWJGL3 loads its
+                // extracted .dll files.
+                // By default, LWJGL3 extracts to the directory specified by "java.io.tmpdir",
+                // which is usually the user's home.
+                // If the user's name has non-ASCII (or some non-alphanumeric) characters in it,
+                // that would fail.
+                // By extracting to the relevant "ProgramData" folder, which is usually
+                // "C:\ProgramData", we avoid this.
+                // We also temporarily change the "user.name" property to one without any chars
+                // that would be invalid.
+                // We revert our changes immediately after loading LWJGL3 natives.
                 String programData = System.getenv("ProgramData");
-                if(programData == null) programData = "C:\\Temp\\"; // if ProgramData isn't set, try some fallback.
+                if (programData == null)
+                    programData = "C:\\Temp\\"; // if ProgramData isn't set, try some fallback.
                 String prevTmpDir = System.getProperty("java.io.tmpdir", programData);
                 String prevUser = System.getProperty("user.name", "libGDX_User");
                 System.setProperty("java.io.tmpdir", programData + "/libGDX-temp");
-                System.setProperty("user.name", ("User_" + prevUser.hashCode() + "_GDX" + Version.VERSION).replace('.', '_'));
+                System.setProperty("user.name",
+                        ("User_" + prevUser.hashCode() + "_GDX" + Version.VERSION).replace('.', '_'));
                 Lwjgl3NativesLoader.load();
                 System.setProperty("java.io.tmpdir", prevTmpDir);
                 System.setProperty("user.name", prevUser);
@@ -101,12 +114,14 @@ public class StartupHelper {
             return false;
         }
 
-        // Checks if we are already on the main thread, such as from running via Construo.
+        // Checks if we are already on the main thread, such as from running via
+        // Construo.
         long objc_msgSend = ObjCRuntime.getLibrary().getFunctionAddress("objc_msgSend");
-        long NSThread      = objc_getClass("NSThread");
+        long NSThread = objc_getClass("NSThread");
         long currentThread = invokePPP(NSThread, sel_getUid("currentThread"), objc_msgSend);
         boolean isMainThread = invokePPZ(currentThread, sel_getUid("isMainThread"), objc_msgSend);
-        if(isMainThread) return false;
+        if (isMainThread)
+            return false;
 
         long pid = LibC.getpid();
 
@@ -126,10 +141,12 @@ public class StartupHelper {
         // Restart the JVM with -XstartOnFirstThread
         ArrayList<String> jvmArgs = new ArrayList<>();
         String separator = System.getProperty("file.separator", "/");
-        // The following line is used assuming you target Java 8, the minimum for LWJGL3.
+        // The following line is used assuming you target Java 8, the minimum for
+        // LWJGL3.
         String javaExecPath = System.getProperty("java.home") + separator + "bin" + separator + "java";
-        // If targeting Java 9 or higher, you could use the following instead of the above line:
-        //String javaExecPath = ProcessHandle.current().info().command().orElseThrow();
+        // If targeting Java 9 or higher, you could use the following instead of the
+        // above line:
+        // String javaExecPath = ProcessHandle.current().info().command().orElseThrow();
 
         if (!(new File(javaExecPath)).exists()) {
             System.err.println(
@@ -181,22 +198,22 @@ public class StartupHelper {
     }
 
     /**
-     * Starts a new JVM if the application was started on macOS without the
-     * {@code -XstartOnFirstThread} argument. Returns whether a new JVM was
-     * started and thus no code should be executed. Redirects the output of the
-     * new JVM to the old one.
+     * Inicia una nueva JVM si la aplicación se ejecutó en macOS sin el argumento
+     * {@code -XstartOnFirstThread}. Redirige la salida de la nueva JVM a la
+     * antigua.
+     * 
      * <p>
-     * <u>Usage:</u>
+     * <u>Uso:</u>
      *
      * <pre>
      * public static void main(String... args) {
-     * 	if (StartupHelper.startNewJvmIfRequired()) return; // This handles macOS support and helps on Windows.
-     * 	// the actual main method code
+     *     if (StartupHelper.startNewJvmIfRequired())
+     *         return;
+     *     // El código del método main actual
      * }
      * </pre>
      *
-     * @return whether a new JVM was started and thus no code should be executed
-     *         in this one
+     * @return true si se inició una nueva JVM.
      */
     public static boolean startNewJvmIfRequired() {
         return startNewJvmIfRequired(true);

@@ -13,7 +13,7 @@ public class Receta {
      * Constructor de la receta.
      * 
      * @param idResultado     ID del ítem que produce la receta.
-     * @param nombreResultado Nombre  del resultado.
+     * @param nombreResultado Nombre del resultado.
      * @param plantas         Cantidad de plantas requeridas.
      * @param guijarros       Cantidad de guijarros requeridos.
      * @param bayas           Cantidad de bayas requeridas.

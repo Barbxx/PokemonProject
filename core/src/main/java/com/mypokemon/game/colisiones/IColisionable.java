@@ -26,7 +26,7 @@ public interface IColisionable {
     /**
      * Obtiene el tipo de colisión para identificar el objeto.
      * 
-     * @return Tipo como cadena (NPC, ZONA,TERRENO)
+     * @return Tipo como cadena (ej: "NPC", "ZONA", "TERRENO", "INTERACTIVO").
      */
     String obtenerTipo();
 }

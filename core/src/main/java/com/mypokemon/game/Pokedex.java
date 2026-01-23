@@ -184,6 +184,20 @@ public class Pokedex implements Serializable {
     }
 
     /**
+     * Establece el nivel de investigacion de un Pokemon especifico.
+     * 
+     * @param nombre Nombre del Pokemon
+     * @param nivel  Nivel de investigacion a establecer (0-10)
+     */
+    public void setNivelInvestigacion(String nombre, int nivel) {
+        registrarAvistamiento(nombre);
+        EspeciePokemon especie = registro.get(nombre);
+        if (especie != null) {
+            especie.setNivel(nivel);
+        }
+    }
+
+    /**
      * Verifica si el jugador cumple los requisitos para enfrentar a Arceus.
      * 
      * @return true si tiene al menos 5 Pokemon capturados con nivel 10, false en

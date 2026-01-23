@@ -221,7 +221,7 @@ public class GameScreen extends BaseScreen {
 
         if (this.explorador == null) {
             // New Game: Create with Explorer Name, Game Name, Capacity, and Gender
-            this.explorador = new Explorador(playerName, gameName, 80, genderStr);
+            this.explorador = new Explorador(playerName, gameName, 100, genderStr);
         } else {
             // Loaded Game: Ensure texture matches saved gender and name
             if ("CHICA".equals(this.explorador.getGenero())) {
@@ -1036,8 +1036,10 @@ public class GameScreen extends BaseScreen {
                                     "Tocaste la flauta…"
                             };
 
-                            // Arceus created with stats from BasePokemonData (130 HP, moves included)
-                            Pokemon jefe = new Pokemon(bossName, 10, 130, true, "Normal");
+                            // Arceus created with level 0 investigation (Req #6: inicia en nivel 0)
+                            // Al ganar la batalla, se actualizará a nivel 10
+                            Pokemon jefe = new Pokemon(bossName, 0, 130, true, "Normal");
+
                             BattleScreen battleScreen = new BattleScreen(game, this, explorador, jefe);
 
                             // Mostrar pantalla de diálogo antes de la batalla
@@ -1053,20 +1055,39 @@ public class GameScreen extends BaseScreen {
                                 } else {
                                     inEncounter = true;
                                     String pName = GestorEncuentros.obtenerPokemonAleatorio(nivelDificultad);
-                                    Gdx.app.log("GameScreen", "Encounter: " + pName);
 
-                                    // Obtener nivel de investigación actual de la Pokedex
-                                    int currentResearchLevel = 0;
-                                    if (explorador.getRegistro().getRegistro().containsKey(pName)) {
-                                        currentResearchLevel = explorador.getRegistro().getRegistro().get(pName)
-                                                .getNivelInvestigacion();
+                                    // Req #3: Evitar encuentros con el mismo Pokemon que el jugador tiene como
+                                    // principal
+                                    // Intentar hasta 5 veces obtener un Pokemon diferente
+                                    String playerMainPokemon = explorador.getEquipo().get(0).getNombre().trim();
+
+                                    int attempts = 0;
+                                    while (pName.trim().equalsIgnoreCase(playerMainPokemon) && attempts < 10) {
+                                        pName = GestorEncuentros.obtenerPokemonAleatorio(nivelDificultad);
+                                        attempts++;
                                     }
 
-                                    // Crear Pokemon con el nivel de investigación correcto (esto ajusta su HP
-                                    // Máximo)
-                                    Pokemon salvaje = new Pokemon(pName, currentResearchLevel, 0, false, "Normal");
-                                    salvaje.agregarMovimiento(new Movimiento("Tackle", 0, "Normal", 40));
-                                    game.setScreen(new BattleScreen(game, this, explorador, salvaje));
+                                    // Si después de intentos sigue siendo el mismo, cancelar encuentro
+                                    if (pName.trim().equalsIgnoreCase(playerMainPokemon)) {
+                                        inEncounter = false;
+                                        notificationMessage = "El Pokemon salvaje huyó...";
+                                        notificationTimer = NOTIFICATION_DURATION;
+                                    } else {
+                                        // Gdx.app.log("GameScreen", "Valid Encounter: " + pName);
+
+                                        // Obtener nivel de investigación actual de la Pokedex
+                                        int currentResearchLevel = 0;
+                                        if (explorador.getRegistro().getRegistro().containsKey(pName)) {
+                                            currentResearchLevel = explorador.getRegistro().getRegistro().get(pName)
+                                                    .getNivelInvestigacion();
+                                        }
+
+                                        // Req #4: Crear Pokemon con el nivel de investigación correcto
+                                        // Esto asegura que tengan HP máximo correcto y no aparezcan con 0 HP
+                                        Pokemon salvaje = new Pokemon(pName, currentResearchLevel, 0, false, "Normal");
+
+                                        game.setScreen(new BattleScreen(game, this, explorador, salvaje));
+                                    }
                                 }
                             }
                         }
@@ -1080,7 +1101,9 @@ public class GameScreen extends BaseScreen {
         } // End !showMenu
 
         // Region Trigger Logic
-        if (!showMenu && !showDialog && !fadingOut) {
+        if (!showMenu && !showDialog && !fadingOut)
+
+        {
             for (RegionTrigger region : regions) {
                 // Check distance to center of region
                 float regCenterX = region.bounds.x + region.bounds.width / 2;
@@ -1264,7 +1287,9 @@ public class GameScreen extends BaseScreen {
         drawPlayer();
 
         // Draw Region Triggers (Florecitas)
-        if (texFlorecita != null) {
+        if (texFlorecita != null)
+
+        {
             for (RegionTrigger r : regions) {
                 game.batch.draw(texFlorecita, r.bounds.x, r.bounds.y, r.bounds.width, r.bounds.height);
             }
@@ -1412,7 +1437,7 @@ public class GameScreen extends BaseScreen {
      */
     @Override
     public void resize(int width, int height) {
-        viewport.update(width, height);
+        viewport.update(width, height, true);
     }
 
     /**

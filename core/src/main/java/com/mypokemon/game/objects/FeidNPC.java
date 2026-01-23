@@ -1,5 +1,9 @@
 package com.mypokemon.game.objects;
 
+/**
+ * NPC que representa al Profesor Ferxxo (inspirado en Feid).
+ * Introduce al jugador a la región y explica los peligros de la zona.
+ */
 public class FeidNPC extends NPC {
     private static final String[] DIALOG = {
             "¡Epaaa! ¿Qué más pues, mor? ¡Bienvenido a la región OneFerxxo, el lugar más chimba del mundo!",
@@ -11,6 +15,12 @@ public class FeidNPC extends NPC {
             "¡Hágale pues! Arranque de una pa mi laboratorio que allá le uno. ¡Lo espero, no se me demore pues!"
     };
 
+    /**
+     * Constructor de FeidNPC.
+     * 
+     * @param startX Posición X inicial.
+     * @param startY Posición Y inicial.
+     */
     public FeidNPC(float startX, float startY) {
         super(startX, startY + 5, 25, 35, "feidSprite.png", "Profesor Ferxxo", DIALOG);
         setPortrait("ferxxoCientifico.png");

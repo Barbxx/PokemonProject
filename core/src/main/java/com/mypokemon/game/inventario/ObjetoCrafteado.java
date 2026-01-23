@@ -10,7 +10,7 @@ public abstract class ObjetoCrafteado extends Item {
      * Constructor para un objeto crafteado.
      * 
      * @param id          Identificador único.
-     * @param nombre      Nombre 
+     * @param nombre      Nombre del ítem.
      * @param descripcion Descripción del ítem.
      * @param cantidad    Cantidad inicial.
      */
@@ -29,7 +29,8 @@ public abstract class ObjetoCrafteado extends Item {
     }
 
     /**
-     * Obtiene las opciones disponibles para este objeto. Debe ser implementado por subclases concretas.
+     * Obtiene las opciones disponibles para este objeto. Debe ser implementado por
+     * subclases concretas.
      * 
      * @return Lista de acciones disponibles
      */

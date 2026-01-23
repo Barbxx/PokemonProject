@@ -62,14 +62,29 @@ public abstract class NPC implements Interactable {
         }
     }
 
+    /**
+     * Obtiene la textura del retrato del NPC. Si no tiene, devuelve el sprite.
+     * 
+     * @return Textura del retrato.
+     */
     public Texture getPortrait() {
         return portrait != null ? portrait : sprite;
     }
 
+    /**
+     * Obtiene el nombre del NPC.
+     * 
+     * @return Nombre del NPC.
+     */
     public String getName() {
         return name;
     }
 
+    /**
+     * Obtiene los diálogos disponibles del NPC.
+     * 
+     * @return Array de diálogos.
+     */
     public String[] getDialog() {
         return dialogPages;
     }
@@ -98,6 +113,9 @@ public abstract class NPC implements Interactable {
         }
     }
 
+    /**
+     * Libera los recursos de texturas y música utilizados por el NPC.
+     */
     @Override
     public void dispose() {
         if (sprite != null)
@@ -127,27 +145,62 @@ public abstract class NPC implements Interactable {
         }
     }
 
+    /**
+     * Obtiene el objeto de música asociado al NPC.
+     * 
+     * @return Objeto Music habilitado.
+     */
     public com.badlogic.gdx.audio.Music getMusic() {
         return music;
     }
 
     // Getters for position/size if needed for collision distinct from interaction
+    /**
+     * Obtiene la coordenada X actual del NPC.
+     * 
+     * @return Posición X.
+     */
     public float getX() {
         return x;
     }
 
+    /**
+     * Obtiene la coordenada Y actual del NPC.
+     * 
+     * @return Posición Y.
+     */
     public float getY() {
         return y;
     }
 
+    /**
+     * Obtiene el ancho del sprite del NPC.
+     * 
+     * @return Ancho en píxeles.
+     */
     public float getWidth() {
         return width;
     }
 
+    /**
+     * Obtiene el alto del sprite del NPC.
+     * 
+     * @return Alto en píxeles.
+     */
     public float getHeight() {
         return height;
     }
 
+    /**
+     * Comprueba si el NPC se solapa con un área rectangular dada (usado para
+     * colisiones).
+     * 
+     * @param ox      Posición X del área externa.
+     * @param oy      Posición Y del área externa.
+     * @param owidth  Ancho del área externa.
+     * @param oheight Alto del área externa.
+     * @return true si hay solapamiento.
+     */
     public boolean overlaps(float ox, float oy, float owidth, float oheight) {
         return x < ox + owidth && x + width > ox && y < oy + oheight && y + height > oy;
     }

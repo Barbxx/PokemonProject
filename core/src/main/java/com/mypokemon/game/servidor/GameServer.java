@@ -5,6 +5,10 @@ import java.net.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Servidor central del juego. Gestiona la conexión de jugadores,
+ * el descubrimiento por red local (UDP Beacon) y la sincronización de estado.
+ */
 public class GameServer {
     private static final int TCP_PORT = 54321;
     private static final int UDP_PORT = 54777;
@@ -15,10 +19,18 @@ public class GameServer {
     private ClientHandler player1;
     private ClientHandler player2;
 
+    /**
+     * Punto de entrada para ejecutar el servidor de forma independiente.
+     * 
+     * @param args Argumentos de consola.
+     */
     public static void main(String[] args) {
         new GameServer().start();
     }
 
+    /**
+     * Inicia los servicios del servidor (UDP Beacon y Listener TCP).
+     */
     public void start() {
         isRunning = true;
         System.out.println("Iniciando Servidor de Juego (GameServer)...");
@@ -119,6 +131,11 @@ public class GameServer {
         }
     }
 
+    /**
+     * Elimina a un cliente de los slots de juego cuando se desconecta.
+     * 
+     * @param client Manejador de cliente a eliminar.
+     */
     public synchronized void removeClient(ClientHandler client) {
         if (player1 == client) {
             player1 = null;
@@ -134,6 +151,13 @@ public class GameServer {
     }
 
     // Called by ClientHandler
+    /**
+     * Procesa la información genérica recibida de los clientes (movimiento,
+     * recolección, guardado).
+     * 
+     * @param sender Remitente del mensaje.
+     * @param msg    Contenido del mensaje.
+     */
     public void onInfoReceived(ClientHandler sender, String msg) {
         if (msg.startsWith("MOVE:")) {
             // Forward movement exactly as is to peer
@@ -157,6 +181,12 @@ public class GameServer {
         }
     }
 
+    /**
+     * Sincroniza el estado global (recursos, info de compañeros) con un cliente
+     * específico.
+     * 
+     * @param client Cliente a sincronizar.
+     */
     public synchronized void syncClientState(ClientHandler client) {
         // Send all collected resources to the new client
         if (!collectedResources.isEmpty()) {
@@ -200,6 +230,13 @@ public class GameServer {
     public synchronized void notifyPlayerName(int playerId, String name) {
     }
 
+    /**
+     * Verifica si un nombre de jugador ya está en uso por otro cliente.
+     * 
+     * @param name      Nombre a comprobar.
+     * @param requester Cliente que realiza la petición.
+     * @return true si el nombre está ocupado.
+     */
     public synchronized boolean isNameTaken(String name, ClientHandler requester) {
         if (player1 != null && player1 != requester && name.equalsIgnoreCase(player1.getPlayerName())) {
             return true;

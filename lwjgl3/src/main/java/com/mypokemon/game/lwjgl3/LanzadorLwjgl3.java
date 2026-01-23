@@ -6,16 +6,32 @@ import com.mypokemon.game.PokemonMain;
 
 /** Launches the desktop (LWJGL3) application. */
 public class LanzadorLwjgl3 {
+    /**
+     * Punto de entrada principal para la versión de escritorio de la aplicación.
+     * 
+     * @param args Argumentos de línea de comandos.
+     */
     public static void main(String[] args) {
         if (StartupHelper.startNewJvmIfRequired())
             return; // This handles macOS support and helps on Windows.
         createApplication();
     }
 
+    /**
+     * Crea e inicia la instancia de Lwjgl3Application.
+     * 
+     * @return Nueva instancia de la aplicación.
+     */
     private static Lwjgl3Application createApplication() {
         return new Lwjgl3Application(new PokemonMain(), getDefaultConfiguration());
     }
 
+    /**
+     * Configura los parámetros por defecto de la ventana y el renderizado (FPS,
+     * VSync, iconos).
+     * 
+     * @return Configuración de la aplicación configurada.
+     */
     private static Lwjgl3ApplicationConfiguration getDefaultConfiguration() {
         Lwjgl3ApplicationConfiguration configuration = new Lwjgl3ApplicationConfiguration();
         configuration.setTitle("PokemonGame");

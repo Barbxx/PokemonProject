@@ -28,7 +28,8 @@ public class GestorColisiones {
     }
 
     /**
-     * Agrega un objeto colisionable al gestor. Si el objeto también es interactivo, se registra para interacciones.
+     * Agrega un objeto colisionable al gestor. Si el objeto también es interactivo,
+     * se registra para interacciones.
      * 
      * @param colision Objeto que implementa IColisionable
      */
@@ -108,7 +109,7 @@ public class GestorColisiones {
      * @return true si hay alguna colisión.
      */
     public boolean verificarTodasLasColisiones(float x, float y, float ancho, float alto) {
-        
+
         // Verificar terreno
         if (verificarColisionTerreno(x, y, ancho, alto)) {
             return true;
@@ -163,7 +164,9 @@ public class GestorColisiones {
         return resultado;
     }
 
-    // Limpia todas las colisiones y objetos interactivos registrados.
+    /**
+     * Limpia todas las colisiones y objetos interactivos registrados.
+     */
     public void limpiar() {
         colisiones.clear();
         interactivos.clear();

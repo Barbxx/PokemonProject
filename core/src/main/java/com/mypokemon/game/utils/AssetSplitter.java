@@ -17,14 +17,25 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+/**
+ * Utilidad para dividir grandes texturas de Tilesets en fragmentos más
+ * pequeños.
+ * También genera archivos TSX compatibles para cada fragmento, permitiendo
+ * superar limitaciones de tamaño de textura en algunos dispositivos.
+ */
 public class AssetSplitter {
 
     private static final int CHUNK_HEIGHT = 2048;
     private static final int TILE_WIDTH = 32;
     private static final int TILE_HEIGHT = 32;
-    private static final int COLUMNS = 8; 
+    private static final int COLUMNS = 8;
     private static final int TILES_PER_CHUNK = (CHUNK_HEIGHT / TILE_HEIGHT) * COLUMNS;
 
+    /**
+     * Punto de entrada de la utilidad. Procesa la imagen y genera los fragmentos.
+     * 
+     * @param args Argumentos de consola (no utilizados).
+     */
     public static void main(String[] args) {
         String inputDir = "c:/Users/User/PokemonProject/assets/";
         String imageFile = inputDir + "Tilesets.png";

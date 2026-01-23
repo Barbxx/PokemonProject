@@ -6,8 +6,15 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 public class RenderUtils {
 
     /**
-     * Dibuja un rectangulo utilizando lo que provee ShapeRenderer
+     * Dibuja un rectángulo con esquinas redondeadas utilizando ShapeRenderer.
      * 
+     * @param shapeRenderer Instancia de ShapeRenderer para el dibujo.
+     * @param x             Coordenada X inicial.
+     * @param y             Coordenada Y inicial.
+     * @param width         Ancho del rectángulo.
+     * @param height        Alto del rectángulo.
+     * @param radius        Radio de las esquinas redondeadas.
+     * @param color         Color de relleno.
      */
     public static void drawRoundedRect(ShapeRenderer shapeRenderer, float x, float y, float width, float height,
             float radius, Color color) {
@@ -17,15 +24,11 @@ public class RenderUtils {
 
         shapeRenderer.setColor(color);
 
-
         shapeRenderer.rect(x + radius, y, width - 2 * radius, height);
-
 
         shapeRenderer.rect(x, y + radius, radius, height - 2 * radius);
 
-
         shapeRenderer.rect(x + width - radius, y + radius, radius, height - 2 * radius);
-
 
         int segments = 20;
         shapeRenderer.arc(x + radius, y + radius, radius, 180, 90, segments); // Bottom Left

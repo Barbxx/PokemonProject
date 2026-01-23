@@ -3,8 +3,11 @@ package com.mypokemon.game.client;
 import java.io.*;
 import java.net.*;
 
-//Cliente de red que maneja la comunicación TCP/UDP con el servidor del juego.
-
+/**
+ * Cliente de red que maneja la comunicación TCP/UDP con el servidor del juego.
+ * Gestiona el descubrimiento automático mediante UDP y la transferencia de
+ * estado mediante TCP.
+ */
 public class NetworkClient {
     private static final int TCP_PORT = 54321;
     private static final int UDP_PORT = 54777;
@@ -88,7 +91,8 @@ public class NetworkClient {
     }
 
     /**
-     * Intenta establecer una conexión TCP con el servidor. - Envía el mensaje inicial de handshake con el nombre del jugador.
+     * Intenta establecer una conexión TCP con el servidor. - Envía el mensaje
+     * inicial de handshake con el nombre del jugador.
      * 
      * @param ip         IP del servidor.
      * @param playerName Nombre del jugador local.
@@ -129,7 +133,11 @@ public class NetworkClient {
         }
     }
 
-    // Bucle de escucha TCP que se ejecuta en su propio hilo. Recibe mensajes entrantes y notifica al listener registrado.
+    /**
+     * Bucle de escucha TCP que se ejecuta en su propio hilo.
+     * Recibe mensajes entrantes de forma continua y notifica al listener
+     * registrado.
+     */
     private void listenTcp() {
         try {
             while (listening && !tcpSocket.isClosed()) {
@@ -143,7 +151,10 @@ public class NetworkClient {
         }
     }
 
-    // Detiene el cliente de red, cerrando sockets y terminando hilos de escucha.
+    /**
+     * Detiene el cliente de red, cerrando sockets y terminando los hilos de
+     * escucha.
+     */
     public void stop() {
         listening = false;
         try {

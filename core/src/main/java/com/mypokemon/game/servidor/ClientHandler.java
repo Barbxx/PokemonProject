@@ -3,6 +3,10 @@ package com.mypokemon.game.servidor;
 import java.io.*;
 import java.net.Socket;
 
+/**
+ * Manejador de cliente en el servidor. Cada instancia corre en su propio hilo
+ * y gestiona la comunicación con un jugador específico.
+ */
 public class ClientHandler extends Thread {
     private Socket socket;
     private GameServer server;
@@ -13,6 +17,12 @@ public class ClientHandler extends Thread {
     private String playerName;
     private String gender = "CHICO";
 
+    /**
+     * Constructor del manejador de cliente.
+     * 
+     * @param socket Sockets de conexión TCP.
+     * @param server Instancia del servidor principal.
+     */
     public ClientHandler(Socket socket, GameServer server) {
         this.socket = socket;
         this.server = server;
@@ -24,30 +34,65 @@ public class ClientHandler extends Thread {
         }
     }
 
+    /**
+     * Establece el compañero (jugador rival) para la sincronización directa.
+     * 
+     * @param peer Instancia del otro manejador de cliente.
+     */
     public void setPeer(ClientHandler peer) {
         this.peer = peer;
     }
 
+    /**
+     * Obtiene el manejador del compañero conectado.
+     * 
+     * @return Instancia del compañero o null si no hay.
+     */
     public ClientHandler getPeer() {
         return peer;
     }
 
+    /**
+     * Establece el identificador numérico del jugador (1 o 2).
+     * 
+     * @param id ID del jugador.
+     */
     public void setPlayerId(int id) {
         this.playerId = id;
     }
 
+    /**
+     * Obtiene el nombre del jugador manejado por esta instancia.
+     * 
+     * @return Nombre del jugador.
+     */
     public String getPlayerName() {
         return playerName;
     }
 
+    /**
+     * Establece el género del avatar del jugador.
+     * 
+     * @param sub Género (ej: "CHICO", "CHICA").
+     */
     public void setGender(String sub) {
         this.gender = sub;
     }
 
+    /**
+     * Obtiene el género del avatar del jugador.
+     * 
+     * @return Género actual.
+     */
     public String getGender() {
         return gender;
     }
 
+    /**
+     * Envía un mensaje UTF al cliente remoto de forma sincronizada.
+     * 
+     * @param msg Mensaje a enviar.
+     */
     public void sendMessage(String msg) {
         try {
             if (out != null) {
@@ -60,6 +105,10 @@ public class ClientHandler extends Thread {
         }
     }
 
+    /**
+     * Bucle principal de escucha de mensajes entrantes del cliente.
+     * Procesa comandos de identidad, nombres y delega lógica de juego al servidor.
+     */
     @Override
     public void run() {
         try {

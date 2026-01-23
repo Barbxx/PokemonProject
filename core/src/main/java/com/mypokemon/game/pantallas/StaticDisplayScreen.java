@@ -11,7 +11,12 @@ import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
-// Clase base abstracta para pantallas estáticas. Proporciona renderizado automático de fondo, cámara ortográfica con viewport fijo y manejo de tecla ESC para regresar.
+/**
+ * Clase base abstracta para pantallas estáticas.
+ * Proporciona renderizado automático de fondo, cámara ortográfica con viewport
+ * fijo (FitViewport)
+ * y manejo de teclas de navegación (ESC/Retroceso) para regresar fácilmente.
+ */
 public abstract class StaticDisplayScreen extends BaseScreen implements INavigable {
 
     protected Texture background;
@@ -23,6 +28,13 @@ public abstract class StaticDisplayScreen extends BaseScreen implements INavigab
     protected static final float VIRTUAL_WIDTH = 1280f;
     protected static final float VIRTUAL_HEIGHT = 720f;
 
+    /**
+     * Constructor de StaticDisplayScreen.
+     * 
+     * @param game           Instancia principal del juego.
+     * @param returnScreen   Pantalla a la que se debe regresar al salir.
+     * @param backgroundPath Ruta de la textura de fondo.
+     */
     public StaticDisplayScreen(PokemonMain game, Screen returnScreen, String backgroundPath) {
         super(game);
         this.returnScreen = returnScreen;
@@ -55,7 +67,9 @@ public abstract class StaticDisplayScreen extends BaseScreen implements INavigab
         game.batch.end();
     }
 
-    // Renderiza la imagen de fondo para llenar la pantalla virtual.
+    /**
+     * Renderiza la imagen de fondo para llenar la pantalla virtual.
+     */
     protected void renderBackground() {
         if (background != null) {
             game.batch.draw(background, 0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);

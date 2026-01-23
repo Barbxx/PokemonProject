@@ -1,5 +1,9 @@
 package com.mypokemon.game.objects;
 
+/**
+ * NPC que representa al Dr. Martin Brenner (Stranger Things).
+ * Proporciona información sobre Arceus y el Upside Down.
+ */
 public class BrennerNPC extends NPC {
     private static final String[] DIALOG = {
             "Has llegado lejos Once, siempre supe que eras especial.",
@@ -11,6 +15,12 @@ public class BrennerNPC extends NPC {
             "No dejes que el mundo se desmorone por un descuido."
     };
 
+    /**
+     * Constructor de BrennerNPC.
+     * 
+     * @param startX Posición X inicial.
+     * @param startY Posición Y inicial.
+     */
     public BrennerNPC(float startX, float startY) {
         super(startX, startY, 25, 35, "drBrennerSprite.png", "Dr. Martin Brenner", DIALOG);
         setPortrait("drBrenner.png");

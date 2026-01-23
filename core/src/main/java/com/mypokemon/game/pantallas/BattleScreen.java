@@ -15,7 +15,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.math.Rectangle;
-import com.badlogic.gdx.utils.viewport.StretchViewport;
+import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import java.util.List;
@@ -35,10 +35,18 @@ public class BattleScreen extends ScreenAdapter {
     /**
      * Cambia el Pokémon activo del jugador durante la batalla.
      * Actualiza la textura trasera y el mensaje de log.
+     * Valida que no sea el mismo Pokemon que el enemigo.
      * 
      * @param nuevo Nuevo Pokémon a sacar al combate.
      */
     public void cambiarPokemon(Pokemon nuevo) {
+        // Req #3: No permitir pelear con el mismo Pokemon
+        if (pokemonEnemigo != null && nuevo != null &&
+                nuevo.getNombre().equalsIgnoreCase(pokemonEnemigo.getNombre())) {
+            updateInfo("¡No puedes usar el mismo Pokémon que el enemigo!");
+            return;
+        }
+
         this.pokemonJugador = nuevo;
         updateInfo("¡Adelante " + nuevo.getNombre() + "!");
 
@@ -110,6 +118,8 @@ public class BattleScreen extends ScreenAdapter {
     private Texture hpBarFill;
     private Texture baseCircleTexture;
     private Texture statusBarTexture;
+    private Texture pokeballTexture; // Textura para pokeball normal
+    private Texture heavyballTexture; // Textura para heavyball
     private com.badlogic.gdx.audio.Music battleMusic;
 
     // Battle State
@@ -138,6 +148,14 @@ public class BattleScreen extends ScreenAdapter {
 
         if (!explorador.getEquipo().isEmpty()) {
             this.pokemonJugador = explorador.getEquipo().get(0);
+
+            // Req #7: Si es batalla con Arceus, el Pokemon del jugador debe estar en nivel
+            // 10
+            if (enemigo.getNombre().equalsIgnoreCase("Arceus")) {
+                // Actualizar nivel temporalmente para la batalla
+                this.pokemonJugador = new Pokemon(pokemonJugador.getNombre(), 10, 0, pokemonJugador.isLegendario(),
+                        pokemonJugador.getTipo());
+            }
         } else {
             // Se coloca a piplup por si falla en encontrar uno
             this.pokemonJugador = new Pokemon("Piplup", 5, 20, false, "Agua");
@@ -154,8 +172,8 @@ public class BattleScreen extends ScreenAdapter {
 
         this.font = new BitmapFont();
         this.camera = new OrthographicCamera();
-        this.viewport = new StretchViewport(800, 600, camera);
-        this.viewport.apply(); // Aplicar el viewport inicial
+        this.viewport = new FitViewport(800, 600, camera);
+        this.viewport.apply(true); // Aplicar el viewport inicial y centrar cámara
         this.currentState = BattleState.PLAYER_TURN;
 
         // Load textures
@@ -214,6 +232,23 @@ public class BattleScreen extends ScreenAdapter {
         }
 
         baseCircleTexture = createCircleTexture(new Color(0.3f, 0.6f, 0.2f, 0.8f));
+
+        // Cargar texturas de pokeballs para animación
+        try {
+            pokeballTexture = new Texture(Gdx.files.internal("pokeball.png"));
+            Gdx.app.log("BattleScreen", "Pokeball texture loaded");
+        } catch (Exception e) {
+            Gdx.app.log("BattleScreen", "Could not load pokeball.png, using fallback");
+            pokeballTexture = createCircleTexture(new Color(1f, 0f, 0f, 1f)); // Red circle
+        }
+
+        try {
+            heavyballTexture = new Texture(Gdx.files.internal("pokeballpeso.png"));
+            Gdx.app.log("BattleScreen", "Heavyball texture loaded");
+        } catch (Exception e) {
+            Gdx.app.log("BattleScreen", "Could not load pokeballpeso.png, using pokeball");
+            heavyballTexture = pokeballTexture; // Use regular pokeball as fallback
+        }
 
         // Musica de batalla
         if (!pokemonEnemigo.getNombre().equalsIgnoreCase("Arceus")) {
@@ -427,6 +462,7 @@ public class BattleScreen extends ScreenAdapter {
     /**
      * Intenta usar un ítem desde la mochila durante la batalla.
      * Maneja la lógica de captura (Pokéballs) y curación (Pociones).
+     * Req #2: Inicia animación de pokeball.
      * 
      * @param tipo Identificador del tipo de ítem ("pokeball", "heavyball",
      *             "pocion").
@@ -442,54 +478,19 @@ public class BattleScreen extends ScreenAdapter {
                 return;
             }
 
-            updateInfo("¡Usaste una " + (tipo.equals("heavyball") ? "Heavy Ball" : "Poké Ball") + "!");
-            float hpPercent = pokemonEnemigo.getHpActual() / pokemonEnemigo.getHpMaximo();
-            int nivelEnemigo = pokemonEnemigo.getNivel();
+            // Req #2: Iniciar animación de pokeball
+            currentBallType = tipo;
+            animState = AnimState.THROWING;
+            animTimer = 0;
+            // Posición inicial (cerca del Pokemon del jugador)
+            ballX = 150;
+            ballY = 350;
+            // Posición objetivo (cerca del Pokemon enemigo)
+            ballTargetX = 500;
+            ballTargetY = 450;
 
-            // Capture Logic
-            boolean capturado = false;
-
-            if (tipo.equals("heavyball")) {
-                // Heavy Ball works better on low-level Pokémon (0-3)
-                if (nivelEnemigo <= 3) {
-                    // Better threshold for low-level Pokémon
-                    if (hpPercent <= 0.40f)
-                        capturado = true;
-                } else {
-                    // Standard threshold for higher-level Pokémon
-                    if (hpPercent <= 0.20f)
-                        capturado = true;
-                }
-            } else {
-                // Standard Pokeball (20% threshold regardless of level)
-                if (hpPercent <= 0.20f)
-                    capturado = true;
-            }
-
-            if (capturado) {
-                // Success!
-                updateInfo("¡Captura exitosa! " + pokemonEnemigo.getNombre() + " se unió a tu equipo.");
-                explorador.getRegistro().registrarAccion(pokemonEnemigo.getNombre(), true);
-                explorador.agregarAlEquipo(pokemonEnemigo);
-
-                // Show 'CAPTURA EXITOSA' text on screen
-                damageText = "¡CAPTURA EXITOSA!";
-                damageTextX = 350; // Center
-                damageTextY = 400;
-                damageTextTimer = 2.0f;
-
-                endBattle(true);
-            } else {
-                updateInfo(
-                        "¡Fallo la captura! " + (tipo.equals("heavyball") ? "¡Casi!" : "Debe estar mas debilitado."));
-                // Show 'FALLÓ' text on screen
-                damageText = "¡FALLÓ!";
-                damageTextX = 350; // Center
-                damageTextY = 400;
-                damageTextTimer = 2.0f;
-                currentState = BattleState.ENEMY_TURN;
-                performEnemyTurnWithDelay();
-            }
+            Gdx.app.log("BattleScreen", "Starting pokeball animation with type: " + tipo);
+            updateInfo("¡Lanzando " + (tipo.equals("heavyball") ? "Heavy Ball" : "Poké Ball") + "!");
         } else if (tipo.equals("pocion")) {
             updateInfo("¡Usaste una Poción! Tu Pokémon recuperó 20 PS.");
             pokemonJugador.recuperarSalud(20);
@@ -518,25 +519,26 @@ public class BattleScreen extends ScreenAdapter {
                 capturado = true;
         }
 
+        // Req #2: Mostrar mensajes de captura con colores apropiados
         if (capturado) {
-            updateInfo("¡Captura exitosa! " + pokemonEnemigo.getNombre() + " se unió a tu equipo.");
             explorador.getRegistro().registrarAccion(pokemonEnemigo.getNombre(), true);
             explorador.agregarAlEquipo(pokemonEnemigo);
 
-            // Show 'EXITOSA' text on screen
-            damageText = "¡EXITOSA!";
-            damageTextX = 350; // Center
+            // Mensaje en amarillo
+            updateInfo("¡Poké Ball lanzada! ¡Pokémon " + pokemonEnemigo.getNombre() + " capturado!");
+            damageText = "¡Poké Ball lanzada! ¡Pokémon " + pokemonEnemigo.getNombre() + " capturado!";
+            damageTextX = 200;
             damageTextY = 400;
-            damageTextTimer = 2.0f;
+            damageTextTimer = 3.0f;
 
             endBattle(true);
         } else {
-            updateInfo("¡Fallaste la captura!");
-            // Show 'FALLÓ' text on screen
-            damageText = "¡FALLASTE!";
-            damageTextX = 350; // Center
+            // Mensaje en rojo
+            updateInfo("¡Poké Ball lanzada! ¡Fallaste la captura!");
+            damageText = "¡Poké Ball lanzada! ¡Fallaste la captura!";
+            damageTextX = 200;
             damageTextY = 400;
-            damageTextTimer = 2.0f;
+            damageTextTimer = 3.0f;
             animState = AnimState.NONE;
             currentState = BattleState.ENEMY_TURN;
             performEnemyTurnWithDelay();
@@ -693,18 +695,18 @@ public class BattleScreen extends ScreenAdapter {
     /**
      * Verifica si algún Pokémon se ha debilitado.
      * Otorga recompensas y decide si termina la batalla.
+     * Req #6: Lógica especial para Arceus.
      */
     private void checkBattleStatus() {
         if (pokemonEnemigo.getHpActual() <= 0) {
-            updateInfo("¡" + pokemonEnemigo.getNombre() + " se debilitó!");
-
-            // Victoria: +1 Punto Investigación para el quien vence
-
-            // SI ES ARCEUS: El derrotado (Arceus) se completa al nivel 10 por el hito.
+            // Req #6: Si es Arceus, mostrar mensaje especial y actualizar a nivel 10
             if (pokemonEnemigo.getNombre().equalsIgnoreCase("Arceus")) {
-                explorador.getRegistro().registrarAccion(pokemonEnemigo.getNombre(), false);
+                updateInfo("¡Ganaste! ¡Derrotaste al Dios Arceus!");
+                // Actualizar Arceus a nivel de investigación 10
+                explorador.getRegistro().setNivelInvestigacion("Arceus", 10);
                 puntosInvestigacionGanados = 10;
             } else {
+                updateInfo("¡" + pokemonEnemigo.getNombre() + " se debilitó!");
                 puntosInvestigacionGanados = 1;
             }
 
@@ -716,19 +718,26 @@ public class BattleScreen extends ScreenAdapter {
             try {
                 explorador.getMochila()
                         .agregarItem(com.mypokemon.game.inventario.ItemFactory.crearRecurso(recursoId, 1));
-                updateInfo("Ganaste +" + puntosInvestigacionGanados + " Inv. y encontraste 1 " + recursoId + ".");
+                if (!pokemonEnemigo.getNombre().equalsIgnoreCase("Arceus")) {
+                    updateInfo("Ganaste +" + puntosInvestigacionGanados + " Inv. y encontraste 1 " + recursoId + ".");
+                }
             } catch (com.mypokemon.game.inventario.exceptions.EspacioException e) {
-                updateInfo("Ganaste +" + puntosInvestigacionGanados + " Inv. pero tu inventario está lleno.");
+                if (!pokemonEnemigo.getNombre().equalsIgnoreCase("Arceus")) {
+                    updateInfo("Ganaste +" + puntosInvestigacionGanados + " Inv. pero tu inventario está lleno.");
+                }
             }
 
             endBattle(true);
         } else if (pokemonJugador.getHpActual() <= 0) {
-            updateInfo("¡Tu Pokémon se debilitó!");
+            // Req #6: Si pierde contra Arceus, mostrar mensaje especial
+            if (pokemonEnemigo.getNombre().equalsIgnoreCase("Arceus")) {
+                updateInfo("¡Perdiste! ¡Fuiste derrotado por Arceus!");
+                // Arceus se queda en nivel 0
+            } else {
+                updateInfo("¡Tu Pokémon se debilitó!");
+            }
 
-            // Derrota: El Pokémon salvaje NO gana experiencia (cambio #3)
-            // Se eliminó la línea:
-            // explorador.getRegistro().registrarAccion(pokemonEnemigo.getNombre(), false);
-
+            // Derrota: El Pokémon salvaje NO gana experiencia
             // Derrota: Penalización
             String perdido = explorador.getMochila().perderObjetoCrafteado();
             if (perdido != null) {
@@ -829,7 +838,7 @@ public class BattleScreen extends ScreenAdapter {
     public void resize(int width, int height) {
         // Actualizar el viewport cuando cambia el tamaño de la ventana
         viewport.update(width, height, true); // true centra la cámara
-        updateLayout(); // Update button positions on resize
+        updateLayout();
     }
 
     /**
@@ -851,6 +860,10 @@ public class BattleScreen extends ScreenAdapter {
 
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+
+        // Req #2: Restaurar viewport para asegurar que la animación se vea bien al
+        // volver de Mochila
+        viewport.apply();
 
         if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.ESCAPE)) {
             Gdx.app.exit();
@@ -903,33 +916,58 @@ public class BattleScreen extends ScreenAdapter {
         // Animation Logic
         if (animState == AnimState.THROWING) {
             animTimer += delta;
-            float duration = 1.0f;
+            float duration = 1.5f; // Aumentado para que sea más visible
             float progress = Math.min(animTimer / duration, 1.0f);
 
-            // Interpolate pos
+            // Interpolate pos with a parabolic arc
             float currentX = ballX + (ballTargetX - ballX) * progress;
-            float currentY = ballY + (ballTargetY - ballY) * progress;
+            // Arc logic: y = base_y + arc_height * sin(progress * PI)
+            float arcHeight = 150f;
+            float currentY = ballY + (ballTargetY - ballY) * progress
+                    + (float) Math.sin(progress * Math.PI) * arcHeight;
 
-            // Draw Ball (White circle with red top if possible, or just a small circle)
-            game.batch.draw(baseCircleTexture, currentX - 15, currentY - 15, 30, 30); // Simple ball representation
+            // Rotation
+            float rotation = progress * 720f; // 2 full rotations
+
+            // Draw Ball - usar la textura correcta según el tipo
+            Texture ballTex = currentBallType.equals("heavyball") ? heavyballTexture : pokeballTexture;
+            if (ballTex != null) {
+                float ballSize = 40;
+                // Draw with rotation centering the origin
+                game.batch.draw(ballTex, currentX - ballSize / 2, currentY - ballSize / 2,
+                        ballSize / 2, ballSize / 2, ballSize, ballSize, 1f, 1f, -rotation, 0, 0,
+                        ballTex.getWidth(), ballTex.getHeight(), false, false);
+            } else {
+                // Fallback to circle if no texture
+                game.batch.draw(baseCircleTexture, currentX - 15, currentY - 15, 30, 30);
+            }
 
             if (progress >= 1.0f) {
                 animState = AnimState.CAPTURE_CHECK;
+                Gdx.app.log("BattleScreen", "Animation completed, checking capture");
                 // Trigger check
                 checkCapture();
             }
         }
 
         // Mostrar texto de daño si está activo
+        // Req #2: Colores según el tipo de mensaje
         if (!damageText.isEmpty() && damageTextTimer > 0) {
-            font.setColor(Color.RED);
-            font.getData().setScale(2.0f);
+            // Amarillo para capturas exitosas, rojo para todo lo demás
+            if (damageText.contains("capturado!")) {
+                font.setColor(Color.YELLOW);
+            } else {
+                font.setColor(Color.RED);
+            }
+            font.getData().setScale(1.5f);
             font.draw(game.batch, damageText, damageTextX, damageTextY);
             font.getData().setScale(1.0f);
+            font.setColor(Color.WHITE);
         }
 
         drawEnemyInfo();
         game.batch.end();
+
     }
 
     private void drawPokedex() {
@@ -1087,6 +1125,10 @@ public class BattleScreen extends ScreenAdapter {
             playerBackTexture.dispose();
         if (statusBarTexture != null)
             statusBarTexture.dispose();
+        if (pokeballTexture != null)
+            pokeballTexture.dispose();
+        if (heavyballTexture != null && heavyballTexture != pokeballTexture)
+            heavyballTexture.dispose();
         if (battleMusic != null) {
             battleMusic.dispose();
         }

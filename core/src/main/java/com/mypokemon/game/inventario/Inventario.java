@@ -37,7 +37,7 @@ public class Inventario implements Serializable {
         listObjCrafteados.add(ItemFactory.crearCrafteado("frijol", 0));
     }
 
-    // Validación
+    // Capacidad: 100 slots por defecto
     public int getCapacidadMaxima() {
         return capacidadMaxima;
     }
@@ -123,7 +123,8 @@ public class Inventario implements Serializable {
      * 
      * @param id       ID del ítem a consumir.
      * @param cantidad Cantidad a restar.
-     * @return true si se consumió exitosamente, false si no existe o no hay suficiente.
+     * @return true si se consumió exitosamente, false si no existe o no hay
+     *         suficiente.
      */
     public boolean consumirItem(String id, int cantidad) {
         String idLower = id.toLowerCase();
