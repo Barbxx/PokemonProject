@@ -110,7 +110,7 @@ public class PerfilScreen extends ScreenAdapter {
 
         int pokemonEnPokedex = explorador.getRegistro().getEncounterOrder().size();
         int totalPokemon = BasePokemonData.getNombres().size();
-        font.draw(game.batch, pokemonEnPokedex + "/" + totalPokemon, 300, startY - 230);
+        font.draw(game.batch, pokemonEnPokedex + "/" + totalPokemon, 300, startY - 235);
 
         game.batch.end();
     }
