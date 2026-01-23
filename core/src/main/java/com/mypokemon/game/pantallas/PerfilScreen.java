@@ -94,19 +94,18 @@ public class PerfilScreen extends ScreenAdapter {
         font.setColor(Color.WHITE);
         font.getData().setScale(1.5f);
 
-        float startY = 300;
-        float spacing = 40;
+        float startY = 400;
 
-        font.draw(game.batch, "Nombre: " + explorador.getNombre(), 100, startY);
-        font.draw(game.batch, "Género: " + (esChico ? "Chico" : "Chica"), 100, startY - spacing);
+        font.draw(game.batch, explorador.getNombre(), 300, startY);
+        font.draw(game.batch, "Género: " + (esChico ? "Chico" : "Chica"), 300, startY - 50);
 
         // Info adicional
         int capacidad = explorador.getMochila().getCapacidadMaxima();
         int ocupado = explorador.getMochila().getEspacioOcupado();
-        font.draw(game.batch, "Mochila: " + ocupado + "/" + capacidad, 100, startY - spacing * 2);
+        font.draw(game.batch, "Mochila: " + ocupado + "/" + capacidad, 300, startY - 100);
 
         int pokemonCapturados = explorador.getRegistro().getCapturedOrder().size();
-        font.draw(game.batch, "Pokémon Capturados: " + pokemonCapturados, 100, startY - spacing * 3);
+        font.draw(game.batch, "Pokémon Capturados: " + pokemonCapturados, 300, startY - 150);
 
         // Instrucción para salir
         font.getData().setScale(1.0f);
