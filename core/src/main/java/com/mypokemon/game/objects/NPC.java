@@ -23,7 +23,7 @@ public abstract class NPC implements Interactable {
 
     /**
      * Constructor para inicializar un NPC.
-     * 
+     *
      * @param x           Coordenada X inicial.
      * @param y           Coordenada Y inicial.
      * @param width       Ancho del NPC.
@@ -51,7 +51,7 @@ public abstract class NPC implements Interactable {
 
     /**
      * Establece el retrato del NPC para los diálogos.
-     * 
+     *
      * @param portraitPath Ruta de la imagen del retrato.
      */
     public void setPortrait(String portraitPath) {
@@ -64,7 +64,7 @@ public abstract class NPC implements Interactable {
 
     /**
      * Obtiene la textura del retrato del NPC. Si no tiene, devuelve el sprite.
-     * 
+     *
      * @return Textura del retrato.
      */
     public Texture getPortrait() {
@@ -73,7 +73,7 @@ public abstract class NPC implements Interactable {
 
     /**
      * Obtiene el nombre del NPC.
-     * 
+     *
      * @return Nombre del NPC.
      */
     public String getName() {
@@ -82,7 +82,7 @@ public abstract class NPC implements Interactable {
 
     /**
      * Obtiene los diálogos disponibles del NPC.
-     * 
+     *
      * @return Array de diálogos.
      */
     public String[] getDialog() {
@@ -91,7 +91,7 @@ public abstract class NPC implements Interactable {
 
     /**
      * Verifica si el jugador está lo suficientemente cerca para interactuar.
-     * 
+     *
      * @param playerX Posición X del jugador.
      * @param playerY Posición Y del jugador.
      * @return true si está dentro de la distancia de interacción.
@@ -103,7 +103,7 @@ public abstract class NPC implements Interactable {
 
     /**
      * Renderiza el sprite del NPC.
-     * 
+     *
      * @param batch SpriteBatch utilizado para dibujar.
      */
     @Override
@@ -126,12 +126,12 @@ public abstract class NPC implements Interactable {
             music.dispose();
     }
 
-    // Music Management
+    // Manejo de la música
     protected com.badlogic.gdx.audio.Music music;
 
     /**
      * Carga y configura música asociada al NPC.
-     * 
+     *
      * @param musicPath Ruta del archivo de música.
      */
     public void loadMusic(String musicPath) {
@@ -147,17 +147,17 @@ public abstract class NPC implements Interactable {
 
     /**
      * Obtiene el objeto de música asociado al NPC.
-     * 
+     *
      * @return Objeto Music habilitado.
      */
     public com.badlogic.gdx.audio.Music getMusic() {
         return music;
     }
 
-    // Getters for position/size if needed for collision distinct from interaction
+    // Getters para posición o tamaño
     /**
      * Obtiene la coordenada X actual del NPC.
-     * 
+     *
      * @return Posición X.
      */
     public float getX() {
@@ -166,7 +166,7 @@ public abstract class NPC implements Interactable {
 
     /**
      * Obtiene la coordenada Y actual del NPC.
-     * 
+     *
      * @return Posición Y.
      */
     public float getY() {
@@ -175,7 +175,7 @@ public abstract class NPC implements Interactable {
 
     /**
      * Obtiene el ancho del sprite del NPC.
-     * 
+     *
      * @return Ancho en píxeles.
      */
     public float getWidth() {
@@ -184,7 +184,7 @@ public abstract class NPC implements Interactable {
 
     /**
      * Obtiene el alto del sprite del NPC.
-     * 
+     *
      * @return Alto en píxeles.
      */
     public float getHeight() {
@@ -194,7 +194,7 @@ public abstract class NPC implements Interactable {
     /**
      * Comprueba si el NPC se solapa con un área rectangular dada (usado para
      * colisiones).
-     * 
+     *
      * @param ox      Posición X del área externa.
      * @param oy      Posición Y del área externa.
      * @param owidth  Ancho del área externa.

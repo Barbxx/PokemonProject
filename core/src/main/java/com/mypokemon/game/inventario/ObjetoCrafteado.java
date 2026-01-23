@@ -1,14 +1,14 @@
 package com.mypokemon.game.inventario;
 
 // Clase abstracta que representa un ítem crafteado mediante recetas.
-// Cada tipo específico de ítem crafteado extiende esta clase.
+// Cada tipo específico de ítem crafteado extiende esta clase aplicando la herencia.
 
 public abstract class ObjetoCrafteado extends Item {
     protected String descripcion;
 
     /**
      * Constructor para un objeto crafteado.
-     * 
+     *
      * @param id          Identificador único.
      * @param nombre      Nombre del ítem.
      * @param descripcion Descripción del ítem.
@@ -21,7 +21,7 @@ public abstract class ObjetoCrafteado extends Item {
 
     /**
      * Obtiene la descripción del ítem.
-     * 
+     *
      * @return Texto descriptivo.
      */
     public String getDescripcion() {
@@ -31,7 +31,7 @@ public abstract class ObjetoCrafteado extends Item {
     /**
      * Obtiene las opciones disponibles para este objeto. Debe ser implementado por
      * subclases concretas.
-     * 
+     *
      * @return Lista de acciones disponibles
      */
     @Override

@@ -51,7 +51,7 @@ public class PokedexScreen extends NavigableScreen {
     /**
      * Constructor de la pantalla de Pokédex.
      * Carga fuentes y texturas necesarias.
-     * 
+     *
      * @param game         Juego principal.
      * @param returnScreen Pantalla anterior.
      * @param explorador   Datos del jugador para acceder al registro de la Pokédex.
@@ -90,7 +90,7 @@ public class PokedexScreen extends NavigableScreen {
     /**
      * Renderiza la interfaz de la Pokédex.
      * Muestra la lista de Pokémon en cuadrícula y el detalle del seleccionado.
-     * 
+     *
      * @param delta Tiempo transcurrido.
      */
     @Override
@@ -132,10 +132,10 @@ public class PokedexScreen extends NavigableScreen {
             game.batch.draw(background, 0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
         }
 
-        // Overlay darkening REMOVED
+
         game.batch.setColor(Color.WHITE);
 
-        // Info Panel (Left side - Lowered to match background "INFO PKMN" box)
+        // Info Panel
         float infoX = 70;
         float infoY = 50;
         float infoW = 340;
@@ -161,7 +161,7 @@ public class PokedexScreen extends NavigableScreen {
             if (bigTex != null) {
                 float bigSize = 450;
                 float bigX = infoX + (infoW - bigSize) / 2;
-                float bigY = infoY + infoH - 130; // Position above the text box
+                float bigY = infoY + infoH - 130;
                 game.batch.draw(bigTex, bigX, bigY, bigSize, bigSize);
             }
 
@@ -194,8 +194,8 @@ public class PokedexScreen extends NavigableScreen {
 
         // Grid (Right side - Aligned with image boxes)
         float gridStartX = 530;
-        float gridStartY = 420; // Adjusted for 4 rows
-        float boxSize = 100; // Decreased size to fit 4 rows
+        float gridStartY = 420;
+        float boxSize = 100;
         float spacing = 15;
 
         for (int row = 0; row < GRID_ROWS; row++) {
@@ -204,8 +204,8 @@ public class PokedexScreen extends NavigableScreen {
                 float bx = gridStartX + col * (boxSize + spacing);
                 float by = gridStartY - row * (boxSize + spacing);
 
-                // Draw Grid Box Background (Darker than background)
-                game.batch.setColor(0, 0, 0, 0.4f); // Semi-transparent black
+                // Draw Grid Box Background
+                game.batch.setColor(0, 0, 0, 0.4f);
                 game.batch.draw(whitePixel, bx, by, boxSize, boxSize);
                 game.batch.setColor(Color.WHITE);
 
@@ -251,7 +251,7 @@ public class PokedexScreen extends NavigableScreen {
      */
     @Override
     public void dispose() {
-        super.dispose(); 
+        super.dispose();
         if (entryBg != null)
             entryBg.dispose();
         if (whitePixel != null)

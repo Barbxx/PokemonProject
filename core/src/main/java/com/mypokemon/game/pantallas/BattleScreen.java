@@ -20,27 +20,27 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import java.util.List;
 
-// Pantalla de combate entre el jugador y un Pokémon salvaje (o Boss).
+// Pantalla de combate entre el jugador y un Pokémon salvaje
 
 public class BattleScreen extends ScreenAdapter {
 
     private final PokemonMain game;
     private final com.badlogic.gdx.Screen parentScreen;
     private final Explorador explorador;
-    private Pokemon pokemonJugador; // Removed final to allow switching
+    private Pokemon pokemonJugador;
     private final Pokemon pokemonEnemigo;
 
-    // ...
 
     /**
      * Cambia el Pokémon activo del jugador durante la batalla.
      * Actualiza la textura trasera y el mensaje de log.
      * Valida que no sea el mismo Pokemon que el enemigo.
-     * 
+     *
      * @param nuevo Nuevo Pokémon a sacar al combate.
      */
     public void cambiarPokemon(Pokemon nuevo) {
-        // Req #3: No permitir pelear con el mismo Pokemon
+
+        // Lógica para no permitir pelear con el mismo Pokémon
         if (pokemonEnemigo != null && nuevo != null &&
                 nuevo.getNombre().equalsIgnoreCase(pokemonEnemigo.getNombre())) {
             updateInfo("¡No puedes usar el mismo Pokémon que el enemigo!");
@@ -50,7 +50,7 @@ public class BattleScreen extends ScreenAdapter {
         this.pokemonJugador = nuevo;
         updateInfo("¡Adelante " + nuevo.getNombre() + "!");
 
-        // Reload textures for new pokemon
+        // Texturas para el pokemon nuevo
         try {
             if (playerBackTexture != null)
                 playerBackTexture.dispose();
@@ -71,19 +71,19 @@ public class BattleScreen extends ScreenAdapter {
     private OrthographicCamera camera;
     private Viewport viewport;
 
-    // UI Elements (Manual rectangles)
+    // Elementos UI (Rectángulso Batalla)
     private Rectangle btnAtacarRect;
     private Rectangle btnHuirRect;
     private Rectangle btnMochilaRect;
     private Rectangle btnPokemonRect;
 
-    // Rectángulos para el menú de movimientos (cuadrícula 2x2)
+    // Rectángulos para el menú de movimientos
     private Rectangle btnMove0Rect;
     private Rectangle btnMove1Rect;
     private Rectangle btnMove2Rect;
     private Rectangle btnMove3Rect;
 
-    // UI State
+    // Estado UI
     private String infoText = "...";
     private String damageText = ""; // Mostrar daño recibido
     private float damageTextTimer = 0;
@@ -96,7 +96,7 @@ public class BattleScreen extends ScreenAdapter {
     private Texture selectedBorder;
     private int puntosInvestigacionGanados = 0;
 
-    // Animation State
+    // Estado animación
     private enum AnimState {
         NONE, THROWING, CAPTURE_CHECK
     }
@@ -107,7 +107,7 @@ public class BattleScreen extends ScreenAdapter {
     private float ballTargetX = 400, ballTargetY = 350; // Default center
     private String currentBallType;
 
-    // Textures
+    // Texturas
     private Texture backgroundTexture;
     private Texture enemyTexture;
     private Texture playerBackTexture;
@@ -118,11 +118,11 @@ public class BattleScreen extends ScreenAdapter {
     private Texture hpBarFill;
     private Texture baseCircleTexture;
     private Texture statusBarTexture;
-    private Texture pokeballTexture; // Textura para pokeball normal
-    private Texture heavyballTexture; // Textura para heavyball
+    private Texture pokeballTexture; // Textura pokeball clásica
+    private Texture heavyballTexture; // Textura pokeball de peso
     private com.badlogic.gdx.audio.Music battleMusic;
 
-    // Battle State
+    // Estado
     private enum BattleState {
         PLAYER_TURN, ENEMY_TURN, END_BATTLE
     }
@@ -132,7 +132,7 @@ public class BattleScreen extends ScreenAdapter {
     /**
      * Constructor de BattleScreen.
      * Inicializa la batalla, las texturas, música y la lógica de turnos.
-     * 
+     *
      * @param game         Instancia principal del juego.
      * @param parentScreen Pantalla anterior (usualmente GameScreen) para volver al
      *                     finalizar.
@@ -149,8 +149,7 @@ public class BattleScreen extends ScreenAdapter {
         if (!explorador.getEquipo().isEmpty()) {
             this.pokemonJugador = explorador.getEquipo().get(0);
 
-            // Req #7: Si es batalla con Arceus, el Pokemon del jugador debe estar en nivel
-            // 10
+            // Lógica para verificar que en la batalla con Arceus, el Pokemon del jugador esté en nivel 10
             if (enemigo.getNombre().equalsIgnoreCase("Arceus")) {
                 // Actualizar nivel temporalmente para la batalla
                 this.pokemonJugador = new Pokemon(pokemonJugador.getNombre(), 10, 0, pokemonJugador.isLegendario(),
@@ -173,10 +172,10 @@ public class BattleScreen extends ScreenAdapter {
         this.font = new BitmapFont();
         this.camera = new OrthographicCamera();
         this.viewport = new FitViewport(800, 600, camera);
-        this.viewport.apply(true); // Aplicar el viewport inicial y centrar cámara
+        this.viewport.apply(true);
         this.currentState = BattleState.PLAYER_TURN;
 
-        // Load textures
+        // Cargar texturas
         try {
             if (Gdx.files.internal("fondoBatalla.png").exists()) {
                 backgroundTexture = new Texture(Gdx.files.internal("fondoBatalla.png"));
@@ -200,7 +199,7 @@ public class BattleScreen extends ScreenAdapter {
             enemyTexture = createColorTexture(Color.RED);
         }
 
-        // Load Player Back Texture
+        // Cargar textura player
         try {
             String name = pokemonJugador.getNombre().toLowerCase().replace(" h.", "").replace(" jr.", "-jr")
                     .replace(" ", "-");
@@ -239,7 +238,7 @@ public class BattleScreen extends ScreenAdapter {
             Gdx.app.log("BattleScreen", "Pokeball texture loaded");
         } catch (Exception e) {
             Gdx.app.log("BattleScreen", "Could not load pokeball.png, using fallback");
-            pokeballTexture = createCircleTexture(new Color(1f, 0f, 0f, 1f)); // Red circle
+            pokeballTexture = createCircleTexture(new Color(1f, 0f, 0f, 1f));
         }
 
         try {
@@ -247,10 +246,10 @@ public class BattleScreen extends ScreenAdapter {
             Gdx.app.log("BattleScreen", "Heavyball texture loaded");
         } catch (Exception e) {
             Gdx.app.log("BattleScreen", "Could not load pokeballpeso.png, using pokeball");
-            heavyballTexture = pokeballTexture; // Use regular pokeball as fallback
+            heavyballTexture = pokeballTexture;
         }
 
-        // Musica de batalla
+        // Música de batalla
         if (pokemonEnemigo.getNombre().equalsIgnoreCase("Arceus")) {
             // Req #3: Música especial para batalla con Arceus
             try {
@@ -297,7 +296,8 @@ public class BattleScreen extends ScreenAdapter {
      */
     @Override
     public void show() {
-        // Disposición de botones en cuadrícula 2x2 centrada en el cuadro de acciones
+
+        // Disposición de botones en el cuadro de acciones
         float btnWidth = 140;
         float btnHeight = 40;
         float spacing = 15;
@@ -313,7 +313,7 @@ public class BattleScreen extends ScreenAdapter {
         btnPokemonRect = new Rectangle(startX, startY, btnWidth, btnHeight);
         btnHuirRect = new Rectangle(startX + btnWidth + spacing, startY, btnWidth, btnHeight);
 
-        // Crear rectángulos para el menú de movimientos (cuadrícula 2x2 perfecta)
+        // Rectángulos para el menú de movimientos
         // Fila superior: Movimiento 0 | Movimiento 1
         btnMove0Rect = new Rectangle(startX, startY + btnHeight + spacing, btnWidth, btnHeight);
         btnMove1Rect = new Rectangle(startX + btnWidth + spacing, startY + btnHeight + spacing, btnWidth, btnHeight);
@@ -333,7 +333,7 @@ public class BattleScreen extends ScreenAdapter {
 
                 if (currentState == BattleState.PLAYER_TURN) {
                     if (showMoveMenu) {
-                        // Menú de movimientos - usar rectángulos específicos
+                        // Menú de movimientos
                         List<Movimiento> movs = pokemonJugador.getMovimientos();
                         if (btnMove0Rect.contains(x, y) && movs.size() > 0) {
                             performMove(0);
@@ -473,7 +473,7 @@ public class BattleScreen extends ScreenAdapter {
      * Intenta usar un ítem desde la mochila durante la batalla.
      * Maneja la lógica de captura (Pokéballs) y curación (Pociones).
      * Req #2: Inicia animación de pokeball.
-     * 
+     *
      * @param tipo Identificador del tipo de ítem ("pokeball", "heavyball",
      *             "pocion").
      */
@@ -488,14 +488,14 @@ public class BattleScreen extends ScreenAdapter {
                 return;
             }
 
-            // Req #2: Iniciar animación de pokeball
+            // Iniciar animación de pokeball
             currentBallType = tipo;
             animState = AnimState.THROWING;
             animTimer = 0;
-            // Posición inicial (cerca del Pokemon del jugador)
+            // Posición del pokemon del jugador
             ballX = 150;
             ballY = 350;
-            // Posición objetivo (cerca del Pokemon enemigo)
+            // Posición del pokemon enemigo
             ballTargetX = 500;
             ballTargetY = 450;
 
@@ -515,7 +515,8 @@ public class BattleScreen extends ScreenAdapter {
         boolean capturado = false;
 
         if (currentBallType.equals("heavyball")) {
-            // Heavy Ball works better on low-level Pokémon (0-3)
+
+            // Poké ball de peso que funciona mejor con Pokémon de niveles bajos (0-3)
             if (nivelEnemigo <= 3) {
                 if (hpPercent <= 0.40f)
                     capturado = true;
@@ -524,17 +525,17 @@ public class BattleScreen extends ScreenAdapter {
                     capturado = true;
             }
         } else {
-            // Standard Pokeball (20% threshold regardless of level)
+            // Pokeball clásica
             if (hpPercent <= 0.20f)
                 capturado = true;
         }
 
-        // Req #2: Mostrar mensajes de captura con colores apropiados
+        // Mmensajes de captura de pokemon
         if (capturado) {
             explorador.getRegistro().registrarAccion(pokemonEnemigo.getNombre(), true);
             explorador.agregarAlEquipo(pokemonEnemigo);
 
-            // Mensaje en amarillo
+            // Mensaje en amarillo si lo lograste
             updateInfo("¡Poké Ball lanzada! ¡Pokémon " + pokemonEnemigo.getNombre() + " capturado!");
             damageText = "¡Poké Ball lanzada! ¡Pokémon " + pokemonEnemigo.getNombre() + " capturado!";
             damageTextX = 200;
@@ -543,7 +544,7 @@ public class BattleScreen extends ScreenAdapter {
 
             endBattle(true);
         } else {
-            // Mensaje en rojo
+            // Mensaje en rojo si fallaste
             updateInfo("¡Poké Ball lanzada! ¡Fallaste la captura!");
             damageText = "¡Poké Ball lanzada! ¡Fallaste la captura!";
             damageTextX = 200;
@@ -557,7 +558,7 @@ public class BattleScreen extends ScreenAdapter {
 
     /**
      * Obtiene el Pokémon actual del jugador en combate.
-     * 
+     *
      * @return El objeto Pokemon activo.
      */
     public Pokemon getPokemonJugador() {
@@ -575,7 +576,8 @@ public class BattleScreen extends ScreenAdapter {
     }
 
     private void abrirPokemon() {
-        // Redirigir a MochilaScreen en la pestaña de Pokémon (índice 3)
+
+        // Redirigir a MochilaScreen en la pestaña de Pokémon
         MochilaScreen mochila = new MochilaScreen(game, this, explorador);
         mochila.setSelectedIndex(3); // Método que añadiremos en MochilaScreen
         game.setScreen(mochila);
@@ -589,7 +591,7 @@ public class BattleScreen extends ScreenAdapter {
     /**
      * Ejecuta un movimiento del jugador.
      * Calcula daño, verifica velocidad para orden de turnos y actualiza interfaz.
-     * 
+     *
      * @param moveIndex Índice del movimiento en la lista del Pokémon (0-3).
      */
     private void performMove(int moveIndex) {
@@ -688,7 +690,7 @@ public class BattleScreen extends ScreenAdapter {
             } else if (dano > 0) {
                 updateInfo(pokemonEnemigo.getNombre() + " usó " + mov.getNombre() + ". Daño: " + dano);
                 damageText = "-" + dano;
-                damageTextX = 160; // Over Player (approx center)
+                damageTextX = 160;
                 damageTextY = 330;
                 damageTextTimer = 2.0f;
             } else {
@@ -709,7 +711,7 @@ public class BattleScreen extends ScreenAdapter {
      */
     private void checkBattleStatus() {
         if (pokemonEnemigo.getHpActual() <= 0) {
-            // Req #6: Si es Arceus, mostrar mensaje especial y actualizar a nivel 10
+            // Si es Arceus, mostrar mensaje especial
             if (pokemonEnemigo.getNombre().equalsIgnoreCase("Arceus")) {
                 updateInfo("¡Ganaste! ¡Derrotaste al Dios Arceus!");
                 // Actualizar Arceus a nivel de investigación 10
@@ -739,7 +741,7 @@ public class BattleScreen extends ScreenAdapter {
 
             endBattle(true);
         } else if (pokemonJugador.getHpActual() <= 0) {
-            // Req #6: Si pierde contra Arceus, mostrar mensaje especial
+            // Si pierde contra Arceus, mostrar mensaje especial
             if (pokemonEnemigo.getNombre().equalsIgnoreCase("Arceus")) {
                 updateInfo("¡Perdiste! ¡Fuiste derrotado por Arceus!");
                 // Arceus se queda en nivel 0
@@ -747,7 +749,6 @@ public class BattleScreen extends ScreenAdapter {
                 updateInfo("¡Tu Pokémon se debilitó!");
             }
 
-            // Derrota: El Pokémon salvaje NO gana experiencia
             // Derrota: Penalización
             String perdido = explorador.getMochila().perderObjetoCrafteado();
             if (perdido != null) {
@@ -762,16 +763,9 @@ public class BattleScreen extends ScreenAdapter {
 
     private void updateLayout() {
         // Actualizar posiciones de botones basándose en el nuevo tamaño del mundo
-        float btnWidth = 140; // Menos largos (era 180)
+        float btnWidth = 140;
         float btnHeight = 50;
         float spacing = 15;
-
-        // El bloque se centra en la derecha
-        // Ancho bloque: 140*2 + 15 = 295
-        // Alto bloque: 50*2 + 15 = 115
-
-        // Centro X = 600
-        // Centro Y = 110 (Más arriba)
 
         float startX = 600 - (295 / 2);
         float startY = 110 - (115 / 2);
@@ -781,7 +775,7 @@ public class BattleScreen extends ScreenAdapter {
         btnPokemonRect = new Rectangle(startX, startY, btnWidth, btnHeight);
         btnHuirRect = new Rectangle(startX + btnWidth + spacing, startY, btnWidth, btnHeight);
 
-        // Restore Move Menu Rectangles (Same layout as main menu)
+        // Restaurar Botones de menú de Movimiento
         btnMove0Rect = new Rectangle(startX, startY + btnHeight + spacing, btnWidth, btnHeight);
         btnMove1Rect = new Rectangle(startX + btnWidth + spacing, startY + btnHeight + spacing, btnWidth, btnHeight);
         btnMove2Rect = new Rectangle(startX, startY, btnWidth, btnHeight);
@@ -816,8 +810,7 @@ public class BattleScreen extends ScreenAdapter {
                             "Porque al final, el camino siempre estuvo claro...",
                             "¡Atrápalos a todos!"
                     };
-                    // Req #2: Después de derrotar a Arceus, ir a MainMenuScreen
-                    // Req #5: Reproducir AudioFinal al mostrar los créditos
+                    // Después de derrotar a Arceus, ir a MainMenuScreen y reproducir audiofinal
                     game.setScreen(new StoryDialogScreen(game, "fondoFinal.png", finalDialog,
                             new com.mypokemon.game.pantallas.MainMenuScreen(game), "AudioFinal.mp3"));
                 });
@@ -842,14 +835,14 @@ public class BattleScreen extends ScreenAdapter {
     /**
      * Actualiza el viewport y la disposición de los botones al cambiar el tamaño de
      * ventana.
-     * 
+     *
      * @param width  Nuevo ancho.
      * @param height Nuevo alto.
      */
     @Override
     public void resize(int width, int height) {
         // Actualizar el viewport cuando cambia el tamaño de la ventana
-        viewport.update(width, height, true); // true centra la cámara
+        viewport.update(width, height, true);
         updateLayout();
     }
 
@@ -857,7 +850,7 @@ public class BattleScreen extends ScreenAdapter {
      * Ciclo principal de renderizado.
      * Dibuja el fondo, combatientes, interfaz y maneja animaciones y
      * temporizadores.
-     * 
+     *
      * @param delta Tiempo desde el último frame.
      */
     @Override
@@ -873,8 +866,7 @@ public class BattleScreen extends ScreenAdapter {
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        // Req #2: Restaurar viewport para asegurar que la animación se vea bien al
-        // volver de Mochila
+        // Restaurar viewport para asegurar que la animación se vea bien al volver de Mochila
         viewport.apply();
 
         if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.ESCAPE)) {
@@ -898,7 +890,7 @@ public class BattleScreen extends ScreenAdapter {
             game.batch.draw(enemyTexture, enemyX, enemyY, enemySize, enemySize);
         }
 
-        // Draw Player Back Sprite (Bottom Left corner area)
+        // Dibujar personaje volteado
         if (playerBackTexture != null) {
             float pX = 20;
             float pY = 203;
@@ -911,46 +903,45 @@ public class BattleScreen extends ScreenAdapter {
         if (showPokedex) {
             drawPokedex();
         } else if (showMoveMenu) {
-            // Mostrar movimientos del Pokémon en cuadrícula 2x2 perfecta
+            // Mostrar movimientos del Pokémon en cuadrícula
             List<Movimiento> movs = pokemonJugador.getMovimientos();
             drawButton(btnMove0Rect, movs.size() > 0 ? movs.get(0).getNombre() : "-", selectedMove == 0);
             drawButton(btnMove1Rect, movs.size() > 1 ? movs.get(1).getNombre() : "-", selectedMove == 1);
             drawButton(btnMove2Rect, movs.size() > 2 ? movs.get(2).getNombre() : "-", selectedMove == 2);
             drawButton(btnMove3Rect, movs.size() > 3 ? movs.get(3).getNombre() : "-", selectedMove == 3);
         } else {
-            // Menú principal de batalla (2x2 centrado)
+            // Menú principal de batalla
             drawButton(btnAtacarRect, "Atacar", selectedOption == 0);
             drawButton(btnMochilaRect, "Mochila", selectedOption == 1);
             drawButton(btnPokemonRect, "Pokémon", selectedOption == 2);
             drawButton(btnHuirRect, "Huir", selectedOption == 3);
         }
 
-        // Animation Logic
+        // Lógica de animación
         if (animState == AnimState.THROWING) {
             animTimer += delta;
-            float duration = 1.5f; // Aumentado para que sea más visible
+            float duration = 1.5f;
             float progress = Math.min(animTimer / duration, 1.0f);
 
-            // Interpolate pos with a parabolic arc
+
             float currentX = ballX + (ballTargetX - ballX) * progress;
-            // Arc logic: y = base_y + arc_height * sin(progress * PI)
+
             float arcHeight = 150f;
             float currentY = ballY + (ballTargetY - ballY) * progress
                     + (float) Math.sin(progress * Math.PI) * arcHeight;
 
-            // Rotation
-            float rotation = progress * 720f; // 2 full rotations
+            // Rotación
+            float rotation = progress * 720f;
 
-            // Draw Ball - usar la textura correcta según el tipo
+            // Dibujar pokebola usada
             Texture ballTex = currentBallType.equals("heavyball") ? heavyballTexture : pokeballTexture;
             if (ballTex != null) {
                 float ballSize = 40;
-                // Draw with rotation centering the origin
+                // Dibujarala con el giro
                 game.batch.draw(ballTex, currentX - ballSize / 2, currentY - ballSize / 2,
                         ballSize / 2, ballSize / 2, ballSize, ballSize, 1f, 1f, -rotation, 0, 0,
                         ballTex.getWidth(), ballTex.getHeight(), false, false);
             } else {
-                // Fallback to circle if no texture
                 game.batch.draw(baseCircleTexture, currentX - 15, currentY - 15, 30, 30);
             }
 
@@ -963,7 +954,6 @@ public class BattleScreen extends ScreenAdapter {
         }
 
         // Mostrar texto de daño si está activo
-        // Req #2: Colores según el tipo de mensaje
         if (!damageText.isEmpty() && damageTextTimer > 0) {
             // Amarillo para capturas exitosas, rojo para todo lo demás
             if (damageText.contains("capturado!")) {
@@ -1012,37 +1002,30 @@ public class BattleScreen extends ScreenAdapter {
     }
 
     private void drawMessageBox() {
-        // float boxWidth = viewport.getWorldWidth();
-        // float boxHeight = 160;
-        // game.batch.draw(boxBg, 0, 0, boxWidth, boxHeight);
-        // game.batch.draw(borderBg, 0, boxHeight, boxWidth, 4);
+
         font.setColor(Color.WHITE);
         font.getData().setScale(1.2f);
 
-        // Centrar texto en la mitad izquierda (0 a 400)
         GlyphLayout layout = new GlyphLayout(font, infoText);
         float textX = (400 - layout.width) / 2;
-        // Más arriba, centrado en Y=110 aprox
         float textY = 110 + (layout.height / 2);
         font.draw(game.batch, infoText, textX, textY);
     }
 
     private void drawEnemyInfo() {
-        // Enemy Info (Top Left)
+        // Informacion del pokemon enemigo
         float infoX = 10;
-        float infoY = viewport.getWorldHeight() - 40; // Start higher for text
+        float infoY = viewport.getWorldHeight() - 40;
 
         font.getData().setScale(1.1f);
         font.setColor(Color.BLACK);
 
-        // Name
+        // Nombre
         font.draw(game.batch, pokemonEnemigo.getNombre().toUpperCase(), infoX + 10, infoY);
-        // Level next to name or slightly offset
+
         font.draw(game.batch, "Nv.Inv" + pokemonEnemigo.getNivel(), infoX + 220, infoY);
 
-        // Status Bar BELOW the text
-        // Scale down: original bar is likely large, let's make it more compact. width
-        // around 240, height around 60?
+        // Barra de estado
         float barWidth = 260;
         float barHeight = 70;
         float barX = infoX;
@@ -1052,31 +1035,25 @@ public class BattleScreen extends ScreenAdapter {
             game.batch.draw(statusBarTexture, barX, barY, barWidth, barHeight);
         }
 
-        // HP Text inside bar area
+        // Texto HP
         font.getData().setScale(0.8f);
         font.draw(game.batch, (int) pokemonEnemigo.getHpActual() + "/" + (int) pokemonEnemigo.getHpMaximo(),
-                barX + 140, barY + 30); // Adjusted relative to bar
+                barX + 140, barY + 30);
 
         // HP Fill
-        // Need to estimate fill bar position within the scaled image
-        // Assuming standard ratios, if image is scaled, internal offsets scale too.
-        // Let's approximate:
         float fillWidth = 120;
         float fillHeight = 8;
 
-        // Fine tuned for the 260x70 scale
-        // Previously: barX + 118, barY + 38 for unknown size.
-        // Let's try to center it visually within the "bar" part of the texture.
         game.batch.draw(hpBarFill, barX + 90, barY + 28,
                 fillWidth * (pokemonEnemigo.getHpActual() / pokemonEnemigo.getHpMaximo()), fillHeight);
 
-        // Player Info (Bottom Right)
+        // Info del pokemon del jugador
         float pInfoX = viewport.getWorldWidth() - 280; // Right side
-        float pInfoY = 300; // Raised further to 300 as requested to clear menu
+        float pInfoY = 300;
 
         font.getData().setScale(1.1f);
         font.draw(game.batch, pokemonJugador.getNombre().toUpperCase(), pInfoX + 10, pInfoY);
-        // Req #1: Mostrar nivel de investigación actual del jugador desde el registro
+        // Mostrar nivel de investigación actual del jugador desde el registro
         int nivelInvestigacion = 0;
         com.mypokemon.game.EspeciePokemon especie = explorador.getRegistro().getRegistro()
                 .get(pokemonJugador.getNombre());
@@ -1085,7 +1062,6 @@ public class BattleScreen extends ScreenAdapter {
         }
         font.draw(game.batch, "Nv.Inv" + nivelInvestigacion, pInfoX + 220, pInfoY);
 
-        // Bar below text
         float pBarX = pInfoX;
         float pBarY = pInfoY - barHeight - 10;
 
@@ -1100,8 +1076,8 @@ public class BattleScreen extends ScreenAdapter {
         game.batch.draw(hpBarFill, pBarX + 90, pBarY + 28,
                 fillWidth * (pokemonJugador.getHpActual() / pokemonJugador.getHpMaximo()), fillHeight);
 
-        font.getData().setScale(1.0f); // Reset scale
-        font.setColor(Color.BLACK); // Reset color
+        font.getData().setScale(1.0f);
+        font.setColor(Color.BLACK);
     }
 
     private void drawButton(Rectangle rect, String text, boolean selected) {

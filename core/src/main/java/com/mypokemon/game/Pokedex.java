@@ -29,7 +29,7 @@ public class Pokedex implements Serializable {
     /**
      * Registra el avistamiento de un Pokemon sin modificar su nivel de
      * investigacion.
-     * 
+     *
      * @param nombre Nombre del Pokemon avistado
      */
     public void registrarAvistamiento(String nombre) {
@@ -43,7 +43,7 @@ public class Pokedex implements Serializable {
 
     /**
      * Registra una accion con un Pokemon y actualiza su nivel de investigacion.
-     * 
+     *
      * @param nombre    Nombre del Pokemon
      * @param esCaptura true si fue capturado, false si solo fue derrotado
      */
@@ -53,7 +53,7 @@ public class Pokedex implements Serializable {
 
         EspeciePokemon especie = registro.get(nombre);
 
-        // Si es Arceus, investigación máxima inmediata al interactuar (derrotar )
+        // Si es Arceus, investigación máxima inmediata al derrotar
         if (nombre.equalsIgnoreCase("Arceus")) {
             boolean estabaCompleta = especie.isCompleta();
             especie.setInvestigacionMaxica();
@@ -91,7 +91,7 @@ public class Pokedex implements Serializable {
 
     /**
      * Verifica cuantas especies han alcanzado el nivel 10 de investigacion.
-     * 
+     *
      * @return Cantidad de especies con investigacion completa
      */
     public int verificarProgreso() {
@@ -108,21 +108,21 @@ public class Pokedex implements Serializable {
 
     /**
      * Verifica si el jugador puede acceder al hito final con Arceus.
-     * 
+     *
      * @return true si cumple los requisitos, false en caso contrario
      */
     public boolean puedeAccederAlHito() {
-        // Retorna true si se cumple la condición de Arceus (5 capturados nivel 10)
+        // Retorna true si se cumple la condición de Arceus
         return verificarRequisitosArceus();
     }
 
     /**
      * Completa instantaneamente la investigacion de un Pokemon a nivel maximo.
-     * 
+     *
      * @param nombre Nombre del Pokemon a completar
      */
     public void completarInstantaneamente(String nombre) {
-        // Específico para el Hito Final.
+        // Específico para el Hito Final
         registro.putIfAbsent(nombre, new EspeciePokemon(nombre));
 
         if (!encounterOrder.contains(nombre)) {
@@ -144,7 +144,7 @@ public class Pokedex implements Serializable {
 
     /**
      * Verifica si el jugador puede retar a Arceus.
-     * 
+     *
      * @return true si tiene 5 especies capturadas a nivel 10, false en caso
      *         contrario
      */
@@ -154,7 +154,7 @@ public class Pokedex implements Serializable {
 
     /**
      * Obtiene el mapa de registro de todas las especies.
-     * 
+     *
      * @return Mapa con todas las especies registradas
      */
     public Map<String, EspeciePokemon> getRegistro() {
@@ -163,7 +163,7 @@ public class Pokedex implements Serializable {
 
     /**
      * Obtiene la lista de Pokemon capturados en orden de captura.
-     * 
+     *
      * @return Lista de nombres de Pokemon capturados
      */
     public java.util.List<String> getCapturedOrder() {
@@ -174,7 +174,7 @@ public class Pokedex implements Serializable {
 
     /**
      * Obtiene la lista de Pokemon encontrados en orden de encuentro.
-     * 
+     *
      * @return Lista de nombres de Pokemon encontrados
      */
     public java.util.List<String> getEncounterOrder() {
@@ -185,7 +185,7 @@ public class Pokedex implements Serializable {
 
     /**
      * Establece el nivel de investigacion de un Pokemon especifico.
-     * 
+     *
      * @param nombre Nombre del Pokemon
      * @param nivel  Nivel de investigacion a establecer (0-10)
      */
@@ -199,7 +199,7 @@ public class Pokedex implements Serializable {
 
     /**
      * Verifica si el jugador cumple los requisitos para enfrentar a Arceus.
-     * 
+     *
      * @return true si tiene al menos 5 Pokemon capturados con nivel 10, false en
      *         caso contrario
      */

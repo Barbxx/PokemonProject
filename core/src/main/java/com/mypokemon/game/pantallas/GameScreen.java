@@ -85,34 +85,34 @@ public class GameScreen extends BaseScreen {
     private float moveUpdateTimer = 0;
     private String myTexturePath;
 
-    // NPC Management
+    // NPC Manejo
     private com.mypokemon.game.objects.NPCManager npcManager;
 
     // Colisiones
     private GestorColisiones gestorColisiones;
     private ColisionPuertaLaboratorio puertaLaboratorio;
 
-    // UI Management
+    // UI Manejo
     private com.mypokemon.game.ui.GameUI gameUI;
 
-    private Texture labSignTexture; // Needed for ColisionPuertaLaboratorio
+    private Texture labSignTexture; // Necesaria para ColisionPuertaLaboratorio
     private Texture currentPortrait;
-    private Texture uiWhitePixel; // Keep for now if used elsewhere or move to UI
+    private Texture uiWhitePixel;
     private boolean showDialog = false;
 
     private int currentDialogPage = 0;
 
-    // Dynamic Dialog State
+    // Estado dinámico dialogo
     private String activeNpcName = "";
     private String[] activeDialogPages;
     // actually, let's keep currentPortrait to pass to GameUI.renderDialog
 
-    // Menu State
+    // Menu Estado
     private boolean showMenu = false;
     private int menuSelectedIndex = 0;
     private String[] menuOptions = { "POKÉDEX", "CRAFTEO", "MOCHILA", "GUARDAR", "PERFIL", "INICIO" };
 
-    // Intro Animation State
+    // Intro Animacion estado
     private enum IntroState {
         SLIDING_IN, WAITING, SLIDING_OUT, FINISHED
     }
@@ -123,7 +123,7 @@ public class GameScreen extends BaseScreen {
     private float introSpeed = 200f;
     private Texture avisoTexture;
 
-    // Game Constants
+    // Game Constantes
     private static final float ENCOUNTER_CHECK_INTERVAL = 1.0f;
     private static final float NOTIFICATION_DURATION = 3.0f;
 
@@ -134,16 +134,15 @@ public class GameScreen extends BaseScreen {
     private boolean inEncounter = false;
     private Sound grassSound;
 
-    // Resource Management
+    // Resource Manejo
     private List<RecursoMapa> recursosMapa = new ArrayList<>();
 
-    // Crafting State removed (Decoupled Architecture)
     private String notificationMessage = "";
     private float notificationTimer = 0;
     private boolean showMissionComplete = false;
     private float missionCompleteTimer = 0;
 
-    // NPC Music Logic
+    // Logica Musica NPC
     private com.badlogic.gdx.audio.Music currentNpcMusic = null;
     private com.badlogic.gdx.audio.Music backgroundPlayerMusic = null;
     private com.badlogic.gdx.audio.Music backgroundPlayerMusic2 = null; // Req #4: Segunda canción
@@ -165,14 +164,13 @@ public class GameScreen extends BaseScreen {
 
     private List<RegionTrigger> regions = new ArrayList<>();
     private Texture texCostaCobalto, texPantanal, texLadera, texTundra, texFlorecita;
-    private RegionTrigger currentActiveRegion = null; // Track which one is currently "on" to avoid re-triggering
-                                                      // constantly
+    private RegionTrigger currentActiveRegion = null;
 
     /**
      * Constructor de GameScreen.
      * Inicializa los gestores, carga el mapa y configura el estado inicial del
      * jugador.
-     * 
+     *
      * @param game        Instancia principal del juego.
      * @param texturePath Ruta de la textura del jugador.
      * @param cols        Columnas en la hoja de sprites.
@@ -188,18 +186,18 @@ public class GameScreen extends BaseScreen {
         this.playerName = playerName; // Explorer Name
         this.myTexturePath = texturePath; // Store path for Network Identity
 
-        // Initialize Managers
+        // Inicializar manejadores
         npcManager = new com.mypokemon.game.objects.NPCManager();
         gameUI = new com.mypokemon.game.ui.GameUI();
         gestorColisiones = new GestorColisiones();
 
-        // Determine Gender from Texture Path (passed from Intro)
+        // Determinar genero para la imagen a usar
         String genderStr = "CHICO";
         if (texturePath != null && texturePath.toLowerCase().contains("fem")) {
             genderStr = "CHICA";
         }
 
-        // Check for saved progress
+        // Chqueo para guardar progreso
         // Intento 1: Formato Solitario "NombrePartida - NombreJugador.dat"
         String soloFilename = gameName + " - " + playerName + ".dat";
         this.explorador = Explorador.cargarProgreso(soloFilename);
@@ -216,25 +214,24 @@ public class GameScreen extends BaseScreen {
         }
 
         if (this.explorador == null) {
-            // New Game: Create with Explorer Name, Game Name, Capacity, and Gender
+            // New Game
             this.explorador = new Explorador(playerName, gameName, 100, genderStr);
         } else {
-            // Loaded Game: Ensure texture matches saved gender and name
+            // Loaded Game
             if ("CHICA".equals(this.explorador.getGenero())) {
                 this.myTexturePath = "protagonistaFemenino.png";
             } else {
                 this.myTexturePath = "protagonistaMasculino1.png";
             }
-            // Sync current player name with loaded name just in case
             this.playerName = this.explorador.getNombre();
         }
 
-        // Initialize Camera and Viewport
+        // Camara y Viewport
         camera = new OrthographicCamera();
         viewport = new FitViewport(800, 480, camera);
         uiMatrix = new com.badlogic.gdx.math.Matrix4().setToOrtho2D(0, 0, 800, 480);
 
-        // Load Intro Texture
+        // Cargar imagenes texturas intro
         try {
             introTexture = new Texture(Gdx.files.internal("letreroPraderaObsidiana.png"));
             introState = IntroState.SLIDING_IN;
@@ -245,7 +242,7 @@ public class GameScreen extends BaseScreen {
             introState = IntroState.FINISHED;
         }
 
-        // Load Aviso Texture
+        // Cargar textura aviso
         try {
             avisoTexture = new Texture(Gdx.files.internal("Aviso.png"));
         } catch (Exception e) {
@@ -255,22 +252,20 @@ public class GameScreen extends BaseScreen {
         // Init White Pixel for UI
         uiWhitePixel = TextureUtils.createSolidTexture(1, 1, Color.WHITE);
 
-        // Load Sounds
+        // Cargar sonido
         try {
             grassSound = Gdx.audio.newSound(Gdx.files.internal("hierba.mp3"));
         } catch (Exception e) {
             Gdx.app.log("GameScreen", "Could not load hierba.mp3");
         }
 
-        // Load Map with explicit file resolver
+        // Cargar mapa
         try {
             TmxMapLoader.Parameters params = new TmxMapLoader.Parameters();
             TmxMapLoader loader = new TmxMapLoader(new InternalFileHandleResolver());
             map = loader.load("Mapa_Hisui.tmx", params);
-            // Use the game's shared batch for the map renderer
             mapRenderer = new OrthogonalTiledMapRenderer(map, game.batch);
 
-            // Find collision layer (case insensitive)
             for (MapLayer layer : map.getLayers()) {
                 if (layer instanceof TiledMapTileLayer && layer.getName().equalsIgnoreCase("Objetos_colisión")) {
                     collisionLayer = (TiledMapTileLayer) layer;
@@ -279,15 +274,15 @@ public class GameScreen extends BaseScreen {
                 }
             }
 
-            // Log map information for debugging
+
             Gdx.app.log("GameScreen", "Map loaded successfully with " + map.getLayers().getCount() + " layers");
 
-            // Log tileset information
+
             for (TiledMapTileSet tileset : map.getTileSets()) {
                 Gdx.app.log("GameScreen", "Tileset: " + tileset.getName() + " with " + tileset.size() + " tiles");
             }
 
-            // Log all layers and identify indices
+
             for (int i = 0; i < map.getLayers().getCount(); i++) {
                 MapLayer layer = map.getLayers().get(i);
                 Gdx.app.log("GameScreen", "Layer " + i + ": " + layer.getName() +
@@ -295,13 +290,13 @@ public class GameScreen extends BaseScreen {
                         " visible: " + layer.isVisible());
             }
 
-            // Get map dimensions safely
+            // Dimensiones del mapa
             mapWidth = getIntProperty(map.getProperties(), "width", 100) *
                     getIntProperty(map.getProperties(), "tilewidth", 32);
             mapHeight = getIntProperty(map.getProperties(), "height", 100) *
                     getIntProperty(map.getProperties(), "tileheight", 32);
 
-            // Dynamically identify layers
+
             com.badlogic.gdx.utils.IntArray bgList = new com.badlogic.gdx.utils.IntArray();
             com.badlogic.gdx.utils.IntArray fgList = new com.badlogic.gdx.utils.IntArray();
 
@@ -326,7 +321,7 @@ public class GameScreen extends BaseScreen {
             Gdx.app.log("GameScreen", "Categorized " + backgroundLayers.length + " background layers and " +
                     foregroundLayers.length + " foreground layers");
 
-            // Get spawn point from Spawn_Player object layer
+
             MapLayer spawnLayer = null;
             for (MapLayer l : map.getLayers()) {
                 if (l.getName().equalsIgnoreCase("Spawn_Player")) {
@@ -361,7 +356,7 @@ public class GameScreen extends BaseScreen {
             mapHeight = 3200;
         }
 
-        // Scan for collectable resources in the collision layer
+
         if (collisionLayer != null) {
             for (int y = 0; y < collisionLayer.getHeight(); y++) {
                 for (int x = 0; x < collisionLayer.getWidth(); x++) {
@@ -384,12 +379,11 @@ public class GameScreen extends BaseScreen {
                                 }
                             }
                             RecursoMapa recurso = new RecursoMapa(x, y, tipo, cantidad);
-                            // Find and store cells from resource layers, EXCEPT background and foreground
-                            // decorations
+
                             for (com.badlogic.gdx.maps.MapLayer layer : map.getLayers()) {
                                 if (layer instanceof TiledMapTileLayer) {
                                     String layerName = layer.getName().toLowerCase();
-                                    // Skip background layer and superior objects layer to preserve them
+
                                     if (layerName.contains("suelo_fondo") || layerName.contains("objetos_superiores")) {
                                         continue;
                                     }
@@ -409,13 +403,11 @@ public class GameScreen extends BaseScreen {
             }
         }
 
-        // Set camera to player spawn position
         camera.position.set(posX, posY, 10);
         camera.update();
 
         boolean assetsLoaded = false;
         try {
-            // Use myTexturePath which has been updated based on the loaded save file
             playerSheet = new Texture(myTexturePath);
             playerSheet.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
             assetsLoaded = true;
@@ -446,34 +438,33 @@ public class GameScreen extends BaseScreen {
             createFallback();
         }
 
-        // Initialize Lab Sign Texture (Map Object)
+
         try {
             labSignTexture = new Texture(Gdx.files.internal("letreroLaboratorio.png"));
         } catch (Exception e) {
             Gdx.app.log("GameScreen", "Lab Sign texture not found", e);
         }
 
-        // NOMENCLATURE: NPC POSITIONS and COLLISIONS
+        // NPC POSITIONS and COLLISIONS
         if (npcManager != null) {
             npcManager.addNPC(new com.mypokemon.game.objects.FeidNPC(posX - 220, posY - 20));
             npcManager.addNPC(new com.mypokemon.game.objects.HarryPotterNPC(posX + 2100, posY + 900));
             npcManager.addNPC(new com.mypokemon.game.objects.HarryStylesNPC(posX + 1110, posY - 320));
             npcManager.addNPC(new com.mypokemon.game.objects.BrennerNPC(posX + 480, posY + 620));
 
-            // Add NPCs to collision manager
+            // agregar los npc al manejador de colisiones
             for (NPC npc : npcManager.getAllNPCs()) {
                 gestorColisiones.agregarColision(new ColisionNPC(npc));
             }
         }
 
-        // Initialize Lab Collision
+        // Inicializar colision laboratorio
         float labDoorX = posX - 120;
         float labDoorY = posY - 185;
 
         puertaLaboratorio = new ColisionPuertaLaboratorio(labDoorX, labDoorY, labSignTexture, game, this, explorador);
         gestorColisiones.agregarColision(puertaLaboratorio);
 
-        // Initialize UI projection matrix
 
         game.font.setUseIntegerPositions(true);
 
@@ -492,23 +483,22 @@ public class GameScreen extends BaseScreen {
         float spawnY = this.posY;
         float regionSize = 60f;
 
-        // 1. Costa Cobalto - Near Harry Styles (Spawn + 1110, -320)
+        // 1) Costa Cobalto
         regions.add(new RegionTrigger(spawnX + 1250, spawnY - 360, regionSize, regionSize, texCostaCobalto));
 
-        // 2. Pantanal Carmesí - Near Harry Potter (Spawn + 2100, + 900) - LEFT
+        // 2) Pantanal Carmesí
         regions.add(new RegionTrigger(spawnX + 2100 - 50, spawnY + 890, regionSize, regionSize, texPantanal));
 
-        // 3. Ladera Corona - Near Harry Potter - RIGHT
+        // 3) Ladera Corona
         regions.add(new RegionTrigger(spawnX + 2100 - 1300, spawnY + 1700, regionSize, regionSize, texLadera));
 
-        // 4. Tundra Alba - Near Harry Potter - BOTTOM
+        // 4) Tundra Alba
         regions.add(new RegionTrigger(spawnX + 50, spawnY + 850, regionSize, regionSize, texTundra));
 
-        // Initialize Reproductor Music
-        // Req #4: Cargar ambas pistas del reproductor
+        // Cargar dos pistas del reproductor
         try {
             backgroundPlayerMusic = Gdx.audio.newMusic(Gdx.files.internal("audioReproductor.mp3"));
-            backgroundPlayerMusic.setLooping(false); // Req #4: No loop para permitir la siguiente canción
+            backgroundPlayerMusic.setLooping(false); // No loop para permitir la siguiente canción
             backgroundPlayerMusic.setVolume(0.5f);
         } catch (Exception e) {
             Gdx.app.log("GameScreen", "Could not load audioReproductor.mp3");
@@ -516,18 +506,18 @@ public class GameScreen extends BaseScreen {
 
         try {
             backgroundPlayerMusic2 = Gdx.audio.newMusic(Gdx.files.internal("audioReproductor2.mp3"));
-            backgroundPlayerMusic2.setLooping(true); // Req #4: La segunda canción se repite
+            backgroundPlayerMusic2.setLooping(true); // La segunda canción se repite
             backgroundPlayerMusic2.setVolume(0.5f);
         } catch (Exception e) {
             Gdx.app.log("GameScreen", "Could not load audioReproductor2.mp3");
         }
     }
 
-    // Fade State
+
     private float fadeAlpha = 1f;
     private boolean fadingIn = true;
     private boolean fadingOut = false;
-    private BaseScreen nextScreen; // Screen to switch to after fade
+    private BaseScreen nextScreen;
 
     /**
      * Se llama cuando esta pantalla se convierte en la pantalla actual.
@@ -550,15 +540,14 @@ public class GameScreen extends BaseScreen {
         nextScreen = null;
 
         // Network Init
-        // Network Init
         this.client = game.networkClient;
         if (this.client != null) {
-            // 1. Set Listener FIRST to catch the immediate response (PEER_INFO)
+
             this.client.setListener(msg -> {
                 Gdx.app.postRunnable(() -> handleNetworkMessage(msg));
             });
 
-            // 2. Identify ourselves to update server's knowledge of name/gender
+
             String genderStr = "CHICO";
             if (myTexturePath != null && myTexturePath.toLowerCase().contains("fem")) {
                 genderStr = "CHICA";
@@ -567,11 +556,10 @@ public class GameScreen extends BaseScreen {
         }
     }
 
-    // --- Métodos Privados de Lógica Interna ---
-
+    // Métodos de Lógica Interna
     /**
      * Procesa los mensajes recibidos del servidor multijugador.
-     * 
+     *
      * @param msg Mensaje recibido.
      */
     private void handleNetworkMessage(String msg) {
@@ -583,8 +571,7 @@ public class GameScreen extends BaseScreen {
                     float ty = Float.parseFloat(parts[2]);
                     String dir = parts[3];
 
-                    // ONLY update if we already know who the other player is (via PEER_INFO)
-                    // We removed the automatic creation with local sprite here
+
                     if (otherPlayer != null) {
                         otherPlayer.update(Gdx.graphics.getDeltaTime(), tx, ty, dir);
                     }
@@ -595,7 +582,7 @@ public class GameScreen extends BaseScreen {
                     String peerName = parts[1];
                     String peerGender = parts.length > 2 ? parts[2] : "CHICO";
 
-                    // Load correct texture for peer
+
                     com.badlogic.gdx.graphics.Texture peerSheet;
                     if ("CHICA".equals(peerGender)) {
                         peerSheet = new com.badlogic.gdx.graphics.Texture("protagonistaFemenino.png");
@@ -603,7 +590,7 @@ public class GameScreen extends BaseScreen {
                         peerSheet = new com.badlogic.gdx.graphics.Texture("protagonistaMasculino1.png");
                     }
 
-                    // Preserve position if refreshing
+
                     float oldX = 0;
                     float oldY = 0;
                     if (otherPlayer != null) {
@@ -611,7 +598,7 @@ public class GameScreen extends BaseScreen {
                         oldY = otherPlayer.y;
                     }
 
-                    // Re-create remote player with correct sprite
+
                     otherPlayer = new RemotePlayer(peerSheet, frameCols, frameRows);
                     otherPlayer.name = peerName;
                     otherPlayer.x = oldX;
@@ -638,7 +625,7 @@ public class GameScreen extends BaseScreen {
     /**
      * Elimina un recurso del mapa basado en su ID único.
      * Utilizado para sincronización en multijugador.
-     * 
+     *
      * @param id Identificador del recurso (x_y).
      */
     private void removeResourceById(String id) {
@@ -651,7 +638,7 @@ public class GameScreen extends BaseScreen {
                 if (r.cellX == cx && r.cellY == cy) {
                     if (!r.recolectado) {
                         r.recolectado = true;
-                        // Remove visual tiles
+
                         for (TiledMapTileLayer layer : r.cellsPorCapa.keySet())
                             layer.setCell(r.cellX, r.cellY, null);
                     }
@@ -662,18 +649,17 @@ public class GameScreen extends BaseScreen {
         }
     }
 
-    // ...
 
     /**
      * Método principal de renderizado y lógica del juego.
      * Actualiza el estado del mundo, maneja la entrada y dibuja todos los
      * elementos.
-     * 
+     *
      * @param delta Tiempo transcurrido desde el último frame (en segundos).
      */
     @Override
     public void render(float delta) {
-        // --- 1. UPDATE AND LOGIC ---
+
         explorador.actualizarTemporizadores(delta);
 
         // FADE IN LOGIC
@@ -708,7 +694,7 @@ public class GameScreen extends BaseScreen {
         }
 
         if (showMenu) {
-            // Menu Navigation
+            // Menu Navegacion
             if (Gdx.input.isKeyJustPressed(Input.Keys.UP)) {
                 menuSelectedIndex--;
                 if (menuSelectedIndex < 0)
@@ -736,7 +722,7 @@ public class GameScreen extends BaseScreen {
                     boolean saveSuccess = false;
 
                     if (client != null) {
-                        // Check for duplicate names
+                        // Chequear para nombres duplicados
                         if (otherPlayer != null && otherPlayer.name != null
                                 && otherPlayer.name.trim().equalsIgnoreCase(pName.trim())) {
                             notificationMessage = "No deben haber nombres iguales";
@@ -780,15 +766,15 @@ public class GameScreen extends BaseScreen {
             }
             isMoving = false;
         } else {
-            // NORMAL GAMEPLAY (Not in Menu)
+            // NORMAL GAMEPLAY
             isMoving = false;
 
-            // Handle Input for Movement (only if not showing instructions)
+            // Handle Input for Movement
             if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
                 Gdx.app.exit();
             }
 
-            // Only move if not fading out and intro finished
+            // Solo se muestra si introscreen terminó
             if (introState != IntroState.SLIDING_IN && !fadingOut) {
                 float moveX = 0;
                 float moveY = 0;
@@ -809,7 +795,7 @@ public class GameScreen extends BaseScreen {
                     posX += moveX * speed * delta;
                     posY += moveY * speed * delta;
 
-                    // Animation Update
+                    // Animacion
                     String dirStr = "DOWN";
                     if (moveX < 0) {
                         currentFrame = walkLeft.getKeyFrame(stateTime, true);
@@ -825,17 +811,17 @@ public class GameScreen extends BaseScreen {
                         dirStr = "DOWN";
                     }
 
-                    // Network Update
+                    // Network
                     moveUpdateTimer += delta;
                     if (client != null && moveUpdateTimer > 0.05f) { // 20 updates/sec
                         moveUpdateTimer = 0;
                         client.sendMessage("MOVE:" + posX + ":" + posY + ":" + dirStr);
                     }
 
-                    // Collision
+                    // Colision
                     if (gestorColisiones.verificarTodasLasColisiones(posX, posY, playerCollisionWidth,
                             playerCollisionHeight)) {
-                        // Simple collision resolve
+                        // Simple colision
                         if (!gestorColisiones.verificarTodasLasColisiones(posX, oldY, playerCollisionWidth,
                                 playerCollisionHeight)) {
                             posY = oldY;
@@ -853,7 +839,7 @@ public class GameScreen extends BaseScreen {
                 }
             }
 
-            // Intro Logic
+            // Intro Logica
             float introH = (introTexture != null ? introTexture.getHeight() * 0.5f : 0);
             if (introState == IntroState.SLIDING_IN) {
                 float targetY = 480 - introH;
@@ -873,7 +859,7 @@ public class GameScreen extends BaseScreen {
                     introState = IntroState.FINISHED;
             }
 
-            // Interaction Input (Unified)
+            // Interaction Input
             if (Gdx.input.isKeyJustPressed(Input.Keys.T) && !showMenu && !fadingOut) {
                 IInteractivo interactivo = gestorColisiones.obtenerInteractivoMasCercano(posX, posY);
                 if (interactivo != null) {
@@ -946,7 +932,7 @@ public class GameScreen extends BaseScreen {
                 }
             }
 
-            // Encounter Logic
+            // Logica encuentro con pokemon salvaje
             if (!inEncounter && !showDialog) {
                 encounterTimer += delta;
                 if (encounterTimer >= ENCOUNTER_CHECK_INTERVAL) {
@@ -985,12 +971,12 @@ public class GameScreen extends BaseScreen {
                             }
                         }
 
-                        // Check for Boss Encounter
+                        // Check for Encuentro con pokemon salvaje
                         boolean isBoss = false;
                         String bossName = "";
 
                         if (foundGrass) {
-                            // Check for specific BOSS properties
+                            // Propiedades pokemon enemigo
                             for (com.badlogic.gdx.maps.MapLayer layer : map.getLayers()) {
                                 if (layer instanceof TiledMapTileLayer) {
                                     TiledMapTileLayer.Cell cell = ((TiledMapTileLayer) layer).getCell(playerTileX,
@@ -1024,7 +1010,7 @@ public class GameScreen extends BaseScreen {
                         }
 
                         if (isBoss) {
-                            // Force Encounter with Arceus (100% probability)
+                            // Force Encounter with Arceus
                             inEncounter = true;
                             Gdx.app.log("GameScreen", "Boss Encounter: " + bossName);
 
@@ -1037,8 +1023,7 @@ public class GameScreen extends BaseScreen {
                                     "Tocaste la flauta..."
                             };
 
-                            // Arceus created with level 0 investigation (Req #6: inicia en nivel 0)
-                            // Al ganar la batalla, se actualizará a nivel 10
+                            // Arceus inicia en nivel 0 - Al ganar la batalla, se actualizará a nivel 10
                             Pokemon jefe = new Pokemon(bossName, 0, 130, true, "Normal");
 
                             BattleScreen battleScreen = new BattleScreen(game, this, explorador, jefe);
@@ -1047,9 +1032,9 @@ public class GameScreen extends BaseScreen {
                             game.setScreen(
                                     new StoryDialogScreen(game, "fondoFinal.png", preArceusDialog, battleScreen));
                         } else if (foundGrass && nivelDificultad >= 1 && nivelDificultad <= 5) {
-                            // Check if an encounter happens based on probability
+
                             if (GestorEncuentros.verificarEncuentro(nivelDificultad)) {
-                                // Check if player has a starter Pokemon
+
                                 if (explorador.getEquipo().isEmpty()) {
                                     notificationMessage = "Debes pasar por el laboratorio primero";
                                     notificationTimer = NOTIFICATION_DURATION;
@@ -1057,8 +1042,7 @@ public class GameScreen extends BaseScreen {
                                     inEncounter = true;
                                     String pName = GestorEncuentros.obtenerPokemonAleatorio(nivelDificultad);
 
-                                    // Req #3: Evitar encuentros con el mismo Pokemon que el jugador tiene como
-                                    // principal
+                                    // Evitar encuentros con el mismo Pokemon que el jugador tiene como principal
                                     // Intentar hasta 5 veces obtener un Pokemon diferente
                                     String playerMainPokemon = explorador.getEquipo().get(0).getNombre().trim();
 
@@ -1074,7 +1058,7 @@ public class GameScreen extends BaseScreen {
                                         notificationMessage = "El Pokemon salvaje huyó...";
                                         notificationTimer = NOTIFICATION_DURATION;
                                     } else {
-                                        // Gdx.app.log("GameScreen", "Valid Encounter: " + pName);
+
 
                                         // Obtener nivel de investigación actual de la Pokedex
                                         int currentResearchLevel = 0;
@@ -1083,8 +1067,8 @@ public class GameScreen extends BaseScreen {
                                                     .getNivelInvestigacion();
                                         }
 
-                                        // Req #4: Crear Pokemon con el nivel de investigación correcto
-                                        // Esto asegura que tengan HP máximo correcto y no aparezcan con 0 HP
+                                        // Crear Pokemon con el nivel de investigación correcto
+                                        // Asegura que tengan HP máximo correcto y no aparezcan con 0 HP
                                         Pokemon salvaje = new Pokemon(pName, currentResearchLevel, 0, false, "Normal");
 
                                         game.setScreen(new BattleScreen(game, this, explorador, salvaje));
@@ -1099,25 +1083,25 @@ public class GameScreen extends BaseScreen {
                     }
                 }
             }
-        } // End !showMenu
+        }
 
-        // Region Trigger Logic
+        // Logica florecita y demás
         if (!showMenu && !showDialog && !fadingOut)
 
         {
             for (RegionTrigger region : regions) {
-                // Check distance to center of region
+
                 float regCenterX = region.bounds.x + region.bounds.width / 2;
                 float regCenterY = region.bounds.y + region.bounds.height / 2;
 
                 if (com.badlogic.gdx.math.Vector2.dst(posX, posY, regCenterX, regCenterY) < 60f) {
-                    // Trigger!
+
                     if (currentActiveRegion != region) {
                         currentActiveRegion = region;
                         if (region.signTexture != null) {
                             introTexture = region.signTexture;
                             introState = IntroState.SLIDING_IN;
-                            introY = 480; // Reset position
+                            introY = 480;
                         }
                     }
                 } else {
@@ -1130,8 +1114,7 @@ public class GameScreen extends BaseScreen {
             }
         }
 
-        // Resource Respawn Logic (Always run)
-        // ...
+
         for (RecursoMapa r : recursosMapa) {
             if (r.recolectado) {
                 r.timerRespawn -= delta;
@@ -1147,7 +1130,7 @@ public class GameScreen extends BaseScreen {
             com.badlogic.gdx.audio.Music targetMusic = null;
 
             if (npcManager != null) {
-                // Check closest NPC for music
+                // Chequear cercanía con NPC para que suene la musica
                 float minDst = Float.MAX_VALUE;
                 for (com.mypokemon.game.objects.NPC npc : npcManager.getAllNPCs()) {
                     if (npc.isClose(posX, posY)) {
@@ -1163,8 +1146,8 @@ public class GameScreen extends BaseScreen {
                 }
             }
 
-            // REPRODUCTOR DE MÚSICA LOGIC
-            // Req #4: Verificar si la primera canción terminó para pasar a la segunda
+            // REPRODUCTOR DE MÚSICA LOGICA
+            // Verificar si la primera canción terminó para pasar a la segunda
             if (explorador.isReproductorMusicaActivo()) {
                 if (backgroundPlayerMusic != null && !backgroundPlayerMusic.isPlaying() && isPlayingFirstTrack) {
                     // La primera canción terminó, cambiar a la segunda
@@ -1181,7 +1164,7 @@ public class GameScreen extends BaseScreen {
             }
 
             if (targetMusic != null) {
-                // If found music, play it
+
                 if (currentNpcMusic != targetMusic) {
                     if (currentNpcMusic != null) {
                         currentNpcMusic.stop();
@@ -1189,27 +1172,25 @@ public class GameScreen extends BaseScreen {
                     targetMusic.play();
                     currentNpcMusic = targetMusic;
                 } else {
-                    // Ensure it is playing
+
                     if (!currentNpcMusic.isPlaying()) {
                         currentNpcMusic.play();
                     }
                 }
             } else {
-                // No music nearby and Reproductor OFF
+
                 if (currentNpcMusic != null) {
                     currentNpcMusic.stop();
                     currentNpcMusic = null;
                 }
             }
         } else {
-            // Menu or fading out
+
             if (currentNpcMusic != null && currentNpcMusic.isPlaying()) {
                 currentNpcMusic.pause();
             }
         }
 
-        // Recover music if returning from menu? (Optional, kept simple for now:
-        // proximity check re-triggers it above)
 
         // Dialog Advance
         if (showDialog && Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
@@ -1240,8 +1221,7 @@ public class GameScreen extends BaseScreen {
                 showMissionComplete = false;
         }
 
-        // --- RENDER ---
-
+        // RENDER
         // Camera Clamp & Zoom
         if (Gdx.input.isKeyJustPressed(Input.Keys.Z)) {
             if (camera.zoom == 1.0f)
@@ -1308,7 +1288,7 @@ public class GameScreen extends BaseScreen {
             }
         }
 
-        // remove drawBrenner() call as it's now in npcManager
+
         game.batch.end();
 
         if (mapRenderer != null && foregroundLayers != null)
@@ -1345,7 +1325,7 @@ public class GameScreen extends BaseScreen {
             gameUI.renderNotification(game.batch, notificationMessage);
         }
 
-        // Mission
+        // Mision
         if (showMissionComplete) {
             if (avisoTexture != null) {
                 float targetWidth = 300f;
@@ -1361,7 +1341,7 @@ public class GameScreen extends BaseScreen {
             }
         }
 
-        // NPC Hints
+        // NPC ocultos
         if (gameUI != null) {
             // Unified UI Hint
             if (gameUI != null && !showDialog) {
@@ -1372,7 +1352,6 @@ public class GameScreen extends BaseScreen {
             }
         }
 
-        // Dialog
         // Dialog
         if (showDialog && activeDialogPages != null && currentDialogPage < activeDialogPages.length && gameUI != null) {
             gameUI.renderDialog(game.batch, activeNpcName, activeDialogPages[currentDialogPage], currentPortrait,
@@ -1420,7 +1399,7 @@ public class GameScreen extends BaseScreen {
     /**
      * Obtiene una propiedad entera de un mapa de propiedades, con un valor por
      * defecto.
-     * 
+     *
      * @param props        Propiedades del mapa.
      * @param key          Clave de la propiedad.
      * @param defaultValue Valor por defecto si no existe o no es válida.
@@ -1444,7 +1423,7 @@ public class GameScreen extends BaseScreen {
 
     /**
      * Se llama cuando cambia el tamaño de la ventana.
-     * 
+     *
      * @param width  Nuevo ancho.
      * @param height Nuevo alto.
      */
@@ -1504,7 +1483,7 @@ public class GameScreen extends BaseScreen {
 
         /**
          * Registra una celda del mapa asociada a este recurso.
-         * 
+         *
          * @param layer Capa del mapa.
          * @param cell  Celda del mapa.
          */
@@ -1516,7 +1495,7 @@ public class GameScreen extends BaseScreen {
     // Getter for Explorador
     /**
      * Obtiene el objeto Explorador (Jugador).
-     * 
+     *
      * @return Instancia del explorador.
      */
     public Explorador getExplorador() {
@@ -1541,7 +1520,7 @@ public class GameScreen extends BaseScreen {
 
     /**
      * Obtiene la textura del jugador.
-     * 
+     *
      * @return Textura (Texture).
      */
     public Texture getPlayerSheet() {

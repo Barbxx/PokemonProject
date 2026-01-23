@@ -19,7 +19,7 @@ public class ColisionPuertaLaboratorio extends ZonaInteractiva {
 
     /**
      * Constructor de la colisión de la puerta del laboratorio.
-     * 
+     *
      * @param x             Posición X.
      * @param y             Posición Y.
      * @param letrero       Textura del letrero indicador.
@@ -32,7 +32,7 @@ public class ColisionPuertaLaboratorio extends ZonaInteractiva {
             Explorador explorador) {
         // Interacción cercana
         this.limites = new Rectangle(x + 10, y, 60, 70);
-        this.tipo = "INTERACTIVO"; 
+        this.tipo = "INTERACTIVO";
         this.rangoInteraccion = 45f;
         this.mensajeInteraccion = "Presiona [T] para entrar al laboratorio.";
         this.texturaLetrero = letrero;
@@ -45,7 +45,7 @@ public class ColisionPuertaLaboratorio extends ZonaInteractiva {
         this.explorador = explorador;
     }
 
-    // Ejecuta la lógica al entrar al laboratorio.
+    // Ejecuta la lógica al entrar al laboratorio
     @Override
     public void interactuar() {
         if (explorador.getEquipo().isEmpty()) {
@@ -59,12 +59,12 @@ public class ColisionPuertaLaboratorio extends ZonaInteractiva {
 
     /**
      * Renderiza el letrero indicador del laboratorio.
-     * 
+     *
      * @param batch SpriteBatch para dibujar.
      */
     public void renderizarLetrero(SpriteBatch batch) {
         if (texturaLetrero != null) {
-            // Dibuja el letrero muy pequeño: 120x60 píxeles
+            // Dibuja el letrero laboratorio
             batch.draw(texturaLetrero, letreroX, letreroY, 60, 60);
         }
     }

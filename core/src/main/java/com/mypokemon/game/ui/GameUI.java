@@ -43,7 +43,7 @@ public class GameUI {
 
     /**
      * Renderiza el HUD (Heads-Up Display) básico.
-     * 
+     *
      * @param batch      SpriteBatch para dibujar.
      * @param explorador Datos del jugador.
      * @param showMenu   true si el menú está abierto (oculta la indicación).
@@ -53,7 +53,7 @@ public class GameUI {
             font.setColor(Color.WHITE);
             font.setColor(Color.WHITE);
 
-            // Dibujar imagen de indicación de menú (Abajo Derecha)
+            // Dibujar imagen de indicación de menú
             if (menuHintTexture != null && !showMenu) {
                 batch.draw(menuHintTexture, screenWidth - menuHintTexture.getWidth() - 10, 10);
             }
@@ -62,7 +62,7 @@ public class GameUI {
 
     /**
      * Renderiza una notificación en el centro de la pantalla.
-     * 
+     *
      * @param batch   SpriteBatch para dibujar.
      * @param message Mensaje a mostrar.
      */
@@ -76,7 +76,7 @@ public class GameUI {
 
     /**
      * Renderiza el menú de opciones del juego.
-     * 
+     *
      * @param batch         SpriteBatch.
      * @param options       Array de strings con las opciones.
      * @param selectedIndex Índice de la opción seleccionada.
@@ -124,7 +124,7 @@ public class GameUI {
 
     /**
      * Renderiza un cuadro de diálogo con un NPC.
-     * 
+     *
      * @param batch        SpriteBatch.
      * @param npcName      Nombre del NPC.
      * @param text         Texto del diálogo.
@@ -134,9 +134,7 @@ public class GameUI {
     public void renderDialog(SpriteBatch batch, String npcName, String text, Texture portrait, boolean showNextHint) {
         float dialogHeight = 110;
         float portraitSize = 250;
-        // Lógica básica para determinar el tamaño del retrato si es necesario, pero
-        // estandarizar es mejor
-        // if (npcName.contains("Harry Potter")) portraitSize = 320;
+        // Lógica básica para determinar el tamaño del retrato si es necesario
 
         if (portrait != null)
             batch.draw(portrait, screenWidth - portraitSize - 20, dialogHeight - 20, portraitSize, portraitSize);
@@ -175,7 +173,7 @@ public class GameUI {
 
     /**
      * Renderiza una pista o mensaje de ayuda.
-     * 
+     *
      * @param batch SpriteBatch.
      * @param text  Texto de la pista.
      */

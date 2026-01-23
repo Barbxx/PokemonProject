@@ -20,7 +20,7 @@ public class CompartidaScreen extends BaseScreen {
     private String statusText = "Inicializando...";
     private boolean isConnecting = false;
 
-    // Camera and Viewport for fixed aspect ratio
+    // Camara y Viewport
     private OrthographicCamera camera;
     private Viewport viewport;
     private static final float VIRTUAL_WIDTH = 1280f;
@@ -28,7 +28,7 @@ public class CompartidaScreen extends BaseScreen {
 
     /**
      * Constructor de la pantalla compartida.
-     * 
+     *
      * @param game       Juego principal.
      * @param playerName Nombre del jugador local.
      */
@@ -36,7 +36,6 @@ public class CompartidaScreen extends BaseScreen {
         super(game);
         this.playerName = playerName;
 
-        // Setup camera and viewport
         camera = new OrthographicCamera();
         viewport = new FitViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, camera);
         viewport.apply();
@@ -61,7 +60,7 @@ public class CompartidaScreen extends BaseScreen {
         }
 
         new Thread(() -> {
-            // 1. Auto-descubrimiento (UDP Beacon)
+            // 1) Auto-descubrimiento (UDP Beacon)
             String serverIP = game.networkClient.discoverServerIP();
 
             if (serverIP != null) {
@@ -72,8 +71,7 @@ public class CompartidaScreen extends BaseScreen {
                 } catch (InterruptedException e) {
                 }
 
-                // 2. Configurar Listener antes de conectar para evitar perder mensajes de
-                // inicio rápidos
+                // 2) Configurar Listener antes de conectar para evitar perder mensajes de inicio rápidos
                 game.networkClient.setListener(msg -> {
                     if (msg.startsWith("MATCH_START")) {
                         Gdx.app.postRunnable(() -> {
@@ -83,7 +81,7 @@ public class CompartidaScreen extends BaseScreen {
                     }
                 });
 
-                // 3. Conexión TCP
+                // 3) Conexión TCP
                 boolean connected = game.networkClient.connect(serverIP, playerName);
 
                 if (connected) {
@@ -102,7 +100,7 @@ public class CompartidaScreen extends BaseScreen {
     /**
      * Renderiza la pantalla con el estado de la conexión.
      * Muestra mensajes informativos y permite cancelar con ESC.
-     * 
+     *
      * @param delta Tiempo transcurrido del frame.
      */
     @Override

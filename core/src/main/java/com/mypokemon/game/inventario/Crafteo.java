@@ -18,7 +18,7 @@ public class Crafteo {
     /**
      * Intenta craftear un ítem especificado por el ID de la receta.
      * Consume los materiales del inventario si es posible.
-     * 
+     *
      * @param idReceta   ID de la receta a utilizar.
      * @param inventario Inventario del jugador donde se consumirán recursos y guardará el resultado.
      * @return El objeto crafteado exitosamente.
@@ -32,17 +32,17 @@ public class Crafteo {
             throw new IllegalArgumentException("Receta no encontrada: " + idReceta);
         }
 
-        // 1. Valida materiales
+        // 1) Valida materiales
         if (!tieneMateriales(receta, inventario)) {
             throw new IllegalArgumentException("Materiales insuficientes para craftear " + receta.getNombreResultado());
         }
 
-        // 2. Valida espacio
+        // 2) Valida espacio
         if (!inventario.validarEspacio(1)) {
             throw new EspacioException("¡Inventario lleno! No se puede craftear " + receta.getNombreResultado());
         }
 
-        // 3. Consume materiales
+        // 3) Consume materiales
         if (receta.reqPlantas > 0) {
             if (!inventario.consumirItem("planta", receta.reqPlantas))
                 throw new IllegalStateException("Error al consumir planta");
@@ -56,10 +56,10 @@ public class Crafteo {
                 throw new IllegalStateException("Error al consumir baya");
         }
 
-        // 4. Crea objeto crafteado
+        // 4) Crea objeto crafteado
         ObjetoCrafteado resultado = ItemFactory.crearCrafteado(receta.getIdResultado(), 1);
 
-        // 5. Agrega al inventario
+        // 5) Agrega al inventario
         try {
             inventario.agregarItem(resultado);
         } catch (EspacioException e) {
@@ -73,7 +73,7 @@ public class Crafteo {
 
     /**
      * Verifica si es posible craftear una receta específica.
-     * 
+     *
      * @param idReceta   ID de la receta.
      * @param inventario Inventario para verificar materiales.
      * @return true si hay suficientes materiales y espacio.
@@ -90,7 +90,7 @@ public class Crafteo {
     /**
      * Obtiene una lista de recetas que el jugador puede craftear con su inventario
      * actual.
-     * 
+     *
      * @param inventario Inventario del jugador.
      * @return Lista de recetas realizables.
      */
@@ -106,7 +106,7 @@ public class Crafteo {
 
     /**
      * Retorna la lista completa de todas las recetas del juego.
-     * 
+     *
      * @return Lista de recetas.
      */
     public List<Receta> obtenerTodasLasRecetas() {

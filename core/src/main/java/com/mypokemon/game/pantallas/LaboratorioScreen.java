@@ -94,7 +94,7 @@ public class LaboratorioScreen extends BaseScreen {
     private float feidW = 25;
     private float feidH = 35;
 
-    // Starter Bounds (Positioned to the right of Feid)
+    // Starter Bounds
     private float rowletX = 415, rowletY = 95, starterW = 30, starterH = 30;
     private float cyndaquilX = 445, cyndaquilY = 95;
     private float oshawottX = 480, oshawottY = 95;
@@ -102,7 +102,7 @@ public class LaboratorioScreen extends BaseScreen {
     /**
      * Constructor de la pantalla del Laboratorio.
      * Define la cámara y el texto inicial.
-     * 
+     *
      * @param game       Referencia principal del juego.
      * @param gameScreen Referencia a la pantalla de juego principal para volver.
      */
@@ -110,13 +110,13 @@ public class LaboratorioScreen extends BaseScreen {
         super(game);
         this.gameScreen = gameScreen;
 
-        // Initialize Camera and Viewport (800x480)
+        // Camera and Viewport
         camera = new OrthographicCamera();
         viewport = new FitViewport(800, 480, camera);
         camera.position.set(400, 240, 0); // Center camera
         camera.update();
 
-        // Ensure fade alpha starts at 1 (black)
+
         fadeAlpha = 1f;
         fadingIn = true;
         fadingOut = false;
@@ -158,14 +158,14 @@ public class LaboratorioScreen extends BaseScreen {
             uiWhitePixel = new com.badlogic.gdx.graphics.Texture(pixmap);
             pixmap.dispose();
 
-            // Setup Player Animation (Static Frame only)
+            // Setup Player Animation
             if (gameScreen.getPlayerSheet() != null) {
                 TextureRegion[][] frames = TextureRegion.split(gameScreen.getPlayerSheet(),
                         gameScreen.getPlayerSheet().getWidth() / gameScreen.getFrameCols(),
                         gameScreen.getPlayerSheet().getHeight() / gameScreen.getFrameRows());
 
                 if (frames.length >= 4) {
-                    // Use frame facing UP (Row 3, Col 0) as static sprite
+
                     currentFrame = frames[3][0];
                 }
             }
@@ -177,14 +177,14 @@ public class LaboratorioScreen extends BaseScreen {
     /**
      * Renderiza la escena del laboratorio, maneja input para selección y diálogos.
      * Controla las transiciones (fades) de entrada y salida.
-     * 
+     *
      * @param delta Tiempo desde el último frame.
      */
     @Override
     public void render(float delta) {
-        ScreenUtils.clear(0, 0, 0, 1); // Black background
+        ScreenUtils.clear(0, 0, 0, 1);
 
-        // Check if on selection page (Index 1 of starter texts)
+
         selectionActive = !isTransitioning && currentDialogPage == 1 &&
                 (currentDialogText == ROWLET_TEXT || currentDialogText == CYNDAQUIL_TEXT
                         || currentDialogText == OSHAWOTT_TEXT);
@@ -205,11 +205,10 @@ public class LaboratorioScreen extends BaseScreen {
                 fadeAlpha = 1;
                 game.setScreen(gameScreen);
             }
-            // Block input while fading out
-            // We can return here but we want to draw the black overlay
+
         }
 
-        // Dialog Input Logic (Only if not fading out)
+        // Dialog Input Logic
         if (showDialog && !fadingOut) {
             if (selectionActive) {
                 // Handling selection Input (Arrow Keys)
@@ -240,12 +239,12 @@ public class LaboratorioScreen extends BaseScreen {
                         // Register Pokemon and add to team
                         if (!selectedName.isEmpty()) {
                             Explorador exp = gameScreen.getExplorador();
-                            // Level 0 for starter (initial stats and moves only)
+
                             Pokemon p = new Pokemon(selectedName, 0, 0, false, "");
 
                             exp.agregarAlEquipo(p);
 
-                            // Manually register as captured but with 0 research points
+
                             exp.getRegistro().getRegistro().putIfAbsent(selectedName, new EspeciePokemon(selectedName));
                             EspeciePokemon especie = exp.getRegistro().getRegistro().get(selectedName);
                             if (!especie.isCapturado()) {
@@ -255,8 +254,7 @@ public class LaboratorioScreen extends BaseScreen {
                                 }
                                 especie.setCapturado(true);
                             }
-                            // No points added, stays at 0
-                            // exp.getRegistro().completarInstantaneamente(selectedName); REMOVED
+
                         }
 
                         currentDialogPage = 0; // Show success message
@@ -267,14 +265,14 @@ public class LaboratorioScreen extends BaseScreen {
                     }
                 }
             } else {
-                // Normal Dialog Advance (ENTER Only)
+                // Normal Dialog Advance
                 if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
                     currentDialogPage++;
                     if (currentDialogPage >= currentDialogText.length) {
                         showDialog = false;
                         currentDialogPage = 0;
 
-                        // If we just finished showing the transition (Success) message, start FADE OUT
+
                         if (isTransitioning) {
                             fadingOut = true;
                         }
@@ -305,8 +303,8 @@ public class LaboratorioScreen extends BaseScreen {
                     currentDialogText = ROWLET_TEXT;
                     showDialog = true;
                     currentDialogPage = 0;
-                    selectionIndex = 0; // Default to Yes
-                    dialogIconTexture = ferxxoRowlet; // Specific icon (kept name)
+                    selectionIndex = 0;
+                    dialogIconTexture = ferxxoRowlet;
                 }
                 // Check Cyndaquil click
                 else if (mousePos.x >= cyndaquilX && mousePos.x <= cyndaquilX + starterW + 10 &&
@@ -315,7 +313,7 @@ public class LaboratorioScreen extends BaseScreen {
                     showDialog = true;
                     currentDialogPage = 0;
                     selectionIndex = 0;
-                    dialogIconTexture = ferxxoCyndaquil; // Specific icon (kept name)
+                    dialogIconTexture = ferxxoCyndaquil;
                 }
                 // Check Oshawott click
                 else if (mousePos.x >= oshawottX && mousePos.x <= oshawottX + starterW + 10 &&
@@ -324,16 +322,11 @@ public class LaboratorioScreen extends BaseScreen {
                     showDialog = true;
                     currentDialogPage = 0;
                     selectionIndex = 0;
-                    dialogIconTexture = ferxxoOshawott; // Specific icon (kept name)
+                    dialogIconTexture = ferxxoOshawott;
                 }
             }
-            // Movement input handling and animation update logic removed as player is
-            // static.
-            // The variables moveX and moveY are no longer defined or used.
-        }
 
-        // isMoving is always false, so stateTime will not increment.
-        // The player remains static, displaying the initial frame.
+        }
 
         // Clamp to screen bounds (800x480)
         if (posX < 0)
@@ -359,7 +352,7 @@ public class LaboratorioScreen extends BaseScreen {
             game.batch.draw(backgroundTexture, 0, 0, 800, 480);
         }
 
-        // Draw Feid Sprite (Static, small 25x35)
+        // Draw Feid Sprite
         if (feidSprite != null) {
             game.batch.draw(feidSprite, feidX, feidY, feidW, feidH);
         }
@@ -387,7 +380,7 @@ public class LaboratorioScreen extends BaseScreen {
 
         // DRAW FADE OVERLAY
         if (fadeAlpha > 0 && uiWhitePixel != null) {
-            // Enable blending for transparency
+
             Gdx.gl.glEnable(GL20.GL_BLEND);
             Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
 
@@ -395,9 +388,6 @@ public class LaboratorioScreen extends BaseScreen {
             game.batch.draw(uiWhitePixel, 0, 0, 800, 480);
             game.batch.setColor(Color.WHITE); // Reset color
 
-            // Should we disable blend? LibGDX SpriteBatch handles it, but good practice if
-            // changing state manually.
-            // Actually SpriteBatch typically sets up blending.
         }
 
         game.batch.end();
@@ -415,12 +405,10 @@ public class LaboratorioScreen extends BaseScreen {
         float dialogHeight = 110;
         float portraitSize = 250;
 
-        // Check if it is a success message
-        // Check if it is a success message
         boolean isSuccessMessage = (currentDialogText == ROWLET_SUCCESS || currentDialogText == CYNDAQUIL_SUCCESS
                 || currentDialogText == OSHAWOTT_SUCCESS);
 
-        // Draw Portrait (Right side) - Only if NOT a success message
+        // Draw Portrait
         if (!isSuccessMessage && dialogIconTexture != null) {
             game.batch.draw(dialogIconTexture, screenW - portraitSize - 20, dialogHeight - 20, portraitSize,
                     portraitSize);
@@ -430,7 +418,6 @@ public class LaboratorioScreen extends BaseScreen {
                 || currentDialogText == OSHAWOTT_SUCCESS);
 
         // Draw Main Dialog Box
-        // Border (Dark Gray)
         game.batch.setColor(Color.DARK_GRAY);
         if (uiWhitePixel != null)
             game.batch.draw(uiWhitePixel, 20, 20, screenW - 40, dialogHeight);
@@ -440,7 +427,7 @@ public class LaboratorioScreen extends BaseScreen {
         if (uiWhitePixel != null)
             game.batch.draw(uiWhitePixel, 23, 23, screenW - 46, dialogHeight - 6);
 
-        // Name Tag Box (Top-Left of dialog) - Only if NOT a success message
+        // Name Tag Box
         float nameTagY = dialogHeight + 10;
         if (!isSuccessMessageSpecial) {
             float nameTagW = 200;
@@ -459,8 +446,7 @@ public class LaboratorioScreen extends BaseScreen {
             // Reset Color for Text
             game.batch.setColor(Color.WHITE);
 
-            // Draw Text
-            // Name
+            // Draw Text Name
             game.font.setColor(Color.BLACK);
             game.font.getData().setScale(0.9f);
             game.font.draw(game.batch, "Profesor Ferxxo", 55, nameTagY + 25);
@@ -477,10 +463,9 @@ public class LaboratorioScreen extends BaseScreen {
         // Draw Yes/No Selection
         if (selectionActive) {
             float optionX = 600;
-            float optionY = 100; // Increased Y position
+            float optionY = 100;
 
             // Draw Options
-
             // YES Option
             if (selectionIndex == 0)
                 game.font.setColor(Color.RED);
@@ -524,7 +509,7 @@ public class LaboratorioScreen extends BaseScreen {
             backgroundTexture.dispose();
         if (feidSprite != null)
             feidSprite.dispose();
-        // Dispose specific textures
+
         if (ferxxoCientifico != null)
             ferxxoCientifico.dispose();
         if (ferxxoRowlet != null)

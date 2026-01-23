@@ -115,7 +115,7 @@ public class MochilaScreen extends BaseScreen {
     private List<String> currentOptions = new ArrayList<>();
     private int selectedOptionIndex = 0;
     private ItemData selectedItemForAction = null;
-    // currentActionType eliminado - ya no se necesita con el sistema OO
+
 
     // Feedback
     private String feedbackMessage = "";
@@ -123,7 +123,7 @@ public class MochilaScreen extends BaseScreen {
 
     /**
      * Constructor de la pantalla de Mochila.
-     * 
+     *
      * @param game         Juego principal.
      * @param returnScreen Pantalla a la cual regresar al cerrar.
      * @param explorador   Datos del jugador (inventario y equipo).
@@ -134,7 +134,7 @@ public class MochilaScreen extends BaseScreen {
         this.explorador = explorador;
         Gdx.app.log("MochilaScreen", "Constructor call started");
 
-        // Initialize Camera and Viewport
+        // Camera and Viewport
         camera = new OrthographicCamera();
         viewport = new FitViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, camera);
         camera.position.set(VIRTUAL_WIDTH / 2, VIRTUAL_HEIGHT / 2, 0);
@@ -256,13 +256,13 @@ public class MochilaScreen extends BaseScreen {
 
     @Override
     public void show() {
-        Gdx.input.setInputProcessor(null); // Clear input processor to avoid previous screen interference
+        Gdx.input.setInputProcessor(null);
     }
 
     /**
      * Renderiza la interfaz de la mochila: fondo, pestañas, grilla de items y menús
      * contextuales.
-     * 
+     *
      * @param delta Tiempo transcurrido.
      */
     @Override
@@ -296,8 +296,7 @@ public class MochilaScreen extends BaseScreen {
             handlePokemonTargetInput();
         }
 
-        // Draw Main UI (Always visible mostly)
-        // If selecting pokemon, we might want to highlight the pokemon tab
+        // Draw Main UI
         if (currentState == InventoryState.SELECT_POKEMON_TARGET && selectedIndex != 3) {
             selectedIndex = 3; // Force view to Pokemon
             updateVisibleItems(); // Refresh view
@@ -317,7 +316,7 @@ public class MochilaScreen extends BaseScreen {
             drawPokemonSelectionPrompt(game.batch);
         }
 
-        // Draw Feedback Message (abajo a la izquierda, en rojo)
+        // Feedback Message
         if (feedbackTimer > 0) {
             game.font.setColor(Color.RED);
             game.font.getData().setScale(1.2f);
@@ -329,7 +328,7 @@ public class MochilaScreen extends BaseScreen {
         game.batch.end();
     }
 
-    // -- INPUT HANDLERS --
+    // INPUT HANDLERS
 
     private void handleBrowsingInput() {
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE) || Gdx.input.isKeyJustPressed(Input.Keys.I)) {
@@ -339,25 +338,24 @@ public class MochilaScreen extends BaseScreen {
             }
         }
 
-        // Grid Navigation input (Arrowns + Mouse) - Existing Logic adapted
+        // Grid Navigation input (Arrowns + Mouse)
         handleGridNavigation();
 
-        // Select Item to Open Menu
+
         if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
-            // Check if we are in Pokemon Tab (3) or Item Tabs (<3)
+
             int totalItems = (selectedIndex == 3) ? explorador.getEquipo().size() : visibleItems.size();
             if (indexSeleccionado < totalItems) {
                 if (selectedIndex < 3) {
                     selectedItemForAction = visibleItems.get(indexSeleccionado);
                     openOptionsMenu(selectedItemForAction);
                 } else if (selectedIndex == 3) {
-                    // Open options for Pokemon
+
                     openOptionsMenu(null);
                 }
             }
         }
 
-        // Mouse Check for "OPCIONES" button
         float btnX = 100;
         float btnY = 160;
         float btnW = 150;
@@ -397,8 +395,7 @@ public class MochilaScreen extends BaseScreen {
                 selectedOptionIndex = 0;
         }
 
-        // Mouse hover for menu
-        // Check bounds based on draw logic
+
         float menuX = 50;
         float menuY = VIRTUAL_HEIGHT - 150;
         for (int i = 0; i < currentOptions.size(); i++) {
@@ -426,7 +423,7 @@ public class MochilaScreen extends BaseScreen {
             return;
         }
 
-        // Allow navigation in pokemon list
+
         handleGridNavigation(); // Re-use grid nav
 
         // Select Pokemon
@@ -439,11 +436,11 @@ public class MochilaScreen extends BaseScreen {
         }
     }
 
-    // -- LOGIC --
+    // LOGIC
 
     /**
      * Cambia la pestaña seleccionada (categoría de items o Pokémon).
-     * 
+     *
      * @param index Índice de la pestaña (0-3).
      */
     public void setSelectedIndex(int index) {
@@ -453,25 +450,25 @@ public class MochilaScreen extends BaseScreen {
 
     /**
      * Despliega el menú de opciones para un ítem seleccionado.
-     * 
+     *
      * @param item Datos del ítem seleccionado.
      */
     private void openOptionsMenu(ItemData item) {
         currentOptions.clear();
 
-        // ** POQUEMON TAB LOGIC **
+
         if (selectedIndex == 3) {
-            // Case: Pokemon Selected
+
             currentOptions.add("Cambiar a principal");
-            // Add Info or other stuff if desired, but user asked for "una sola opcion"
-            selectedIndex = 3; // Ensure we stick to this tab
+
+            selectedIndex = 3;
         }
-        // ** ITEM LOGIC **
+        // ITEM LOGIC
         else if (item.itemReal != null) {
-            // NUEVO SISTEMA OO: Usa el método getOpciones() del ítem real
+
             currentOptions.addAll(item.itemReal.getOpciones());
         } else {
-            // Fallback para casos sin itemReal (no debería ocurrir en el futuro)
+
             currentOptions.add("Tirar");
         }
 
@@ -481,16 +478,16 @@ public class MochilaScreen extends BaseScreen {
 
     /**
      * Ejecuta una opción seleccionada del menú (ej: Usar, Tirar).
-     * 
+     *
      * @param option Nombre de la opción.
      */
     private void executeOption(String option) {
         if (selectedItemForAction == null && selectedIndex != 3)
             return;
 
-        // **OPCIÓN: Cambiar a principal (POKEMON)**
+        // OPCIÓN: Cambiar pokemon a principal
         if (option.equals("Cambiar a principal")) {
-            // Logic: Swap selected pokemon with first pokemon in team
+
             int index = indexSeleccionado;
             List<Pokemon> equipo = explorador.getEquipo();
 
@@ -498,11 +495,7 @@ public class MochilaScreen extends BaseScreen {
                 Pokemon selected = equipo.get(index);
                 Pokemon currentMain = equipo.get(0);
 
-                // If in battle and current main is fainted or simply user wants to switch
-                // context
-                // The team order defines the 'main' pokemon usually.
 
-                // Swap in list
                 equipo.set(0, selected);
                 equipo.set(index, currentMain);
 
@@ -518,7 +511,7 @@ public class MochilaScreen extends BaseScreen {
             return;
         }
 
-        // **OPCIÓN: Tirar**
+        // OPCIÓN: Tirar
         if (option.equals("Tirar")) {
             explorador.getMochila().consumirItem(mapNameToInternal(selectedItemForAction.nombre), 1);
             showFeedback("Tiraste 1 " + selectedItemForAction.nombre);
@@ -529,7 +522,7 @@ public class MochilaScreen extends BaseScreen {
             return;
         }
 
-        // **OPCIÓN: Lanzar** (Pokéballs)
+        // OPCIÓN: Lanzar pokeball
         if (option.equals("Lanzar")) {
             if (returnScreen instanceof BattleScreen) {
                 if (explorador.getMochila().consumirItem(mapNameToInternal(selectedItemForAction.nombre), 1)) {
@@ -545,18 +538,16 @@ public class MochilaScreen extends BaseScreen {
             return;
         }
 
-        // **OPCIÓN: Información**
+        // OPCIÓN: Información
         if (option.equals("Información")) {
             currentState = InventoryState.BROWSING;
             return;
         }
 
-        // **SISTEMA OO: Opciones de uso (Curar, Revivir, Usar, Comer, Encender,
-        // Equipar)**
+        // Opciones de uso (Curar, Revivir, Usar, Comer, Encender, Equipar)
         if (selectedItemForAction.itemReal != null && selectedItemForAction.itemReal.esUsable()) {
 
-            // Caso especial: Equipar, Encender, Apagar o Tomar (No requieren target Pokemon
-            // manual o requieren validación especial)
+            // Caso especial: Equipar, Encender, Apagar o Tomar
             if (option.equals("Equipar") || option.equals("Encender") || option.equals("Apagar")
                     || option.equals("Tomar")) {
                 com.mypokemon.game.inventario.interfaces.IUsable itemUsable = (com.mypokemon.game.inventario.interfaces.IUsable) selectedItemForAction.itemReal;
@@ -588,13 +579,12 @@ public class MochilaScreen extends BaseScreen {
                 return;
             }
 
-            // El ítem es usable - ir al selector de Pokémon para opciones que SÍ requieren
-            // target
+            // El ítem es usable
             if (option.equals("Curar") || option.equals("Revivir") || option.equals("Usar") || option.equals("Comer")) {
-                // Switch to Pokemon Tab (Index 3)
+
                 selectedIndex = 3;
                 updateVisibleItems();
-                indexSeleccionado = 0; // Reset selection to first pokemon
+                indexSeleccionado = 0;
             }
             currentState = InventoryState.SELECT_POKEMON_TARGET;
         } else {
@@ -605,7 +595,7 @@ public class MochilaScreen extends BaseScreen {
 
     /**
      * Aplica el ítem seleccionado al Pokémon objetivo.
-     * 
+     *
      * @param p Pokémon objetivo.
      */
     private void applyItemToPokemon(Pokemon p) {
@@ -617,7 +607,7 @@ public class MochilaScreen extends BaseScreen {
 
         Item item = selectedItemForAction.itemReal;
 
-        // NUEVO SISTEMA OO: Verificar si el ítem es usable
+        // Verificar si el ítem es usable
         if (item.esUsable()) {
             com.mypokemon.game.inventario.interfaces.IUsable itemUsable = (com.mypokemon.game.inventario.interfaces.IUsable) item;
 
@@ -661,13 +651,13 @@ public class MochilaScreen extends BaseScreen {
             }
         }
 
-        // UP/DOWN Navigation (Grid 3 columns)
+        // UP/DOWN Navigation
         int columns = 3;
         int totalItems;
         if (currentState == InventoryState.SELECT_POKEMON_TARGET || selectedIndex == 3) {
             totalItems = explorador.getEquipo().size();
             if (currentState == InventoryState.SELECT_POKEMON_TARGET)
-                totalItems = 6; // Fixed grid for target selection
+                totalItems = 6;
         } else {
             totalItems = visibleItems.size();
         }
@@ -676,10 +666,9 @@ public class MochilaScreen extends BaseScreen {
             if (totalItems > 0) {
                 indexSeleccionado += columns;
                 if (indexSeleccionado >= totalItems) {
-                    // Wrap to top same column or just clamp? Standard varies.
-                    // Let's loop to top:
+
                     indexSeleccionado = indexSeleccionado % columns;
-                    // Ensure valid
+
                     if (indexSeleccionado >= totalItems)
                         indexSeleccionado = 0;
                 }
@@ -689,7 +678,7 @@ public class MochilaScreen extends BaseScreen {
             if (totalItems > 0) {
                 indexSeleccionado -= columns;
                 if (indexSeleccionado < 0) {
-                    // Wrap to bottom
+
                     int rows = (int) Math.ceil((double) totalItems / columns);
                     int bottomIndex = indexSeleccionado + (rows * columns);
                     if (bottomIndex >= totalItems)
@@ -732,8 +721,7 @@ public class MochilaScreen extends BaseScreen {
         feedbackTimer = 3.0f;
     }
 
-    // DRAW HELPER METHODS
-
+    // HELPER METHODS
     private void drawTabs(com.badlogic.gdx.graphics.g2d.SpriteBatch batch) {
         if (buttonsNormal != null && buttonsSelected != null && buttonPositions != null) {
             for (int i = 0; i < buttonNames.length; i++) {
@@ -745,7 +733,7 @@ public class MochilaScreen extends BaseScreen {
 
                 boolean isSelected = (i == selectedIndex);
                 if (currentState == InventoryState.BROWSING) {
-                    // Check hover only in browsing
+
                     boolean isHovered = mousePos.x >= bx && mousePos.x <= bx + buttonWidth &&
                             mousePos.y >= by && mousePos.y <= by + buttonHeight;
                     if (isHovered && Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
@@ -780,7 +768,7 @@ public class MochilaScreen extends BaseScreen {
             if (textureFondoSlot != null) {
                 batch.draw(textureFondoSlot, x, y, size, size);
             }
-            // Selection Highlight (Border Only)
+            // Selection Highlight
             if (i == indexSeleccionado && whitePixel != null) {
                 batch.setColor(Color.YELLOW);
                 batch.draw(whitePixel, x, y, size, 4); // Bottom
@@ -826,7 +814,7 @@ public class MochilaScreen extends BaseScreen {
     private void drawPokemonSlot(com.badlogic.gdx.graphics.g2d.SpriteBatch batch, Pokemon p, float x, float y,
             float size) {
         String pName = p.getNombre();
-        // Texture loading check (simplified)
+
         if (!pokemonTextureCache.containsKey(pName)) {
             try {
                 String nameClean = pName.toLowerCase().replace(" h.", "").replace(" jr.", "-jr").replace(" ", "-");
@@ -850,14 +838,13 @@ public class MochilaScreen extends BaseScreen {
     }
 
     private void drawOptionsMenu(com.badlogic.gdx.graphics.g2d.SpriteBatch batch) {
-        // Pop-up Menu Style
-        // Position it lower to avoid covering description text
+
         float mx = 100;
-        float my = 120; // Bottom of the menu (bajado para no tapar el texto)
+        float my = 120;
         float mw = 250;
         float mh = 40;
 
-        // Draw Menu Background
+        // Menu Background
         float totalH = currentOptions.size() * mh + 10;
         batch.setColor(Color.BLACK);
         batch.draw(whitePixel, mx, my, mw, totalH);
@@ -898,7 +885,7 @@ public class MochilaScreen extends BaseScreen {
         visibleItems.clear();
         Inventario inventory = explorador.getMochila();
 
-        if (selectedIndex == 0) { // Red Button: Materiales
+        if (selectedIndex == 0) { // Materiales
             // Obtener ítems reales del inventario
             Item planta = inventory.getItem("planta");
             if (planta != null && planta.getCantidad() > 0)
@@ -915,7 +902,7 @@ public class MochilaScreen extends BaseScreen {
                 visibleItems.add(new ItemData("Guijarro", "Ingrediente principal para fabricar Poké Balls.",
                         texGuijarro, guijarro.getCantidad(), guijarro));
 
-        } else if (selectedIndex == 1) { // Blue Button: Pokebolas
+        } else if (selectedIndex == 1) { // Pokebolas
             Item pokeball = inventory.getItem("pokeball");
             if (pokeball != null && pokeball.getCantidad() > 0)
                 visibleItems.add(new ItemData("Poké Ball", "Dispositivo para atrapar Pokémon.",
@@ -926,7 +913,7 @@ public class MochilaScreen extends BaseScreen {
                 visibleItems.add(new ItemData("Poké Ball de Peso", "Dispositivo con mejor captura en nivel bajo.",
                         texHeavyBall, heavyball.getCantidad(), heavyball));
 
-        } else if (selectedIndex == 2) { // Yellow Button: Pociones + Crafteo + Lure
+        } else if (selectedIndex == 2) { // Pociones o Crafteo
             Item pocion = inventory.getItem("pocion");
             if (pocion != null && pocion.getCantidad() > 0)
                 visibleItems.add(new ItemData("Poción Herbal", "Restaura el 20% de HP del Pokémon.",
@@ -960,21 +947,17 @@ public class MochilaScreen extends BaseScreen {
                 visibleItems.add(new ItemData("Frijol mágico", "Restaura el 100% de HP del Pokémon.",
                         texFrijol, frijol.getCantidad(), frijol));
 
-        } else if (selectedIndex == 3) { // Brown Button
-            // User moved Lure to Yellow. Leaving empty as implied by "solo aparezcan de
-            // estos..."
+        } else if (selectedIndex == 3) {
+
         }
 
-        // Pokemon Logic (Category 4) is handled separately in render so visibleItems
-        // ignored there
+
     }
 
     @Override
     public void resize(int width, int height) {
         viewport.update(width, height, true);
     }
-
-    // Old methods replaced by new logic
 
     private void dibujarExplicacion(com.badlogic.gdx.graphics.g2d.SpriteBatch batch) {
         String titulo = "";
@@ -987,14 +970,14 @@ public class MochilaScreen extends BaseScreen {
                 desc = item.descripcion;
             }
         } else if (selectedIndex == 3) {
-            // Pokemon Details
+
             List<Pokemon> equipo = explorador.getEquipo();
             if (indexSeleccionado < equipo.size()) {
                 Pokemon p = equipo.get(indexSeleccionado);
                 titulo = p.getNombre() + " Nv." + p.getNivel();
                 desc = "HP: " + (int) p.getHpActual() + "/" + (int) p.getHpMaximo() + " | Tipo: " + p.getTipo();
 
-                // Añadir nivel de investigación
+                // nivel de investigación
                 com.mypokemon.game.EspeciePokemon especie = explorador.getRegistro().getRegistro().get(p.getNombre());
                 if (especie != null) {
                     desc += "\nInv: " + especie.getNivelInvestigacion() + "/10";
@@ -1002,12 +985,12 @@ public class MochilaScreen extends BaseScreen {
                     desc += "\nInv: 0/10";
                 }
             } else {
-                // Nothing
+
             }
         }
 
         if (!titulo.isEmpty() && game.font != null) {
-            // Special case for "Planta Medicinal" title -> Image
+
             if (titulo.equals("Planta Medicinal") && texMarcoVerde != null) {
                 batch.draw(texMarcoVerde, 30, 200, 500, 160);
                 game.font.setColor(Color.WHITE);
@@ -1020,20 +1003,18 @@ public class MochilaScreen extends BaseScreen {
 
                 game.font.setColor(Color.WHITE);
                 game.font.getData().setScale(1.0f);
-                // Wrap text if needed, but existing logic didn't wrap much. Assuming short
-                // descriptions.
+
                 game.font.draw(batch, desc, 100, 310);
             }
 
-            // Draw "OPCIONES" button
+            // BOTON OPCIONES
             if (currentState == InventoryState.BROWSING && !titulo.isEmpty()) {
                 float btnX = 100;
-                float btnY = 160; // Bajado para no tapar el texto
+                float btnY = 160;
                 float btnW = 150;
                 float btnH = 40;
 
-                // Hover effect logic is in input, but we can visualize it if wanted
-                // For now just draw standard button
+
                 batch.setColor(Color.DARK_GRAY);
                 batch.draw(whitePixel, btnX, btnY, btnW, btnH);
                 batch.setColor(Color.WHITE);

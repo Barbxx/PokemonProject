@@ -27,7 +27,7 @@ public class StoryDialogScreen extends BaseScreen {
 
     /**
      * Constructor para la pantalla de diálogo de historia.
-     * 
+     *
      * @param game           Instancia principal del juego
      * @param backgroundPath Ruta a la imagen de fondo
      * @param dialogPages    Array de páginas de diálogo a mostrar
@@ -39,7 +39,7 @@ public class StoryDialogScreen extends BaseScreen {
 
     /**
      * Constructor para la pantalla de diálogo de historia con música.
-     * 
+     *
      * @param game           Instancia principal del juego
      * @param backgroundPath Ruta a la imagen de fondo
      * @param dialogPages    Array de páginas de diálogo a mostrar
@@ -63,7 +63,7 @@ public class StoryDialogScreen extends BaseScreen {
             Gdx.app.error("StoryDialogScreen", "No se pudo cargar la imagen: " + backgroundPath, e);
         }
 
-        // Req #5: Cargar y reproducir música de fondo si se proporciona
+        // Cargar y reproducir música de fondo
         if (musicPath != null) {
             try {
                 backgroundMusic = Gdx.audio.newMusic(Gdx.files.internal(musicPath));
@@ -88,7 +88,7 @@ public class StoryDialogScreen extends BaseScreen {
     /**
      * Renderiza el fondo y los diálogos.
      * Gestiona la entrada para avanzar de página.
-     * 
+     *
      * @param delta Tiempo transcurrido desde el último frame.
      */
     @Override
@@ -101,8 +101,7 @@ public class StoryDialogScreen extends BaseScreen {
         if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER) || Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
             currentPage++;
             if (currentPage >= dialogPages.length) {
-                // Terminar y pasar a la siguiente pantalla
-                // Req #5: Detener música antes de cambiar de pantalla
+                // Detener música antes de cambiar de pantalla
                 if (backgroundMusic != null) {
                     backgroundMusic.stop();
                 }
@@ -187,7 +186,7 @@ public class StoryDialogScreen extends BaseScreen {
 
     /**
      * Se llama al cambiar el tamaño de la ventana.
-     * 
+     *
      * @param width  Nuevo ancho.
      * @param height Nuevo alto.
      */

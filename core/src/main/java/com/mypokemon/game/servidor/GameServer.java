@@ -19,7 +19,7 @@ public class GameServer {
 
     /**
      * Punto de entrada para ejecutar el servidor de forma independiente.
-     * 
+     *
      * @param args Argumentos de consola.
      */
     public static void main(String[] args) {
@@ -108,7 +108,7 @@ public class GameServer {
         }
 
         if (assigned) {
-            // Check if we can start match and LINK peers BEFORE starting threads
+
             if (player1 != null && player2 != null) {
                 player1.setPeer(player2);
                 player2.setPeer(player1);
@@ -131,7 +131,7 @@ public class GameServer {
 
     /**
      * Elimina a un cliente de los slots de juego cuando se desconecta.
-     * 
+     *
      * @param client Manejador de cliente a eliminar.
      */
     public synchronized void removeClient(ClientHandler client) {
@@ -152,7 +152,7 @@ public class GameServer {
     /**
      * Procesa la información genérica recibida de los clientes (movimiento,
      * recolección, guardado).
-     * 
+     *
      * @param sender Remitente del mensaje.
      * @param msg    Contenido del mensaje.
      */
@@ -167,7 +167,7 @@ public class GameServer {
             System.out.println("Recurso recolectado: " + resId);
             collectedResources.add(resId);
 
-            // Broadcast removal to ALL (including sender, for confirmation/consistency)
+
             String cmd = "RESOURCE_REMOVED:" + resId;
             if (player1 != null)
                 player1.sendMessage(cmd);
@@ -182,11 +182,11 @@ public class GameServer {
     /**
      * Sincroniza el estado global (recursos, info de compañeros) con un cliente
      * específico.
-     * 
+     *
      * @param client Cliente a sincronizar.
      */
     public synchronized void syncClientState(ClientHandler client) {
-        // Send all collected resources to the new client
+
         if (!collectedResources.isEmpty()) {
             StringBuilder sb = new StringBuilder("SYNC_RESOURCES:");
             for (String id : collectedResources) {
@@ -207,8 +207,7 @@ public class GameServer {
             client.sendMessage("PEER_INFO:" + pName + ":" + pGen);
         }
 
-        // 2. Sync Client Info TO the Peer (Let the other person know this client is
-        // ready)
+        // 2. Sync Client Info TO the Peer (Let the other person know this client is ready)
         if (client.getPeer() != null && client.getPlayerName() != null) {
             String myName = client.getPlayerName();
             String myGen = client.getGender();
@@ -230,7 +229,7 @@ public class GameServer {
 
     /**
      * Verifica si un nombre de jugador ya está en uso por otro cliente.
-     * 
+     *
      * @param name      Nombre a comprobar.
      * @param requester Cliente que realiza la petición.
      * @return true si el nombre está ocupado.

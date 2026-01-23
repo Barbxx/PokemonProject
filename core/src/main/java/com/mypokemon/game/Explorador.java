@@ -21,17 +21,17 @@ public class Explorador implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private String nombreUsuario;
-    private String nombrePartida; 
-    private String genero; 
+    private String nombrePartida;
+    private String genero;
     private Inventario mochila;
     private Pokedex registro;
     private List<Pokemon> equipo;
     private int misionesCompletadas;
-    private float tiempoGuanteRestante; 
+    private float tiempoGuanteRestante;
 
     /**
      * Constructor completo del explorador.
-     * 
+     *
      * @param nombreUsuario    Nombre del jugador
      * @param nombrePartida    Nombre de la partida guardada
      * @param capacidadInicial Capacidad inicial del inventario
@@ -50,7 +50,7 @@ public class Explorador implements Serializable {
 
     /**
      * Constructor con genero por defecto CHICO.
-     * 
+     *
      * @param nombreUsuario    Nombre del jugador
      * @param nombrePartida    Nombre de la partida guardada
      * @param capacidadInicial Capacidad inicial del inventario
@@ -61,7 +61,7 @@ public class Explorador implements Serializable {
 
     /**
      * Guarda el progreso del explorador en un archivo.
-     * 
+     *
      * @param filename Nombre del archivo donde guardar
      * @return true si se guardo exitosamente, false en caso contrario
      */
@@ -80,7 +80,7 @@ public class Explorador implements Serializable {
 
     /**
      * Guarda el progreso usando el nombre de partida y usuario por defecto.
-     * 
+     *
      * @return true si se guardo exitosamente, false en caso contrario
      */
     public boolean guardarProgreso() {
@@ -89,7 +89,7 @@ public class Explorador implements Serializable {
 
     /**
      * Carga un explorador desde un archivo guardado.
-     * 
+     *
      * @param filename Nombre del archivo a cargar
      * @return Objeto Explorador cargado o null si falla
      */
@@ -105,13 +105,12 @@ public class Explorador implements Serializable {
 
     /**
      * Verifica si el explorador cumple los requisitos para enfrentar a Arceus.
-     * 
+     *
      * @return true si tiene 5 especies capturadas a nivel 10, false en caso
      *         contrario
      */
     public boolean verificarRequisitosArceus() {
-        // Consulta a la Pokedex para saber si ya tiene las 5 especies investigadas a
-        // nivel 10
+        // Consulta a la Pokedex para saber si ya tiene las 5 especies investigadas a nivel 10
         return registro.puedeRetarArceus();
     }
 
@@ -127,7 +126,7 @@ public class Explorador implements Serializable {
 
     /**
      * Obtiene el inventario del explorador.
-     * 
+     *
      * @return Objeto Inventario
      */
     public Inventario getMochila() {
@@ -136,16 +135,16 @@ public class Explorador implements Serializable {
 
     /**
      * Alias de getMochila.
-     * 
+     *
      * @return Objeto Inventario
      */
     public Inventario getInventario() {
-        return mochila; 
+        return mochila;
     }
 
     /**
      * Obtiene la Pokedex del explorador.
-     * 
+     *
      * @return Objeto Pokedex
      */
     public Pokedex getRegistro() {
@@ -154,7 +153,7 @@ public class Explorador implements Serializable {
 
     /**
      * Obtiene el nombre del usuario.
-     * 
+     *
      * @return Nombre del usuario
      */
     public String getNombre() {
@@ -163,7 +162,7 @@ public class Explorador implements Serializable {
 
     /**
      * Obtiene el nombre de la partida.
-     * 
+     *
      * @return Nombre de la partida
      */
     public String getNombrePartida() {
@@ -172,7 +171,7 @@ public class Explorador implements Serializable {
 
     /**
      * Obtiene el genero del personaje.
-     * 
+     *
      * @return CHICO o CHICA
      */
     public String getGenero() {
@@ -181,7 +180,7 @@ public class Explorador implements Serializable {
 
     /**
      * Obtiene el equipo de Pokemon del explorador.
-     * 
+     *
      * @return Lista de Pokemon en el equipo
      */
     public List<Pokemon> getEquipo() {
@@ -190,7 +189,7 @@ public class Explorador implements Serializable {
 
     /**
      * Obtiene el numero de misiones completadas.
-     * 
+     *
      * @return Cantidad de misiones completadas
      */
     public int getMisionesCompletadas() {
@@ -199,7 +198,7 @@ public class Explorador implements Serializable {
 
     /**
      * Agrega un Pokemon al equipo si hay espacio disponible.
-     * 
+     *
      * @param pokemon Pokemon a agregar
      * @return true si se agrego exitosamente, false si el equipo esta lleno
      */
@@ -213,7 +212,7 @@ public class Explorador implements Serializable {
 
     /**
      * Alias de agregarAlEquipo.
-     * 
+     *
      * @param pokemon Pokemon a agregar
      */
     public void agregarPokemonEquipo(Pokemon pokemon) {
@@ -225,7 +224,7 @@ public class Explorador implements Serializable {
 
     /**
      * Obtiene el sistema de crafteo del explorador.
-     * 
+     *
      * @return Sistema de crafteo
      */
     public com.mypokemon.game.inventario.Crafteo getCrafteoSystem() {
@@ -237,7 +236,7 @@ public class Explorador implements Serializable {
 
     /**
      * Verifica si el guante de reflejo esta activo.
-     * 
+     *
      * @return true si el guante esta equipado, false en caso contrario
      */
     public boolean isGuanteEquipado() {
@@ -246,7 +245,7 @@ public class Explorador implements Serializable {
 
     /**
      * Activa el guante de reflejo por un tiempo determinado.
-     * 
+     *
      * @param segundos Duracion del efecto en segundos
      */
     public void activarGuante(float segundos) {
@@ -255,7 +254,7 @@ public class Explorador implements Serializable {
 
     /**
      * Obtiene el tiempo restante del guante de reflejo.
-     * 
+     *
      * @return Tiempo restante en segundos
      */
     public float getTiempoGuanteRestante() {
@@ -264,7 +263,7 @@ public class Explorador implements Serializable {
 
     /**
      * Verifica si el reproductor de musica esta activo.
-     * 
+     *
      * @return true si esta activo, false en caso contrario
      */
     public boolean isReproductorMusicaActivo() {
@@ -277,7 +276,7 @@ public class Explorador implements Serializable {
 
     /**
      * Activa o desactiva el reproductor de musica.
-     * 
+     *
      * @param activo true para activar, false para desactivar
      */
     public void setReproductorMusicaActivo(boolean activo) {
@@ -289,7 +288,7 @@ public class Explorador implements Serializable {
 
     /**
      * Actualiza los temporizadores activos (Glove, etc.)
-     * 
+     *
      * @param delta Tiempo transcurrido
      */
     public void actualizarTemporizadores(float delta) {

@@ -21,14 +21,12 @@ public class MainMenuScreen extends BaseScreen {
 
     Texture background;
 
-    // Arrays to hold textures for each option [0]=Play, [1]=Profile, etc.
+    // Arrays to hold textures for each option
     Texture[] normalTextures;
     Texture[] selectedTextures;
 
-    // Menu Options (Keep strings for fallback or logic, though rendering uses
-    // images now)
+    // Menu Options
     String[] options = { "PLAY", "CARGAR", "HELP", "ABOUT", "EXIT" };
-    // Changed "boton_partida" to "boton_cargar"
     String[] filePrefixes = { "boton_jugar", "boton_cargar", "boton_ayuda", "boton_acercade", "boton_salir" };
 
     int currentOption = -1;
@@ -48,7 +46,7 @@ public class MainMenuScreen extends BaseScreen {
     /**
      * Constructor del menú principal.
      * Carga las texturas de los botones y configura la cámara.
-     * 
+     *
      * @param game Referencia a la clase principal del juego.
      */
     public MainMenuScreen(final PokemonMain game) {
@@ -66,8 +64,7 @@ public class MainMenuScreen extends BaseScreen {
 
         for (int i = 0; i < options.length; i++) {
             try {
-                // For CARGAR, we expect boton_cargar_normal.png and
-                // boton_cargar_seleccionado.png
+
                 normalTextures[i] = new Texture(filePrefixes[i] + "_normal.png");
                 selectedTextures[i] = new Texture(filePrefixes[i] + "_seleccionado.png");
             } catch (Exception e) {
@@ -94,12 +91,12 @@ public class MainMenuScreen extends BaseScreen {
 
     /**
      * Renderiza el menú principal y maneja la navegación por teclado.
-     * 
+     *
      * @param delta Tiempo transcurrido.
      */
     @Override
     public void render(float delta) {
-        // --- 1. Update Logic ---
+        // Update Logic
         ScreenUtils.clear(0f, 0f, 0f, 1f);
 
         // Calculate layout variables for rendering
@@ -115,7 +112,7 @@ public class MainMenuScreen extends BaseScreen {
         // Keyboard Selection Logic
         if (Gdx.input.isKeyJustPressed(Input.Keys.UP) || Gdx.input.isKeyJustPressed(Input.Keys.W)) {
             if (currentOption == -1) {
-                currentOption = options.length - 1; // Start at bottom
+                currentOption = options.length - 1;
             } else {
                 currentOption--;
                 if (currentOption < 0)
@@ -124,7 +121,7 @@ public class MainMenuScreen extends BaseScreen {
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.DOWN) || Gdx.input.isKeyJustPressed(Input.Keys.S)) {
             if (currentOption == -1) {
-                currentOption = 0; // Start at top
+                currentOption = 0;
             } else {
                 currentOption++;
                 if (currentOption >= options.length)
@@ -132,33 +129,32 @@ public class MainMenuScreen extends BaseScreen {
             }
         }
 
-        // Action Logic (Only Enter key)
+        // Action Logic
         boolean enter = Gdx.input.isKeyJustPressed(Input.Keys.ENTER) || Gdx.input.isKeyJustPressed(Input.Keys.SPACE);
 
         if (currentOption != -1 && enter) {
-            if (currentOption == 0) { // PLAY -> Go to EleccionJuegoScreen
+            if (currentOption == 0) {
                 game.setScreen(new EleccionJuegoScreen(game));
                 dispose();
                 return;
-            } else if (currentOption == 1) { // CARGAR -> Go to PartidasScreen
+            } else if (currentOption == 1) {
                 game.setScreen(new PartidasScreen(game));
                 dispose();
                 return;
-            } else if (currentOption == 2) { // HELP -> Go to AyudaScreen
+            } else if (currentOption == 2) {
                 game.setScreen(new AyudaScreen(game));
                 dispose();
                 return;
-            } else if (currentOption == 3) { // ABOUT -> Go to AcercaDeScreen
+            } else if (currentOption == 3) {
                 game.setScreen(new AcercaDeScreen(game));
                 dispose();
                 return;
-            } else if (currentOption == 4) { // EXIT
+            } else if (currentOption == 4) {
                 Gdx.app.exit();
             }
         }
 
-        // --- 2. Draw Logic ---
-
+        // Draw Logic
         ScreenUtils.clear(0f, 0f, 0f, 1f);
 
         camera.update();
@@ -177,7 +173,7 @@ public class MainMenuScreen extends BaseScreen {
             Texture textureToDraw = null;
             boolean showSelected = false;
 
-            // Show selected if it is the current keyboard option
+
             if (i == currentOption) {
                 showSelected = true;
             }
@@ -213,7 +209,7 @@ public class MainMenuScreen extends BaseScreen {
     /**
      * Se llama cuando cambia el tamaño de la ventana.
      * Mantiene la relación de aspecto usando un FitViewport.
-     * 
+     *
      * @param width  Nuevo ancho.
      * @param height Nuevo alto.
      */

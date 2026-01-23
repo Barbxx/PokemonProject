@@ -15,7 +15,7 @@ public class Movimiento implements Serializable {
 
     /**
      * Constructor de un movimiento de Pokemon.
-     * 
+     *
      * @param nombre    Nombre del movimiento
      * @param poder     Poder de ataque del movimiento
      * @param tipo      Tipo elemental del movimiento
@@ -30,7 +30,7 @@ public class Movimiento implements Serializable {
 
     /**
      * Ejecuta el movimiento contra un Pokemon defensor.
-     * 
+     *
      * @param atacante Pokemon que ejecuta el movimiento
      * @param defensor Pokemon que recibe el ataque
      * @return Cantidad de dano infligido, 0 si falla, -1 si es inmune
@@ -51,7 +51,6 @@ public class Movimiento implements Serializable {
             }
 
             // El daño es el poder del ataque + el modificador temporal del atacante
-            // (Elixir)
             int daño = this.poder + (int) atacante.getModificadorAtaqueTemporal();
 
             // Asegurar que el daño sea al menos 1 si el ataque conecta
@@ -68,7 +67,7 @@ public class Movimiento implements Serializable {
 
     /**
      * Verifica si el defensor es inmune al tipo de ataque.
-     * 
+     *
      * @param tipoAtaque Tipo del ataque a verificar
      * @param defensor   Pokemon defensor
      * @return true si es inmune, false en caso contrario
@@ -86,7 +85,7 @@ public class Movimiento implements Serializable {
 
     /**
      * Obtiene el nombre del movimiento.
-     * 
+     *
      * @return Nombre del movimiento
      */
     public String getNombre() {
@@ -95,7 +94,7 @@ public class Movimiento implements Serializable {
 
     /**
      * Obtiene el poder del movimiento.
-     * 
+     *
      * @return Poder de ataque
      */
     public int getPoder() {
@@ -104,7 +103,7 @@ public class Movimiento implements Serializable {
 
     /**
      * Obtiene el tipo elemental del movimiento.
-     * 
+     *
      * @return Tipo del movimiento
      */
     public String getTipo() {
@@ -113,7 +112,7 @@ public class Movimiento implements Serializable {
 
     /**
      * Obtiene la precision del movimiento.
-     * 
+     *
      * @return Precision de 0 a 100
      */
     public int getPrecision() {

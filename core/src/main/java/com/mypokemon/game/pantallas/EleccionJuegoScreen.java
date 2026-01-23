@@ -23,7 +23,7 @@ public class EleccionJuegoScreen extends BaseScreen {
     Texture solitarioNormal, solitarioSelected;
     Texture compartidaNormal, compartidaSelected;
 
-    // UI Helpers
+    // UI Ayudantes
     com.badlogic.gdx.graphics.glutils.ShapeRenderer shapeRenderer;
 
     // 0 = Solitario, 1 = Compartida
@@ -31,12 +31,12 @@ public class EleccionJuegoScreen extends BaseScreen {
     final int OPTION_SOLITARIO = 0;
     final int OPTION_COMPARTIDA = 1;
 
-    // Logic States
+    // Logica estados
     boolean isAskingName = false;
     String inputName = "";
     String statusMessage = "";
 
-    // Camera and Viewport for fixed aspect ratio
+    // Camara y Viewport
     private OrthographicCamera camera;
     private Viewport viewport;
     private static final float VIRTUAL_WIDTH = 1280f;
@@ -45,7 +45,7 @@ public class EleccionJuegoScreen extends BaseScreen {
     /**
      * Constructor de la pantalla.
      * Carga recursos y configura el procesador de entrada para texto.
-     * 
+     *
      * @param game Instancia principal del juego.
      */
     public EleccionJuegoScreen(PokemonMain game) {
@@ -66,7 +66,6 @@ public class EleccionJuegoScreen extends BaseScreen {
             Gdx.app.log("EleccionJuego", "Could not load button textures: " + e.getMessage());
         }
 
-        // Setup Input Processor for typing
         Gdx.input.setInputProcessor(new com.badlogic.gdx.InputAdapter() {
             @Override
             public boolean keyTyped(char character) {
@@ -75,7 +74,7 @@ public class EleccionJuegoScreen extends BaseScreen {
                         if (inputName.length() < 15) {
                             inputName += character;
                         }
-                    } else if (character == '\b') { // Backspace
+                    } else if (character == '\b') {
                         if (inputName.length() > 0) {
                             inputName = inputName.substring(0, inputName.length() - 1);
                         }
@@ -83,7 +82,6 @@ public class EleccionJuegoScreen extends BaseScreen {
                         if (currentOption == OPTION_SOLITARIO) {
                             startSoloGame();
                         }
-                        // Compartida handled directly in main input loop now, no name asking
                     }
                     return true;
                 }
@@ -104,7 +102,6 @@ public class EleccionJuegoScreen extends BaseScreen {
             }
         });
 
-        // Setup camera and viewport
         camera = new OrthographicCamera();
         viewport = new FitViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, camera);
         viewport.apply();
@@ -115,24 +112,24 @@ public class EleccionJuegoScreen extends BaseScreen {
     /**
      * Renderiza la pantalla, botones y el cuadro de entrada de nombre si es
      * necesario.
-     * 
+     *
      * @param delta Tiempo transcurrido del frame.
      */
     @Override
     public void render(float delta) {
-        // Clear Screen
+        // Limpiar pantalla
         ScreenUtils.clear(0, 0, 0, 1);
 
-        // --- Update Logic ---
+        // Logica actualizacion
         float screenWidth = VIRTUAL_WIDTH;
         float screenHeight = VIRTUAL_HEIGHT;
 
-        // Layout
+        // Botones
         float buttonWidth = 500;
         float buttonHeight = 120;
         float spacing = -15;
 
-        // Positions
+        // Posiciones
         float centerX = (screenWidth - buttonWidth) / 2;
         float totalHeight = (buttonHeight * 2) + spacing;
         float startY = (screenHeight + totalHeight) / 2 - 100;
@@ -140,7 +137,7 @@ public class EleccionJuegoScreen extends BaseScreen {
         float solitarioY = startY - buttonHeight;
         float compartidaY = solitarioY - spacing - buttonHeight;
 
-        // Input Handling (Only keyboard, no mouse)
+        // Entrada de los botones
         if (!isAskingName) {
 
             if (Gdx.input.isKeyJustPressed(Input.Keys.UP) || Gdx.input.isKeyJustPressed(Input.Keys.W)) {
@@ -172,7 +169,7 @@ public class EleccionJuegoScreen extends BaseScreen {
                 return;
             }
         }
-        // --- Draw Logic ---
+        // Logica de Dibujo
         camera.update();
         game.batch.setProjectionMatrix(camera.combined);
 
@@ -182,8 +179,7 @@ public class EleccionJuegoScreen extends BaseScreen {
             game.batch.draw(background, 0, 0, screenWidth, screenHeight);
         }
 
-        // Draw Buttons
-        // Dim them if asking name
+        // Dibujar Botones
         if (isAskingName) {
             game.batch.setColor(0.5f, 0.5f, 0.5f, 1f);
         }
@@ -199,7 +195,6 @@ public class EleccionJuegoScreen extends BaseScreen {
         game.batch.setColor(Color.WHITE);
         game.batch.end();
 
-        // Draw Name Input Overlay
         if (isAskingName) {
             Gdx.gl.glEnable(com.badlogic.gdx.graphics.GL20.GL_BLEND);
             Gdx.gl.glBlendFunc(com.badlogic.gdx.graphics.GL20.GL_SRC_ALPHA,
@@ -212,7 +207,6 @@ public class EleccionJuegoScreen extends BaseScreen {
             shapeRenderer.setColor(0, 0, 0, 0.7f);
             shapeRenderer.rect(0, 0, screenWidth, screenHeight);
 
-            // Box
             float boxW = 400;
             float boxH = 200;
             float boxX = (screenWidth - boxW) / 2;
@@ -223,7 +217,6 @@ public class EleccionJuegoScreen extends BaseScreen {
             shapeRenderer.setColor(Color.LIGHT_GRAY);
             shapeRenderer.rect(boxX + 5, boxY + 5, boxW - 10, boxH - 10);
 
-            // Text Input Field
             float fieldW = 300;
             float fieldH = 40;
             float fieldX = boxX + (boxW - fieldW) / 2;
@@ -234,11 +227,11 @@ public class EleccionJuegoScreen extends BaseScreen {
             shapeRenderer.end();
             Gdx.gl.glDisable(com.badlogic.gdx.graphics.GL20.GL_BLEND);
 
-            // Text
+            // Texto
             game.batch.begin();
             game.font.getData().setScale(1.2f);
 
-            // Title
+            // Titulo
             game.font.setColor(Color.BLACK);
             // Only Solitario asks for name here now
             String title = "¿Nombre de la partida?";
@@ -250,12 +243,12 @@ public class EleccionJuegoScreen extends BaseScreen {
             game.font.draw(game.batch, inputName + (System.currentTimeMillis() % 1000 > 500 ? "|" : ""), fieldX + 10,
                     fieldY + 28);
 
-            // Instructions
+            // Instrucciones
             game.font.getData().setScale(0.8f);
             game.font.draw(game.batch, "Enter: Confirmar   Esc: Cancelar", boxX, boxY + 40, boxW,
                     com.badlogic.gdx.utils.Align.center, false);
 
-            // Status/Error
+            // Estado/Error
             if (!statusMessage.isEmpty()) {
                 game.font.setColor(Color.RED);
                 game.font.draw(game.batch, statusMessage, boxX, boxY + 65, boxW, com.badlogic.gdx.utils.Align.center,
@@ -278,7 +271,7 @@ public class EleccionJuegoScreen extends BaseScreen {
             return;
         }
 
-        // Check if file already exists (pattern: GameName - PlayerName.dat)
+        // Chequeo si el archivo ya existe
         FileHandle[] existing = Gdx.files.local(".")
                 .list((dir, name) -> name.startsWith(inputName + " - ") && name.endsWith(".dat"));
 
@@ -287,14 +280,13 @@ public class EleccionJuegoScreen extends BaseScreen {
             return;
         }
 
-        // Transition to Intro directly (No Sockets)
+        // Transicion para intro
         game.setScreen(new IntroScreen(game, inputName));
         dispose();
     }
 
     private void startCompartidaGame() {
-        // No input validation needed as we don't ask for generic password/name anymore
-        // Pass a generic temporary ID, the real name is asked in IntroScreen
+
         game.setScreen(new CompartidaScreen(game, "Explorador"));
         dispose();
     }

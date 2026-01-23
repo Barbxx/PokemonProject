@@ -23,7 +23,7 @@ public class Pokemon implements Serializable {
     private boolean debilitado;
     private String tipo;
     private List<Movimiento> movimientos;
-    private transient float modificadorAtaqueTemporal = 0; // Para el Elixir de Piel de Piedra 
+    private transient float modificadorAtaqueTemporal = 0; // Para el Elixir de Piel de Piedra
 
     // Para LibGDX (marcar como transient para que no intente serializar la imagen)
     private transient TextureRegion sprite;
@@ -31,7 +31,7 @@ public class Pokemon implements Serializable {
     /**
      * Constructor de Pokémon que inicializa sus estadísticas basadas en el nivel de
      * investigación.
-     * 
+     *
      * @param nombre             Nombre del Pokémon
      * @param nivelInvestigacion Nivel de investigación del 0 al 10 que determina
      *                           las estadísticas
@@ -71,8 +71,7 @@ public class Pokemon implements Serializable {
                 }
             }
 
-            // Si el nivel de investigación es 5 o mayor, desbloquear los movimientos
-            // especiales
+            // Si el nivel de investigación es 5 o mayor, desbloquear los movimientos especiales
             if (nivelInvestigacion >= 5 && data.movimientosNivel5 != null) {
                 for (String movExtra : data.movimientosNivel5) {
                     AtaqueData ataqueData = AtaqueData.get(movExtra);
@@ -87,7 +86,7 @@ public class Pokemon implements Serializable {
 
     /**
      * Establece el sprite visual del Pokemon.
-     * 
+     *
      * @param sprite Region de textura para renderizar el Pokemon
      */
     public void setSprite(TextureRegion sprite) {
@@ -96,7 +95,7 @@ public class Pokemon implements Serializable {
 
     /**
      * Obtiene el sprite visual del Pokemon.
-     * 
+     *
      * @return Region de textura del Pokemon
      */
     public TextureRegion getSprite() {
@@ -105,7 +104,7 @@ public class Pokemon implements Serializable {
 
     /**
      * Obtiene el HP actual del Pokemon.
-     * 
+     *
      * @return HP actual
      */
     public float getHpActual() {
@@ -114,7 +113,7 @@ public class Pokemon implements Serializable {
 
     /**
      * Obtiene el HP maximo del Pokemon.
-     * 
+     *
      * @return HP maximo
      */
     public float getHpMaximo() {
@@ -123,7 +122,7 @@ public class Pokemon implements Serializable {
 
     /**
      * Obtiene el nombre del Pokemon.
-     * 
+     *
      * @return Nombre del Pokemon
      */
     public String getNombre() {
@@ -132,7 +131,7 @@ public class Pokemon implements Serializable {
 
     /**
      * Verifica si el Pokémon está debilitado.
-     * 
+     *
      * @return true si está debilitado, false en caso contrario
      */
     public boolean isDebilitado() {
@@ -141,7 +140,7 @@ public class Pokemon implements Serializable {
 
     /**
      * Obtiene el nivel de investigacion del Pokemon.
-     * 
+     *
      * @return Nivel de investigacion del 0 al 10
      */
     public int getNivel() {
@@ -150,7 +149,7 @@ public class Pokemon implements Serializable {
 
     /**
      * Verifica si el Pokemon es legendario.
-     * 
+     *
      * @return true si es legendario, false en caso contrario
      */
     public boolean isLegendario() {
@@ -159,7 +158,7 @@ public class Pokemon implements Serializable {
 
     /**
      * Obtiene el tipo elemental del Pokémon.
-     * 
+     *
      * @return Tipo del Pokémon
      */
     public String getTipo() {
@@ -168,7 +167,7 @@ public class Pokemon implements Serializable {
 
     /**
      * Obtiene el ataque total del Pokémon incluyendo modificadores temporales.
-     * 
+     *
      * @return Valor de ataque total
      */
     public float getAtaque() {
@@ -177,7 +176,7 @@ public class Pokemon implements Serializable {
 
     /**
      * Obtiene el modificador temporal de ataque actual.
-     * 
+     *
      * @return Valor del modificador temporal
      */
     public float getModificadorAtaqueTemporal() {
@@ -186,7 +185,7 @@ public class Pokemon implements Serializable {
 
     /**
      * Establece un modificador temporal de ataque.
-     * 
+     *
      * @param mod Valor del modificador a aplicar
      */
     public void setModificadorAtaqueTemporal(float mod) {
@@ -202,7 +201,7 @@ public class Pokemon implements Serializable {
 
     /**
      * Obtiene la velocidad del Pokemon.
-     * 
+     *
      * @return Valor de velocidad
      */
     public float getVelocidad() {
@@ -211,7 +210,7 @@ public class Pokemon implements Serializable {
 
     /**
      * Obtiene la descripcion del Pokemon.
-     * 
+     *
      * @return Texto descriptivo del Pokemon
      */
     public String getDescripcion() {
@@ -220,7 +219,7 @@ public class Pokemon implements Serializable {
 
     /**
      * Obtiene el array de inmunidades del Pokemon.
-     * 
+     *
      * @return Array de tipos a los que es inmune
      */
     public String[] getInmunidades() {
@@ -229,7 +228,7 @@ public class Pokemon implements Serializable {
 
     /**
      * Aplica dano al Pokemon y verifica si queda debilitado.
-     * 
+     *
      * @param cantidad Cantidad de dano a recibir
      */
     public void recibirDaño(float cantidad) {
@@ -242,7 +241,7 @@ public class Pokemon implements Serializable {
 
     /**
      * Ejecuta un movimiento contra un Pokémon objetivo.
-     * 
+     *
      * @param indice   Índice del movimiento en la lista de movimientos
      * @param objetivo Pokémon que recibirá el ataque
      */
@@ -269,17 +268,15 @@ public class Pokemon implements Serializable {
     /**
      * Intenta capturar el Pokémon basándose en su HP actual y el ratio de la
      * Pokeball.
-     * 
+     *
      * @param ratioBala Efectividad de la Pokeball usada
      * @return true si la captura fue exitosa, false en caso contrario
      */
     public boolean intentarCaptura(float ratioBala) {
-        // Lógica para determinar si el Pokémon entra en la Poké Ball (Misión 2: +2
-        // puntos de progreso)
-        // Probabilidad aumenta a medida que disminuye la vida.
+        // Lógica para determinar si el Pokémon se captura
+
         if (debilitado)
-            return false; // No se puede capturar si está debilitado (en algunos juegos, en otros sí,
-                          // asumimos lógica estándar)
+            return false;
 
         float porcentajeVida = hpActual / hpMaximo;
 
@@ -290,7 +287,7 @@ public class Pokemon implements Serializable {
 
     /**
      * Recupera HP del Pokémon y elimina el estado debilitado si aplica.
-     * 
+     *
      * @param cantidad Cantidad de HP a recuperar
      */
     public void recuperarSalud(float cantidad) {
@@ -308,18 +305,18 @@ public class Pokemon implements Serializable {
     /**
      * Calcula los puntos de investigación ganados según si fue capturado o
      * derrotado.
-     * 
+     *
      * @param fueCapturado true si fue capturado, false si solo fue derrotado
      * @return 2 puntos si fue capturado, 1 punto si fue derrotado
      */
     public int calcularPuntosInvestigacion(boolean fueCapturado) {
-        // Lógica para la Misión 2 y Hito Final
+        // Lógica para Hito Final
         return fueCapturado ? 2 : 1;
     }
 
     /**
      * Agrega un movimiento a la lista de movimientos del Pokemon.
-     * 
+     *
      * @param mov Movimiento a agregar
      */
     public void agregarMovimiento(Movimiento mov) {
@@ -328,7 +325,7 @@ public class Pokemon implements Serializable {
 
     /**
      * Obtiene la lista de movimientos del Pokemon.
-     * 
+     *
      * @return Lista de movimientos disponibles
      */
     public List<Movimiento> getMovimientos() {

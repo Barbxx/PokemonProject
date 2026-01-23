@@ -1,19 +1,17 @@
 package com.mypokemon.game.pantallas;
 
-import com.mypokemon.game.PokemonMain;
-import com.mypokemon.game.utils.ITextureManager;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Texture;
-
-import java.util.ArrayList;
-import java.util.List;
+import com.mypokemon.game.PokemonMain;
+import com.mypokemon.game.utils.ITextureManager;
 
 /**
- * Clase base abstracta para todas las pantallas del juego.
- * Proporciona gestión automática de recursos (texturas) y acceso al objeto
- * principal del juego.
+ * Clase base abstracta para todas las pantallas del juego. Proporciona gestión
+ * automática de recursos (texturas) y acceso al objeto principal del juego.
  * Implementa Screen para el ciclo de vida de LibGDX e ITextureManager para la
  * carga de recursos.
  */
@@ -24,7 +22,7 @@ public abstract class BaseScreen implements Screen, ITextureManager {
 
     /**
      * Constructor de BaseScreen.
-     * 
+     *
      * @param game Instancia principal del juego.
      */
     public BaseScreen(PokemonMain game) {
@@ -34,7 +32,7 @@ public abstract class BaseScreen implements Screen, ITextureManager {
 
     /**
      * Carga una textura y la registra para su eliminación automática.
-     * 
+     *
      * @param path Ruta al archivo de textura.
      * @return Textura cargada, o null si falla la carga.
      */
@@ -45,14 +43,14 @@ public abstract class BaseScreen implements Screen, ITextureManager {
             addTexture(texture);
             return texture;
         } catch (Exception e) {
-            Gdx.app.error(this.getClass().getSimpleName(), "Could not load texture: " + path, e);
+            Gdx.app.error(this.getClass().getSimpleName(), "No se pudo cargar la textura: " + path, e);
             return null;
         }
     }
 
     /**
      * Registra una textura para eliminación automática.
-     * 
+     *
      * @param texture Textura a registrar.
      */
     @Override
@@ -77,7 +75,7 @@ public abstract class BaseScreen implements Screen, ITextureManager {
 
     /**
      * Obtiene el ancho actual de la pantalla.
-     * 
+     *
      * @return Ancho de la pantalla en píxeles.
      */
     protected float getScreenWidth() {
@@ -86,7 +84,7 @@ public abstract class BaseScreen implements Screen, ITextureManager {
 
     /**
      * Obtiene el alto actual de la pantalla.
-     * 
+     *
      * @return Alto de la pantalla en píxeles.
      */
     protected float getScreenHeight() {
@@ -98,27 +96,27 @@ public abstract class BaseScreen implements Screen, ITextureManager {
 
     @Override
     public void show() {
-        // Sobrescritura opcional
+        // Sobrescritura
     }
 
     @Override
     public void resize(int width, int height) {
-        // Sobrescritura opcional
+        // Sobrescritura
     }
 
     @Override
     public void pause() {
-        // Sobrescritura opcional
+        // Sobrescritura
     }
 
     @Override
     public void resume() {
-        // Sobrescritura opcional
+        // Sobrescritura
     }
 
     @Override
     public void hide() {
-        // Sobrescritura opcional
+        // Sobrescritura
     }
 
     /**

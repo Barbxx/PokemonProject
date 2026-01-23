@@ -90,7 +90,7 @@ public class IntroScreen extends BaseScreen {
     /**
      * Constructor de la pantalla de introducción.
      * Carga recursos visuales y configura el procesador de entrada para el texto.
-     * 
+     *
      * @param game     Juego principal.
      * @param gameName Nombre de la partida que se creará.
      */
@@ -109,21 +109,21 @@ public class IntroScreen extends BaseScreen {
             ferxxoImage = new Texture("ferxxo.png");
             jigglypuffImage = new Texture("Jigglypuff.png");
 
-            // Fix: Set Nearest filter to prevent blurring/bleeding
+
             jigglypuffImage.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
 
-            // Split Jigglypuff (4x4)
+            // Split Jigglypuff
             TextureRegion[][] tmp = TextureRegion.split(jigglypuffImage,
                     jigglypuffImage.getWidth() / 4,
                     jigglypuffImage.getHeight() / 4);
 
-            // Flatten frames for "posing" animation and apply TRIM (Inset)
+
             TextureRegion[] poseFrames = new TextureRegion[16];
             int index = 0;
             for (int i = 0; i < 4; i++) {
                 for (int j = 0; j < 4; j++) {
-                    // Apply a specific "Trim" or Inset to remove messy edges/whitespace
-                    // We take the split cell and shave off pixels from edges
+
+
                     TextureRegion cell = tmp[i][j];
                     int inset = 2; // Trim 2 pixels from each side
                     if (cell.getRegionWidth() > 4 && cell.getRegionHeight() > 4) {
@@ -131,11 +131,11 @@ public class IntroScreen extends BaseScreen {
                                 cell.getRegionWidth() - inset * 2,
                                 cell.getRegionHeight() - inset * 2);
                     } else {
-                        poseFrames[index++] = cell; // Fallback if too small
+                        poseFrames[index++] = cell;
                     }
                 }
             }
-            // Slower animation for poses (0.8s per pose)
+            // Slower animation for poses
             jigglyPoses = new Animation<>(0.8f, poseFrames);
 
             protaFem = new Texture("ProtaFem.png");
@@ -144,7 +144,7 @@ public class IntroScreen extends BaseScreen {
             pokeballImage = new Texture("pokeball.png");
             poofImage = new Texture("poof.png"); // New smoke asset
 
-            // Setup Poof Animation (2x2 from sheet)
+            // Setup Poof Animation
             TextureRegion[][] poofTmp = TextureRegion.split(poofImage, poofImage.getWidth() / 2,
                     poofImage.getHeight() / 2);
             TextureRegion[] poofFrames = new TextureRegion[4];
@@ -170,18 +170,18 @@ public class IntroScreen extends BaseScreen {
         float vpW = sysW * VP_W_PCT;
         float vpH = sysH * VP_H_PCT;
 
-        // Gender Menu Box (Right side of specific viewport)
-        // Position relative to viewport
+        // Gender Menu Box
+
         genderMenuBounds = new Rectangle(vpX + vpW - 210, vpY + vpH / 2 - 60, 200, 120);
 
-        // Setup Input Processor for typing and navigation
+
         Gdx.input.setInputProcessor(new InputAdapter() {
             @Override
             public boolean keyTyped(char character) {
                 if (currentState == State.ENTER_NAME) {
                     if (Character.isLetterOrDigit(character) || character == ' ') {
                         if (playerName.length() < 12) {
-                            // Insert at caret
+
                             String before = playerName.substring(0, caretPosition);
                             String after = playerName.substring(caretPosition);
                             playerName = before + character + after;
@@ -205,7 +205,7 @@ public class IntroScreen extends BaseScreen {
 
             @Override
             public boolean keyDown(int keycode) {
-                // Global mapping
+
 
                 if (currentState == State.ENTER_NAME) {
                     if (keycode == Input.Keys.ENTER) {
@@ -216,7 +216,7 @@ public class IntroScreen extends BaseScreen {
                         if (caretPosition > 0) {
                             caretPosition--;
                         }
-                        // Removed goBackState() for strict navigation
+
                         return true;
                     }
                     if (keycode == Input.Keys.RIGHT) {
@@ -244,7 +244,7 @@ public class IntroScreen extends BaseScreen {
                     }
                 }
 
-                // Navigation
+                // Navegacion
                 if (keycode == Input.Keys.ENTER || keycode == Input.Keys.SPACE) {
                     advanceState();
                     return true;
@@ -255,7 +255,7 @@ public class IntroScreen extends BaseScreen {
                     return true;
                 }
                 if (keycode == Input.Keys.LEFT) {
-                    // Restrict Back Navigation to only Gender Selection
+
                     if (currentState == State.SELECT_GENDER) {
                         goBackState();
                     }
@@ -267,7 +267,7 @@ public class IntroScreen extends BaseScreen {
 
             @Override
             public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-                // Default click acts as next
+
                 if (currentState == State.INTRO_1 || currentState == State.INTRO_2 || currentState == State.INTRO_3) {
                     advanceState();
                 }
@@ -285,7 +285,7 @@ public class IntroScreen extends BaseScreen {
         switch (currentState) {
             case INTRO_1:
                 currentState = State.INTRO_2;
-                jigglyStateTime = 0; // Reset animation to show Pokeball first
+                jigglyStateTime = 0;
                 break;
             case INTRO_2:
                 currentState = State.INTRO_3;
@@ -295,22 +295,22 @@ public class IntroScreen extends BaseScreen {
                 break;
             case SELECT_GENDER:
                 currentState = State.ASK_NAME;
-                caretPosition = 0; // Reset caret
+                caretPosition = 0;
                 break;
             case ASK_NAME:
                 currentState = State.ENTER_NAME;
-                statusNameTaken = false; // Reset error when moving to typing
+                statusNameTaken = false;
                 break;
             case ENTER_NAME:
                 if (playerName.trim().isEmpty())
                     playerName = "Directioner";
                 currentState = State.CONFIRM_NAME;
-                isNameConfirmed = true; // Default to SÍ
+                isNameConfirmed = true;
                 break;
             case CONFIRM_NAME:
                 if (isNameConfirmed) {
                     if ("SharedGame".equals(gameName)) {
-                        // Check if name is taken via Network
+
                         if (game.networkClient != null) {
                             game.networkClient.setListener(msg -> {
                                 if (msg.equals("NAME_OK")) {
@@ -328,7 +328,7 @@ public class IntroScreen extends BaseScreen {
                             });
                             game.networkClient.sendMessage("CHECK_NAME:" + playerName);
                         } else {
-                            // Fallback if no network (shouldn't happen in SharedGame)
+
                             currentState = State.PRE_CLOSING;
                         }
                     } else {
@@ -383,7 +383,7 @@ public class IntroScreen extends BaseScreen {
     /**
      * Renderiza la secuencia de introducción.
      * Dibuja los personajes, cuadros de texto y gestiona las animaciones.
-     * 
+     *
      * @param delta Tiempo transcurrido.
      */
     @Override
@@ -420,7 +420,7 @@ public class IntroScreen extends BaseScreen {
         if (currentState != State.PRE_CLOSING && currentState != State.FADE_OUT) {
             Texture imgToDraw = null;
             if (currentState == State.INTRO_1 || currentState == State.INTRO_2 || currentState == State.INTRO_3) {
-                // Use ferxxo.png instead of feid.png for the scientist intro
+
                 imgToDraw = ferxxoImage;
             } else if (currentState == State.SELECT_GENDER || currentState == State.ASK_NAME
                     || currentState == State.ENTER_NAME || currentState == State.CONFIRM_NAME) {
@@ -456,26 +456,26 @@ public class IntroScreen extends BaseScreen {
 
                 game.batch.draw(imgToDraw, imgX, imgY, imgW, imgH);
 
-                // JIGGLYPUFF Logic (Intro 2 & 3)
+                // JIGGLYPUFF Logic
                 if ((currentState == State.INTRO_2 || currentState == State.INTRO_3) && jigglyPoses != null) {
                     TextureRegion regionToDraw = null;
                     float drawW = 60f; // Default Jigglypuff size
                     float drawXOffset = 0.02f;
                     float drawYOffset = 0.62f;
 
-                    // PHASE 1: Pokeball (0.0 - 0.8s)
+                    // Pokeball
                     if (jigglyStateTime < 0.8f) {
                         regionToDraw = new TextureRegion(pokeballImage);
                         drawW = 45f;
-                        // Center Pokeball on hand
-                        drawXOffset = 0f; // Will calculate manually
+
+                        drawXOffset = 0f;
                     }
-                    // PHASE 2: Poof (0.8s - 1.2s)
+                    // Animacion
                     else if (jigglyStateTime < 1.2f) {
                         regionToDraw = poofAnim.getKeyFrame(jigglyStateTime - 0.8f, false);
                         drawW = 50f;
                     }
-                    // PHASE 3: Jigglypuff (1.2s+)
+                    // Jigglypuff
                     else {
                         regionToDraw = jigglyPoses.getKeyFrame(jigglyStateTime - 1.2f, true);
                     }
@@ -487,11 +487,11 @@ public class IntroScreen extends BaseScreen {
                         float jX = imgX + imgW * drawXOffset;
                         float jY = imgY + imgH * drawYOffset;
 
-                        // Custom Centering for Pokeball & Poof
-                        if (jigglyStateTime < 1.2f) { // Both phases
-                            jX = imgX + imgW * 0.02f + (60 - drawW) / 2; // Center relative to Jigglypuff slot
+
+                        if (jigglyStateTime < 1.2f) {
+                            jX = imgX + imgW * 0.02f + (60 - drawW) / 2;
                             if (jigglyStateTime < 0.8f) {
-                                jY -= 8; // Pokeball specific offset
+                                jY -= 8;
                             }
                         }
 
@@ -501,7 +501,6 @@ public class IntroScreen extends BaseScreen {
             }
         } else if (currentState == State.PRE_CLOSING || currentState == State.FADE_OUT) {
             // PRE_CLOSING: Show both Feid and Protagonist side by side
-            // Keep drawing this during FADE_OUT
             float availableH = vpH - TEXT_BOX_HEIGHT - 20;
 
             // Draw Protagonist on the left
@@ -539,8 +538,7 @@ public class IntroScreen extends BaseScreen {
         shapeRenderer.setProjectionMatrix(camera.combined);
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 
-        // REMOVED ORANGE BORDERS (Background is handled by Frame Texture now)
-        // 2. Text Box with Rounded Corners (Inside Viewport)
+        // 2. Text Box with Rounded Corners
         float boxX = vpX + 10;
         float boxY = vpY + 10;
         float boxW = vpW - 20;
@@ -548,9 +546,9 @@ public class IntroScreen extends BaseScreen {
 
         RenderUtils.drawRoundedRect(shapeRenderer, boxX, boxY, boxW, boxH, 20f, new Color(0.3f, 0.5f, 0.6f, 1f)); // Frame
         RenderUtils.drawRoundedRect(shapeRenderer, boxX + 6, boxY + 6, boxW - 12, boxH - 12, 16f,
-                new Color(0.6f, 0.8f, 1.0f, 1f)); // Inner (Light Blue)
+                new Color(0.6f, 0.8f, 1.0f, 1f));
 
-        // 2.5 Name Tag "Profesor Ferxxo"
+
         float nameTagW = 220;
         float nameTagH = 50;
         float nameTagX = boxX;
@@ -558,9 +556,8 @@ public class IntroScreen extends BaseScreen {
         RenderUtils.drawRoundedRect(shapeRenderer, nameTagX, nameTagY, nameTagW, nameTagH, 10f,
                 new Color(0.3f, 0.5f, 0.6f, 1f)); // Frame
         RenderUtils.drawRoundedRect(shapeRenderer, nameTagX + 3, nameTagY + 3, nameTagW - 6, nameTagH - 6, 8f,
-                Color.WHITE); // Inner White
+                Color.WHITE);
 
-        // 3. Gender Selection Menu (Text only, removed buttons)
 
         // 4. Name Input UI
         if (currentState == State.ENTER_NAME) {
@@ -595,10 +592,10 @@ public class IntroScreen extends BaseScreen {
 
         // Main Text
         game.font.setColor(Color.BLACK);
-        game.font.getData().setScale(1.0f); // Scale 1.0 for clearer text
+        game.font.getData().setScale(1.0f);
 
         float textX = boxX + 50;
-        float textY = boxY + boxH - 25; // Adjusted Y for smaller box
+        float textY = boxY + boxH - 25;
         float textWidth = boxW - 100;
 
         String currentText = "";
@@ -626,7 +623,7 @@ public class IntroScreen extends BaseScreen {
                 } else {
                     currentText = TEXT_NAME_Q;
                 }
-                // Draw entered name
+
                 float nameY = boxY + 65;
                 float nameX = boxX + 110;
 

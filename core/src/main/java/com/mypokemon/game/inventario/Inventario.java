@@ -8,9 +8,10 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-// Gestiona el almacenamiento de ítems del jugador. 
+// Gestiona el almacenamiento de ítems del jugador.
 // Permite almacenar, añadir y consumir recursos y objetos crafteados.
 // Valida la capacidad disponible mediante excepciones.
+
 public class Inventario implements Serializable {
     private int capacidadMaxima;
     private List<Recurso> listRecursos;
@@ -37,7 +38,7 @@ public class Inventario implements Serializable {
         listObjCrafteados.add(ItemFactory.crearCrafteado("frijol", 0));
     }
 
-    // Capacidad: 100 slots por defecto
+    // Capacidad del inventario: 100 slots
     public int getCapacidadMaxima() {
         return capacidadMaxima;
     }
@@ -96,7 +97,7 @@ public class Inventario implements Serializable {
     /**
      * Añade un ítem (Recurso u ObjetoCrafteado) al inventario.
      * Si ya existe, suma la cantidad.
-     * 
+     *
      * @param item Ítem a agregar.
      * @throws EspacioException Si no hay espacio suficiente.
      */
@@ -120,7 +121,7 @@ public class Inventario implements Serializable {
 
     /**
      * Consume una cantidad específica de un ítem por su ID.
-     * 
+     *
      * @param id       ID del ítem a consumir.
      * @param cantidad Cantidad a restar.
      * @return true si se consumió exitosamente, false si no existe o no hay
@@ -168,7 +169,7 @@ public class Inventario implements Serializable {
 
     /**
      * Verifica si se puede agregar una cantidad de ítems al inventario.
-     * 
+     *
      * @param cantidad Cantidad a agregar.
      * @return true si hay espacio, false si no.
      */
@@ -186,7 +187,7 @@ public class Inventario implements Serializable {
 
     /**
      * Penalización por perder batalla.
-     * 
+     *
      * @return El nombre del objeto eliminado, o null si no se eliminó nada.
      */
     public String perderObjetoCrafteado() {
@@ -203,7 +204,7 @@ public class Inventario implements Serializable {
 
     /**
      * Obtiene la lista de recursos almacenados.
-     * 
+     *
      * @return Lista de recursos.
      */
     public List<Recurso> getRecursos() {
@@ -212,7 +213,7 @@ public class Inventario implements Serializable {
 
     /**
      * Obtiene la lista de objetos crafteados almacenados.
-     * 
+     *
      * @return Lista de objetos crafteados.
      */
     public List<ObjetoCrafteado> getObjetosCrafteados() {
@@ -221,7 +222,7 @@ public class Inventario implements Serializable {
 
     /**
      * Busca un ítem específico por su ID en todo el inventario (recursos y objetos)
-     * 
+     *
      * @param id ID del ítem a buscar.
      * @return El ítem encontrado, o null si no existe.
      */

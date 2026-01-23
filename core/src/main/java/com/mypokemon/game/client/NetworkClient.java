@@ -22,7 +22,7 @@ public class NetworkClient {
     public interface NetworkListener {
         /**
          * Se invoca cuando llega un mensaje del servidor.
-         * 
+         *
          * @param msg El mensaje recibido como cadena de texto.
          */
         void onMessageReceived(String msg);
@@ -36,7 +36,7 @@ public class NetworkClient {
 
     /**
      * Escucha la señal del faro UDP del servidor para auto-descubrir su IP.
-     * 
+     *
      * @return La dirección IP del servidor descubierto o "127.0.0.1" si falla.
      */
     public String discoverServerIP() {
@@ -93,7 +93,7 @@ public class NetworkClient {
     /**
      * Intenta establecer una conexión TCP con el servidor. - Envía el mensaje
      * inicial de handshake con el nombre del jugador.
-     * 
+     *
      * @param ip         IP del servidor.
      * @param playerName Nombre del jugador local.
      * @return true si la conexión fue exitosa.
@@ -120,7 +120,7 @@ public class NetworkClient {
 
     /**
      * Envía un mensaje de texto al servidor conectado mediante TCP.
-     * 
+     *
      * @param msg El mensaje a enviar.
      */
     public void sendMessage(String msg) {
