@@ -8,12 +8,13 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
-import com.mypokemon.game.PokemonMain;
+import com.mypokemon.game.BasePokemonData;
 import com.mypokemon.game.Explorador;
+import com.mypokemon.game.PokemonMain;
 
 /**
- * Pantalla que muestra el perfil del explorador
- * Incluye nombre, género, estadísticas de mochila y Pokémon capturados.
+ * Pantalla que muestra el perfil del explorador Incluye nombre, género,
+ * estadísticas de mochila y Pokémon capturados.
  */
 public class PerfilScreen extends ScreenAdapter {
 
@@ -27,13 +28,13 @@ public class PerfilScreen extends ScreenAdapter {
     private BitmapFont titleFont;
 
     /**
-     * Constructor de la pantalla de perfil.
-     * Carga el fondo correspondiente al género y prepara las fuentes.
-     * 
-     * @param game         Referencia al juego principal.
+     * Constructor de la pantalla de perfil. Carga el fondo correspondiente al
+     * género y prepara las fuentes.
+     *
+     * @param game Referencia al juego principal.
      * @param parentScreen Pantalla desde la que se accedió (para volver).
-     * @param explorador   Datos del jugador a mostrar.
-     * @param esChico      Indica el género del jugador para seleccionar el fondo.
+     * @param explorador Datos del jugador a mostrar.
+     * @param esChico Indica el género del jugador para seleccionar el fondo.
      */
     public PerfilScreen(PokemonMain game, BaseScreen parentScreen, Explorador explorador, boolean esChico) {
         this.game = game;
@@ -63,9 +64,9 @@ public class PerfilScreen extends ScreenAdapter {
     }
 
     /**
-     * Renderiza la información del perfil del jugador.
-     * Muestra texto centrado y estadísticas.
-     * 
+     * Renderiza la información del perfil del jugador. Muestra texto centrado y
+     * estadísticas.
+     *
      * @param delta Tiempo transcurrido desde el último frame.
      */
     @Override
@@ -94,33 +95,32 @@ public class PerfilScreen extends ScreenAdapter {
         font.setColor(Color.WHITE);
         font.getData().setScale(1.5f);
 
-        float startY = 400;
+        float startY = 350;
 
-        font.draw(game.batch, explorador.getNombre(), 300, startY);
-        font.draw(game.batch, "Género: " + (esChico ? "Chico" : "Chica"), 300, startY - 50);
+        font.draw(game.batch, explorador.getNombre(), 250, startY);
+        font.draw(game.batch, esChico ? "Chico" : "Chica", 250, startY - 60);
 
         // Info adicional
         int capacidad = explorador.getMochila().getCapacidadMaxima();
         int ocupado = explorador.getMochila().getEspacioOcupado();
-        font.draw(game.batch, "Mochila: " + ocupado + "/" + capacidad, 300, startY - 100);
+        font.draw(game.batch, "Mochila: " + ocupado + "/" + capacidad, 100, startY - 150);
 
-        int pokemonCapturados = explorador.getRegistro().getCapturedOrder().size();
-        font.draw(game.batch, "Pokémon Capturados: " + pokemonCapturados, 300, startY - 150);
+        int pokemonEnMochila = explorador.getEquipo().size();
+        font.draw(game.batch, "Pokémon Capturados: " + pokemonEnMochila, 100, startY - 190);
 
-        // Instrucción para salir
-        font.getData().setScale(1.0f);
-        font.setColor(Color.LIGHT_GRAY);
-        font.draw(game.batch, "Presiona ESC para volver", 20, 30);
+        int pokemonEnPokedex = explorador.getRegistro().getEncounterOrder().size();
+        int totalPokemon = BasePokemonData.getNombres().size();
+        font.draw(game.batch, pokemonEnPokedex + "/" + totalPokemon, 300, startY - 230);
 
         game.batch.end();
     }
 
     /**
      * Dibuja un texto centrado horizontalmente en la posición y indicada.
-     * 
-     * @param f    Fuente a utilizar.
+     *
+     * @param f Fuente a utilizar.
      * @param text Texto a dibujar.
-     * @param y    Posición vertical.
+     * @param y Posición vertical.
      */
     private void drawCenteredText(BitmapFont f, String text, float y) {
         GlyphLayout layout = new GlyphLayout(f, text);
