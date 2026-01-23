@@ -7,7 +7,7 @@ package com.mypokemon.game.objects;
 public class BrennerNPC extends NPC {
     private static final String[] DIALOG = {
             "Has llegado lejos Once, siempre supe que eras especial.",
-            "Si ya has llegado hasta este punto, es porque deberías tener tus cinco especies al máximo nivel de investigación… ¿cierto? No me decepciones, sabes que no me gusta que me ocultes progresos.",
+            "Si ya has llegado hasta este punto, es porque deberías tener tus cinco especies al máximo nivel de investigación... ¿cierto? No me decepciones, sabes que no me gusta que me ocultes progresos.",
             "Si es así, el Sujeto Arceus te espera en esa cueva de allá... me recuerda mucho a la Cueva de Vecna. Puedo sentirlo desde aquí, es fascinante, pero extremadamente peligroso si no estás preparado...",
             "Si no has alcanzado el potencial que espero de ti, te recomiendo que regreses a las otras zonas para seguir subiendo de nivel. No podemos permitirnos un fallo en la fase de pruebas.",
             "Si logras vencerlo, su investigación será completada instantáneamente. Sería un logro científico sin precedentes, hijo mío.",

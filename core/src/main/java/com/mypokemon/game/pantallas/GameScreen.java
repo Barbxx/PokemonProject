@@ -146,6 +146,8 @@ public class GameScreen extends BaseScreen {
     // NPC Music Logic
     private com.badlogic.gdx.audio.Music currentNpcMusic = null;
     private com.badlogic.gdx.audio.Music backgroundPlayerMusic = null;
+    private com.badlogic.gdx.audio.Music backgroundPlayerMusic2 = null; // Req #4: Segunda canción
+    private boolean isPlayingFirstTrack = true; // Req #4: Track actual
 
     private int frameCols;
     private int frameRows;
@@ -503,12 +505,21 @@ public class GameScreen extends BaseScreen {
         regions.add(new RegionTrigger(spawnX + 50, spawnY + 850, regionSize, regionSize, texTundra));
 
         // Initialize Reproductor Music
+        // Req #4: Cargar ambas pistas del reproductor
         try {
             backgroundPlayerMusic = Gdx.audio.newMusic(Gdx.files.internal("audioReproductor.mp3"));
-            backgroundPlayerMusic.setLooping(true);
+            backgroundPlayerMusic.setLooping(false); // Req #4: No loop para permitir la siguiente canción
             backgroundPlayerMusic.setVolume(0.5f);
         } catch (Exception e) {
             Gdx.app.log("GameScreen", "Could not load audioReproductor.mp3");
+        }
+
+        try {
+            backgroundPlayerMusic2 = Gdx.audio.newMusic(Gdx.files.internal("audioReproductor2.mp3"));
+            backgroundPlayerMusic2.setLooping(true); // Req #4: La segunda canción se repite
+            backgroundPlayerMusic2.setVolume(0.5f);
+        } catch (Exception e) {
+            Gdx.app.log("GameScreen", "Could not load audioReproductor2.mp3");
         }
     }
 
@@ -1019,11 +1030,11 @@ public class GameScreen extends BaseScreen {
 
                             // Mostrar diálogo de historia antes de la batalla con Arceus
                             String[] preArceusDialog = {
-                                    "A medida que te aproximas a la cueva, el aire se vuelve pesado, gélido, como si el tiempo mismo se detuviera ante tus pies…",
-                                    "El pulso se te acelera… ¿Será Arceus?",
-                                    "Sin embargo, al cruzar el umbral, el silencio es absoluto. No hay deidades, solo una flauta que se ve muy antigua…",
-                                    "Por lo que tomaste una decisión…",
-                                    "Tocaste la flauta…"
+                                    "A medida que te aproximas a la cueva, el aire se vuelve pesado, gélido, como si el tiempo mismo se detuviera ante tus pies...",
+                                    "El pulso se te acelera... ¿Será Arceus?",
+                                    "Sin embargo, al cruzar el umbral, el silencio es absoluto. No hay deidades, solo una flauta que se ve muy antigua...",
+                                    "Por lo que tomaste una decisión...",
+                                    "Tocaste la flauta..."
                             };
 
                             // Arceus created with level 0 investigation (Req #6: inicia en nivel 0)
@@ -1153,8 +1164,20 @@ public class GameScreen extends BaseScreen {
             }
 
             // REPRODUCTOR DE MÚSICA LOGIC
-            if (targetMusic == null && explorador.isReproductorMusicaActivo()) {
-                targetMusic = backgroundPlayerMusic;
+            // Req #4: Verificar si la primera canción terminó para pasar a la segunda
+            if (explorador.isReproductorMusicaActivo()) {
+                if (backgroundPlayerMusic != null && !backgroundPlayerMusic.isPlaying() && isPlayingFirstTrack) {
+                    // La primera canción terminó, cambiar a la segunda
+                    isPlayingFirstTrack = false;
+                    targetMusic = backgroundPlayerMusic2;
+                } else if (isPlayingFirstTrack) {
+                    targetMusic = backgroundPlayerMusic;
+                } else {
+                    targetMusic = backgroundPlayerMusic2;
+                }
+            } else {
+                // Si se desactiva el reproductor, reiniciar a la primera canción
+                isPlayingFirstTrack = true;
             }
 
             if (targetMusic != null) {

@@ -23,6 +23,7 @@ public class StoryDialogScreen extends BaseScreen {
     private Screen nextScreen;
     private BitmapFont font;
     private GlyphLayout layout;
+    private com.badlogic.gdx.audio.Music backgroundMusic;
 
     /**
      * Constructor para la pantalla de diálogo de historia.
@@ -33,6 +34,20 @@ public class StoryDialogScreen extends BaseScreen {
      * @param nextScreen     Pantalla a la que ir después de completar los diálogos
      */
     public StoryDialogScreen(PokemonMain game, String backgroundPath, String[] dialogPages, Screen nextScreen) {
+        this(game, backgroundPath, dialogPages, nextScreen, null);
+    }
+
+    /**
+     * Constructor para la pantalla de diálogo de historia con música.
+     * 
+     * @param game           Instancia principal del juego
+     * @param backgroundPath Ruta a la imagen de fondo
+     * @param dialogPages    Array de páginas de diálogo a mostrar
+     * @param nextScreen     Pantalla a la que ir después de completar los diálogos
+     * @param musicPath      Ruta al archivo de música de fondo (puede ser null)
+     */
+    public StoryDialogScreen(PokemonMain game, String backgroundPath, String[] dialogPages, Screen nextScreen,
+            String musicPath) {
         super(game);
         this.dialogPages = dialogPages;
         this.currentPage = 0;
@@ -46,6 +61,18 @@ public class StoryDialogScreen extends BaseScreen {
             addTexture(this.backgroundTexture);
         } catch (Exception e) {
             Gdx.app.error("StoryDialogScreen", "No se pudo cargar la imagen: " + backgroundPath, e);
+        }
+
+        // Req #5: Cargar y reproducir música de fondo si se proporciona
+        if (musicPath != null) {
+            try {
+                backgroundMusic = Gdx.audio.newMusic(Gdx.files.internal(musicPath));
+                backgroundMusic.setLooping(true);
+                backgroundMusic.setVolume(0.5f);
+                backgroundMusic.play();
+            } catch (Exception e) {
+                Gdx.app.error("StoryDialogScreen", "No se pudo cargar la música: " + musicPath, e);
+            }
         }
     }
 
@@ -75,6 +102,10 @@ public class StoryDialogScreen extends BaseScreen {
             currentPage++;
             if (currentPage >= dialogPages.length) {
                 // Terminar y pasar a la siguiente pantalla
+                // Req #5: Detener música antes de cambiar de pantalla
+                if (backgroundMusic != null) {
+                    backgroundMusic.stop();
+                }
                 game.setScreen(nextScreen);
                 return;
             }
@@ -182,6 +213,9 @@ public class StoryDialogScreen extends BaseScreen {
      */
     @Override
     public void dispose() {
+        if (backgroundMusic != null) {
+            backgroundMusic.dispose();
+        }
         super.dispose();
     }
 }

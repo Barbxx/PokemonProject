@@ -251,7 +251,17 @@ public class BattleScreen extends ScreenAdapter {
         }
 
         // Musica de batalla
-        if (!pokemonEnemigo.getNombre().equalsIgnoreCase("Arceus")) {
+        if (pokemonEnemigo.getNombre().equalsIgnoreCase("Arceus")) {
+            // Req #3: Música especial para batalla con Arceus
+            try {
+                battleMusic = Gdx.audio.newMusic(Gdx.files.internal("HitoFinal.mp3"));
+                battleMusic.setLooping(true);
+                battleMusic.setVolume(0.5f);
+                battleMusic.play();
+            } catch (Exception e) {
+                Gdx.app.log("BattleScreen", "No se pudo cargar HitoFinal.mp3");
+            }
+        } else {
             try {
                 battleMusic = Gdx.audio.newMusic(Gdx.files.internal("batallaPokemon.mp3"));
                 battleMusic.setLooping(true);
@@ -799,15 +809,17 @@ public class BattleScreen extends ScreenAdapter {
                 }
                 Gdx.app.postRunnable(() -> {
                     String[] finalDialog = {
-                            "Has derrotado a Arceus y su poder ha estabilizado todas las realidades…",
-                            "el Upside Down retrocede, la magia vuelve a Hogwarts y el ritmo regresa a las calles…",
+                            "Has derrotado a Arceus y su poder ha estabilizado todas las realidades...",
+                            "el Upside Down retrocede, la magia vuelve a Hogwarts y el ritmo regresa a las calles...",
                             "Miras tu Pokédex y entiendes que nunca fue una simple misión, sino que te convertiste en el guardián de todas estas historias.",
-                            "Misión cumplida, " + explorador.getNombre()
-                                    + ", el destino de los mundos está a salvo, y tu nombre ha quedado grabado en la esencia misma de la historia.",
-                            "Porque al final, el camino siempre estuvo claro…",
+                            "Misión cumplida, " + explorador.getNombre() + ", el destino de los mundos está a salvo, y tu nombre ha quedado grabado en la esencia misma de la historia.",
+                            "Porque al final, el camino siempre estuvo claro...",
                             "¡Atrápalos a todos!"
                     };
-                    game.setScreen(new StoryDialogScreen(game, "fondoFinal.png", finalDialog, parentScreen));
+                    // Req #2: Después de derrotar a Arceus, ir a MainMenuScreen
+                    // Req #5: Reproducir AudioFinal al mostrar los créditos
+                    game.setScreen(new StoryDialogScreen(game, "fondoFinal.png", finalDialog,
+                            new com.mypokemon.game.pantallas.MainMenuScreen(game), "AudioFinal.mp3"));
                 });
             });
         } else {
@@ -1064,7 +1076,14 @@ public class BattleScreen extends ScreenAdapter {
 
         font.getData().setScale(1.1f);
         font.draw(game.batch, pokemonJugador.getNombre().toUpperCase(), pInfoX + 10, pInfoY);
-        font.draw(game.batch, "Nv.Inv" + pokemonJugador.getNivel(), pInfoX + 220, pInfoY);
+        // Req #1: Mostrar nivel de investigación actual del jugador desde el registro
+        int nivelInvestigacion = 0;
+        com.mypokemon.game.EspeciePokemon especie = explorador.getRegistro().getRegistro()
+                .get(pokemonJugador.getNombre());
+        if (especie != null) {
+            nivelInvestigacion = especie.getNivelInvestigacion();
+        }
+        font.draw(game.batch, "Nv.Inv" + nivelInvestigacion, pInfoX + 220, pInfoY);
 
         // Bar below text
         float pBarX = pInfoX;
