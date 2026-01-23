@@ -22,7 +22,6 @@ public class TextureUtils {
      * @return Una nueva instancia de Texture.
      */
     public static Texture createSolidTexture(int width, int height, Color color) {
-        // Ensure dimensions are valid
         if (width <= 0)
             width = 1;
         if (height <= 0)

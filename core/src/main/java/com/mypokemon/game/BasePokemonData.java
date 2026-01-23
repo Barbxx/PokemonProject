@@ -35,7 +35,7 @@ public class BasePokemonData {
         public String[] inmunidades;
 
         // Para el sistema de investigación
-        public int puntosInvestigacion = 2; // Por defecto: Victoria = +1, Captura = +2
+        public int puntosInvestigacion = 2; 
 
         /**
          * Crea una nueva entrada de datos para una especie Pokémon.

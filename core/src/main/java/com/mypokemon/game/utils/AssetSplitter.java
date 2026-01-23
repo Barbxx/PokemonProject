@@ -22,7 +22,7 @@ public class AssetSplitter {
     private static final int CHUNK_HEIGHT = 2048;
     private static final int TILE_WIDTH = 32;
     private static final int TILE_HEIGHT = 32;
-    private static final int COLUMNS = 8; // 256 / 32
+    private static final int COLUMNS = 8; 
     private static final int TILES_PER_CHUNK = (CHUNK_HEIGHT / TILE_HEIGHT) * COLUMNS;
 
     public static void main(String[] args) {

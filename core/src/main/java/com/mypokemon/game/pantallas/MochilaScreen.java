@@ -88,10 +88,10 @@ public class MochilaScreen extends BaseScreen {
     private int selectedIndex = 0; // Category Selection
 
     // User requested fields
-    private Texture textureFondoSlot; // Will generate procedurally if missing
+    private Texture textureFondoSlot; 
     private com.badlogic.gdx.graphics.g2d.BitmapFont fontContador;
-    private int indexSeleccionado = 0; // 0 to 20
-    private Texture whitePixel; // Kept for selection box if needed
+    private int indexSeleccionado = 0; 
+    private Texture whitePixel; 
 
     private OrthographicCamera camera;
     private Viewport viewport;
@@ -421,10 +421,6 @@ public class MochilaScreen extends BaseScreen {
     private void handlePokemonTargetInput() {
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             currentState = InventoryState.OPTIONS_MENU;
-            selectedIndex = 0; // Go back to main tabs? Or stay? Let's reset to materials or whatever we were
-                               // on.
-            // Ideally we remember previous tab.
-            // For simplicity, reset to 0
             selectedIndex = 0;
             updateVisibleItems();
             return;

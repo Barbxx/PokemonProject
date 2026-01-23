@@ -12,7 +12,7 @@ import com.mypokemon.game.PokemonMain;
 import com.mypokemon.game.Explorador;
 
 /**
- * Pantalla que muestra el perfil del entrenador.
+ * Pantalla que muestra el perfil del explorador
  * Incluye nombre, género, estadísticas de mochila y Pokémon capturados.
  */
 public class PerfilScreen extends ScreenAdapter {
@@ -90,7 +90,7 @@ public class PerfilScreen extends ScreenAdapter {
         titleFont.setColor(Color.GOLD);
         drawCenteredText(titleFont, "PERFIL DE ENTRENADOR", 400);
 
-        // Información del Entrenador
+        // Información del explorador
         font.setColor(Color.WHITE);
         font.getData().setScale(1.5f);
 

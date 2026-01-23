@@ -107,9 +107,6 @@ public class ClientHandler extends Thread {
     }
 
     private void checkAndCreateSave() {
-        // La creación automática de archivo ha sido eliminada.
-        // El archivo solo se creará cuando ambos jugadores guarden explícitamente en el
-        // juego.
     }
 
     private void close() {

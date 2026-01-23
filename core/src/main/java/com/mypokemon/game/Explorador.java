@@ -21,13 +21,13 @@ public class Explorador implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private String nombreUsuario;
-    private String nombrePartida; // New field for filename
-    private String genero; // CHICO or CHICA
+    private String nombrePartida; 
+    private String genero; 
     private Inventario mochila;
     private Pokedex registro;
     private List<Pokemon> equipo;
     private int misionesCompletadas;
-    private float tiempoGuanteRestante; // Tiempo restante en segundos para el Guante de Reflejo
+    private float tiempoGuanteRestante; 
 
     /**
      * Constructor completo del explorador.
@@ -84,8 +84,6 @@ public class Explorador implements Serializable {
      * @return true si se guardo exitosamente, false en caso contrario
      */
     public boolean guardarProgreso() {
-        // Fallback for default behavior if needed, generally shouldn't be used with new
-        // logic
         return guardarProgreso(nombrePartida + "_" + nombreUsuario + ".dat");
     }
 
@@ -97,8 +95,6 @@ public class Explorador implements Serializable {
      */
     public static Explorador cargarProgreso(String filename) {
         // Busca el archivo y reconstruye el objeto usando el nombre del archivo
-        // Ensure extension is handled if not provided (helper logic could go here, but
-        // let's assume valid filenames)
         try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(filename))) {
             return (Explorador) in.readObject();
         } catch (IOException | ClassNotFoundException e) {
@@ -124,8 +120,7 @@ public class Explorador implements Serializable {
      */
     public void finalizarInvestigacionLegendaria() {
         System.out.println("Dr. Brenner: Progreso guardado. El experimento ha concluido.");
-        // Incrementa contador de misiones al completar el hito (opcional, pero buena
-        // práctica)
+        // Incrementa contador de misiones al completar el hito
         misionesCompletadas++;
         guardarProgreso();
     }
@@ -145,7 +140,7 @@ public class Explorador implements Serializable {
      * @return Objeto Inventario
      */
     public Inventario getInventario() {
-        return mochila; // Alias para getMochila()
+        return mochila; 
     }
 
     /**

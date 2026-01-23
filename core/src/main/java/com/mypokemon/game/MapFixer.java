@@ -84,7 +84,6 @@ public class MapFixer {
                     long flags = val & ~mask;
 
                     if (baseGid >= problematicGid) {
-                        // Remap: subtract offset and add 1
                         long newBase = baseGid - problematicGid + 1;
                         long newVal = flags | newBase;
                         newGids.add(String.valueOf(newVal));

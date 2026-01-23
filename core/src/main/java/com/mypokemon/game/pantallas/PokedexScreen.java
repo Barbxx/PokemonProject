@@ -141,9 +141,6 @@ public class PokedexScreen extends NavigableScreen {
         float infoW = 340;
         float infoH = 190;
 
-        // fontTitle.setColor(Color.YELLOW);
-        // fontTitle.getData().setScale(1.8f);
-        // fontTitle.draw(game.batch, "POKÉDEX", 60, VIRTUAL_HEIGHT - 60);
 
         String currentPokemonName = (selectedIndex < capturedNames.size()) ? capturedNames.get(selectedIndex) : null;
 
@@ -254,7 +251,7 @@ public class PokedexScreen extends NavigableScreen {
      */
     @Override
     public void dispose() {
-        super.dispose(); // Automatically disposes registered textures
+        super.dispose(); 
         if (entryBg != null)
             entryBg.dispose();
         if (whitePixel != null)

@@ -10,7 +10,7 @@ public abstract class ObjetoCrafteado extends Item {
      * Constructor para un objeto crafteado.
      * 
      * @param id          Identificador único.
-     * @param nombre      Nombre legible.
+     * @param nombre      Nombre 
      * @param descripcion Descripción del ítem.
      * @param cantidad    Cantidad inicial.
      */

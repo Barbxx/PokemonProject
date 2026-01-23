@@ -76,10 +76,9 @@ public class PartidasScreen extends BaseScreen {
      */
     @Override
     public void render(float delta) {
-        // Input Handling
         if (saveFiles.length > 0) {
             if (!selectingAction) {
-                // FILE SELECTION PHASE
+                // Seleccion del archivo
                 if (Gdx.input.isKeyJustPressed(Input.Keys.UP) || Gdx.input.isKeyJustPressed(Input.Keys.W)) {
                     selectedIndex--;
                     if (selectedIndex < 0)
@@ -93,15 +92,15 @@ public class PartidasScreen extends BaseScreen {
 
                 if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
                     selectingAction = true;
-                    actionIndex = 0; // Default to Play
+                    actionIndex = 0; 
                 }
             } else {
-                // ACTION SELECTION PHASE (Play / Delete)
+                // Seccion de seleccion (Jugar/Borrar)
                 if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT) || Gdx.input.isKeyJustPressed(Input.Keys.A)) {
-                    actionIndex = 0; // Play
+                    actionIndex = 0; // Jugar
                 }
                 if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT) || Gdx.input.isKeyJustPressed(Input.Keys.D)) {
-                    actionIndex = 1; // Delete
+                    actionIndex = 1; // Borrar
                 }
 
                 if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
@@ -110,7 +109,7 @@ public class PartidasScreen extends BaseScreen {
 
                 if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
                     if (actionIndex == 0) {
-                        // PLAY
+                        // Jugar
                         FileHandle selectedFile = saveFiles[selectedIndex];
                         String fullFileName = selectedFile.name();
                         Explorador exp = Explorador.cargarProgreso(fullFileName);
@@ -122,12 +121,12 @@ public class PartidasScreen extends BaseScreen {
                         dispose();
                         return;
                     } else {
-                        // DELETE
+                        // Borrar
                         FileHandle selectedFile = saveFiles[selectedIndex];
                         selectedFile.delete();
                         Gdx.app.log("PartidasScreen", "Deleted: " + selectedFile.name());
 
-                        // Refresh List
+                        // Actualizar la lista
                         FileHandle local = Gdx.files.local(".");
                         saveFiles = local.list((dir, name) -> name.contains(" - ") && name.endsWith(".dat"));
                         if (saveFiles == null)
@@ -146,7 +145,7 @@ public class PartidasScreen extends BaseScreen {
             return;
         }
 
-        // Mouse Support for Selection and Buttons
+        // Apoyo para selccion con el mouse y uso de botones
         com.badlogic.gdx.math.Vector3 mousePos = new com.badlogic.gdx.math.Vector3(Gdx.input.getX(), Gdx.input.getY(),
                 0);
         viewport.unproject(mousePos);
@@ -155,11 +154,11 @@ public class PartidasScreen extends BaseScreen {
             float startY = VIRTUAL_HEIGHT / 2 + 100;
             float spacing = 50;
 
-            // Mouse selection for list
+            // Seleccion con el mouse para la lista
             if (!selectingAction) {
                 for (int i = 0; i < saveFiles.length; i++) {
                     float y = startY - (i * spacing);
-                    // Approximation of text bounds for hover
+                    // Aproximacion de los bordes del texto
                     if (mousePos.x > 300 && mousePos.x < 980 && mousePos.y < y + 10 && mousePos.y > y - 40) {
                         selectedIndex = i;
                         if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
@@ -169,14 +168,14 @@ public class PartidasScreen extends BaseScreen {
                     }
                 }
             } else {
-                // Mouse hover/click for buttons
+                // Click para los botones
                 float btnW = 340;
                 float btnH = 100;
                 float btnY = 100;
                 float centerX = VIRTUAL_WIDTH / 2;
                 float gap = 40;
 
-                // Jugar Button bounds
+                // borde boton jugar
                 if (mousePos.x > centerX - btnW - gap / 2 && mousePos.x < centerX - gap / 2 &&
                         mousePos.y > btnY && mousePos.y < btnY + btnH) {
                     actionIndex = 0;
@@ -193,7 +192,7 @@ public class PartidasScreen extends BaseScreen {
                         return;
                     }
                 }
-                // Borrar Button bounds
+                // borde boton borrar
                 if (mousePos.x > centerX + gap / 2 && mousePos.x < centerX + btnW + gap / 2 &&
                         mousePos.y > btnY && mousePos.y < btnY + btnH) {
                     actionIndex = 1;
@@ -220,7 +219,7 @@ public class PartidasScreen extends BaseScreen {
             game.batch.draw(background, 0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
         }
 
-        // Draw Save Files Centered
+        // Dibujar archivos guardados de manera centrada
         if (saveFiles.length == 0) {
             game.font.setColor(Color.GRAY);
             game.font.getData().setScale(1.5f);
@@ -236,7 +235,7 @@ public class PartidasScreen extends BaseScreen {
                 String nameDisplay = saveFiles[i].nameWithoutExtension();
                 float y = startY - (i * spacing);
 
-                // Load Explorador for info
+                // Cargar informacion del explorador
                 Explorador exp = Explorador.cargarProgreso(fileName);
                 String info = "";
                 if (exp != null) {
@@ -260,20 +259,20 @@ public class PartidasScreen extends BaseScreen {
                         false);
             }
 
-            // Draw Buttons
+            // Dibujamos los botones
             float btnW = 340;
             float btnH = 100;
             float btnY = 100;
             float centerX = VIRTUAL_WIDTH / 2;
             float gap = 40;
 
-            // Play Button
+            // boton jugar
             Texture playTex = (selectingAction && actionIndex == 0) ? btnJugarSel : btnJugarNormal;
             if (playTex != null) {
                 game.batch.draw(playTex, centerX - btnW - gap / 2, btnY, btnW, btnH);
             }
 
-            // Delete Button
+            // boton borrar
             Texture delTex = (selectingAction && actionIndex == 1) ? btnBorrarSel : btnBorrarNormal;
             if (delTex != null) {
                 game.batch.draw(delTex, centerX + gap / 2, btnY, btnW, btnH);
