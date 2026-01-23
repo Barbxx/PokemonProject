@@ -2,7 +2,7 @@ package com.mypokemon.game.utils;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
+
 import java.util.TreeMap;
 import java.util.Map;
 import javax.imageio.ImageIO;

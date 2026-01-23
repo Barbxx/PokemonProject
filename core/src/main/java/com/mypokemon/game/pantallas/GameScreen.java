@@ -3,7 +3,7 @@ package com.mypokemon.game.pantallas;
 import com.mypokemon.game.PokemonMain;
 import com.mypokemon.game.Explorador;
 import com.mypokemon.game.Pokemon;
-import com.mypokemon.game.Movimiento;
+
 import com.mypokemon.game.GestorEncuentros;
 import com.mypokemon.game.InputHandler;
 import com.mypokemon.game.RemotePlayer;
@@ -153,17 +153,11 @@ public class GameScreen extends BaseScreen {
     // Region Triggers
     private class RegionTrigger {
         Rectangle bounds;
-        Color color;
         Texture signTexture;
-        boolean active;
-        String name;
 
-        public RegionTrigger(float x, float y, float w, float h, Color c, Texture t, String n) {
+        public RegionTrigger(float x, float y, float w, float h, Texture t) {
             this.bounds = new Rectangle(x, y, w, h);
-            this.color = c;
             this.signTexture = t;
-            this.name = n;
-            this.active = false;
         }
     }
 
@@ -496,21 +490,17 @@ public class GameScreen extends BaseScreen {
         float spawnY = this.posY;
         float regionSize = 60f;
 
-        // 1. Costa Cobalto (Orange) - Near Harry Styles (Spawn + 1110, -320)
-        regions.add(new RegionTrigger(spawnX + 1250, spawnY - 360, regionSize, regionSize,
-                Color.ORANGE, texCostaCobalto, "Costa Cobalto"));
+        // 1. Costa Cobalto - Near Harry Styles (Spawn + 1110, -320)
+        regions.add(new RegionTrigger(spawnX + 1250, spawnY - 360, regionSize, regionSize, texCostaCobalto));
 
-        // 2. Pantanal Carmesí (Pink) - Near Harry Potter (Spawn + 2100, + 900) - LEFT
-        regions.add(new RegionTrigger(spawnX + 2100 - 50, spawnY + 890, regionSize, regionSize,
-                Color.PINK, texPantanal, "Pantanal Carmesí"));
+        // 2. Pantanal Carmesí - Near Harry Potter (Spawn + 2100, + 900) - LEFT
+        regions.add(new RegionTrigger(spawnX + 2100 - 50, spawnY + 890, regionSize, regionSize, texPantanal));
 
-        // 3. Ladera Corona (Yellow) - Near Harry Potter - RIGHT
-        regions.add(new RegionTrigger(spawnX + 2100 - 1300, spawnY + 1700, regionSize, regionSize,
-                Color.YELLOW, texLadera, "Ladera Corona"));
+        // 3. Ladera Corona - Near Harry Potter - RIGHT
+        regions.add(new RegionTrigger(spawnX + 2100 - 1300, spawnY + 1700, regionSize, regionSize, texLadera));
 
-        // 4. Tundra Alba (Purple) - Near Harry Potter - BOTTOM
-        regions.add(new RegionTrigger(spawnX + 50, spawnY + 850, regionSize, regionSize,
-                Color.PURPLE, texTundra, "Tundra Alba"));
+        // 4. Tundra Alba - Near Harry Potter - BOTTOM
+        regions.add(new RegionTrigger(spawnX + 50, spawnY + 850, regionSize, regionSize, texTundra));
 
         // Initialize Reproductor Music
         try {
