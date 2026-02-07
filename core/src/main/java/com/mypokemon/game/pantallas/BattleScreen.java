@@ -1,15 +1,13 @@
 package com.mypokemon.game.pantallas;
 
-import com.mypokemon.game.PokemonMain;
-import com.mypokemon.game.Explorador;
-import com.mypokemon.game.Pokemon;
-import com.mypokemon.game.Movimiento;
+import java.util.List;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -17,11 +15,12 @@ import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
-import com.badlogic.gdx.graphics.OrthographicCamera;
-import java.util.List;
+import com.mypokemon.game.Explorador;
+import com.mypokemon.game.Movimiento;
+import com.mypokemon.game.Pokemon;
+import com.mypokemon.game.PokemonMain;
 
 // Pantalla de combate entre el jugador y un Pokémon salvaje
-
 public class BattleScreen extends ScreenAdapter {
 
     private final PokemonMain game;
@@ -30,19 +29,18 @@ public class BattleScreen extends ScreenAdapter {
     private Pokemon pokemonJugador;
     private final Pokemon pokemonEnemigo;
 
-
     /**
-     * Cambia el Pokémon activo del jugador durante la batalla.
-     * Actualiza la textura trasera y el mensaje de log.
-     * Valida que no sea el mismo Pokemon que el enemigo.
+     * Cambia el Pokémon activo del jugador durante la batalla. Actualiza la
+     * textura trasera y el mensaje de log. Valida que no sea el mismo Pokemon
+     * que el enemigo.
      *
      * @param nuevo Nuevo Pokémon a sacar al combate.
      */
     public void cambiarPokemon(Pokemon nuevo) {
 
         // Lógica para no permitir pelear con el mismo Pokémon
-        if (pokemonEnemigo != null && nuevo != null &&
-                nuevo.getNombre().equalsIgnoreCase(pokemonEnemigo.getNombre())) {
+        if (pokemonEnemigo != null && nuevo != null
+                && nuevo.getNombre().equalsIgnoreCase(pokemonEnemigo.getNombre())) {
             updateInfo("¡No puedes usar el mismo Pokémon que el enemigo!");
             return;
         }
@@ -52,16 +50,18 @@ public class BattleScreen extends ScreenAdapter {
 
         // Texturas para el pokemon nuevo
         try {
-            if (playerBackTexture != null)
+            if (playerBackTexture != null) {
                 playerBackTexture.dispose();
+            }
 
             String name = nuevo.getNombre().toLowerCase().replace(" h.", "").replace(" jr.", "-jr").replace(" ", "-");
             String path = name + " atras.png";
             if (Gdx.files.internal(path).exists()) {
                 playerBackTexture = new Texture(Gdx.files.internal(path));
             } else {
-                if (Gdx.files.internal(name + ".png").exists())
+                if (Gdx.files.internal(name + ".png").exists()) {
                     playerBackTexture = new Texture(Gdx.files.internal(name + ".png"));
+                }
             }
         } catch (Exception e) {
         }
@@ -71,7 +71,7 @@ public class BattleScreen extends ScreenAdapter {
     private OrthographicCamera camera;
     private Viewport viewport;
 
-    // Elementos UI (Rectángulso Batalla)
+    // Elementos UI (Rectángulos Batalla)
     private Rectangle btnAtacarRect;
     private Rectangle btnHuirRect;
     private Rectangle btnMochilaRect;
@@ -104,7 +104,7 @@ public class BattleScreen extends ScreenAdapter {
     private AnimState animState = AnimState.NONE;
     private float animTimer = 0;
     private float ballX, ballY;
-    private float ballTargetX = 400, ballTargetY = 350; // Default center
+    private float ballTargetX = 400, ballTargetY = 350;
     private String currentBallType;
 
     // Texturas
@@ -130,14 +130,14 @@ public class BattleScreen extends ScreenAdapter {
     private BattleState currentState;
 
     /**
-     * Constructor de BattleScreen.
-     * Inicializa la batalla, las texturas, música y la lógica de turnos.
+     * Constructor de BattleScreen. Inicializa la batalla, las texturas, música
+     * y la lógica de turnos.
      *
-     * @param game         Instancia principal del juego.
-     * @param parentScreen Pantalla anterior (usualmente GameScreen) para volver al
-     *                     finalizar.
-     * @param explorador   Datos del jugador (equipo, inventario).
-     * @param enemigo      Pokémon contra el que se lucha.
+     * @param game Instancia principal del juego.
+     * @param parentScreen Pantalla anterior (usualmente GameScreen) para volver
+     * al finalizar.
+     * @param explorador Datos del jugador (equipo, inventario).
+     * @param enemigo Pokémon contra el que se lucha.
      */
     public BattleScreen(PokemonMain game, com.badlogic.gdx.Screen parentScreen, Explorador explorador,
             Pokemon enemigo) {
@@ -161,10 +161,12 @@ public class BattleScreen extends ScreenAdapter {
         }
 
         // Resetear modificadores temporales al iniciar batalla (Elixir)
-        if (pokemonJugador != null)
+        if (pokemonJugador != null) {
             pokemonJugador.resetModificadoresTemporales();
-        if (pokemonEnemigo != null)
+        }
+        if (pokemonEnemigo != null) {
             pokemonEnemigo.resetModificadoresTemporales();
+        }
 
         // Registrar avistamiento solo con encontrarlo
         explorador.getRegistro().registrarAvistamiento(enemigo.getNombre());
@@ -199,7 +201,7 @@ public class BattleScreen extends ScreenAdapter {
             enemyTexture = createColorTexture(Color.RED);
         }
 
-        // Cargar textura player
+        // Cargar textura jugador
         try {
             String name = pokemonJugador.getNombre().toLowerCase().replace(" h.", "").replace(" jr.", "-jr")
                     .replace(" ", "-");
@@ -207,9 +209,10 @@ public class BattleScreen extends ScreenAdapter {
             if (Gdx.files.internal(path).exists()) {
                 playerBackTexture = new Texture(Gdx.files.internal(path));
             } else {
-                // Fallback to front texture or default
-                if (Gdx.files.internal(name + ".png").exists())
+                // Fallback a textura frontal o por defecto
+                if (Gdx.files.internal(name + ".png").exists()) {
                     playerBackTexture = new Texture(Gdx.files.internal(name + ".png"));
+                }
             }
         } catch (Exception e) {
         }
@@ -251,7 +254,7 @@ public class BattleScreen extends ScreenAdapter {
 
         // Música de batalla
         if (pokemonEnemigo.getNombre().equalsIgnoreCase("Arceus")) {
-            // Req #3: Música especial para batalla con Arceus
+            // Música especial para batalla con Arceus
             try {
                 battleMusic = Gdx.audio.newMusic(Gdx.files.internal("HitoFinal.mp3"));
                 battleMusic.setLooping(true);
@@ -405,22 +408,27 @@ public class BattleScreen extends ScreenAdapter {
                     int maxMoves = pokemonJugador.getMovimientos().size();
 
                     if (keycode == com.badlogic.gdx.Input.Keys.UP) {
-                        if (currentSelection >= 2)
+                        if (currentSelection >= 2) {
                             currentSelection -= 2;
+                        }
                     } else if (keycode == com.badlogic.gdx.Input.Keys.DOWN) {
-                        if (currentSelection <= 1)
+                        if (currentSelection <= 1) {
                             currentSelection += 2;
+                        }
                     } else if (keycode == com.badlogic.gdx.Input.Keys.LEFT) {
-                        if (currentSelection % 2 != 0)
+                        if (currentSelection % 2 != 0) {
                             currentSelection -= 1;
+                        }
                     } else if (keycode == com.badlogic.gdx.Input.Keys.RIGHT) {
-                        if (currentSelection % 2 == 0)
+                        if (currentSelection % 2 == 0) {
                             currentSelection += 1;
+                        }
                     } else if (keycode == com.badlogic.gdx.Input.Keys.ENTER
                             || keycode == com.badlogic.gdx.Input.Keys.Z) {
                         if (showMoveMenu) {
-                            if (selectedMove < maxMoves)
+                            if (selectedMove < maxMoves) {
                                 performMove(selectedMove);
+                            }
                         } else {
                             handleSelectedAction();
                         }
@@ -428,11 +436,13 @@ public class BattleScreen extends ScreenAdapter {
                     }
 
                     if (showMoveMenu) {
-                        if (currentSelection < 4)
+                        if (currentSelection < 4) {
                             selectedMove = currentSelection;
+                        }
                     } else {
-                        if (currentSelection <= 3)
+                        if (currentSelection <= 3) {
                             selectedOption = currentSelection;
+                        }
                     }
                     return true;
                 }
@@ -444,7 +454,8 @@ public class BattleScreen extends ScreenAdapter {
     }
 
     /**
-     * Maneja la acción seleccionada en el menú principal (Atacar, Mochila, etc).
+     * Maneja la acción seleccionada en el menú principal (Atacar, Mochila,
+     * etc).
      */
     private void handleSelectedAction() {
         switch (selectedOption) {
@@ -470,12 +481,12 @@ public class BattleScreen extends ScreenAdapter {
     }
 
     /**
-     * Intenta usar un ítem desde la mochila durante la batalla.
-     * Maneja la lógica de captura (Pokéballs) y curación (Pociones).
-     * Req #2: Inicia animación de pokeball.
+     * Intenta usar un ítem desde la mochila durante la batalla. Maneja la
+     * lógica de captura (Pokéballs) y curación (Pociones). Req #2: Inicia
+     * animación de pokeball.
      *
      * @param tipo Identificador del tipo de ítem ("pokeball", "heavyball",
-     *             "pocion").
+     * "pocion").
      */
     public void usarItemEnBatalla(String tipo) {
         if (tipo.equals("pokeball") || tipo.equals("heavyball")) {
@@ -516,21 +527,24 @@ public class BattleScreen extends ScreenAdapter {
 
         if (currentBallType.equals("heavyball")) {
 
-            // Poké ball de peso que funciona mejor con Pokémon de niveles bajos (0-3)
+            // Pokéball de peso que funciona mejor con Pokémon de niveles bajos (0-3)
             if (nivelEnemigo <= 3) {
-                if (hpPercent <= 0.40f)
+                if (hpPercent <= 0.40f) {
                     capturado = true;
+                }
             } else {
-                if (hpPercent <= 0.20f)
+                if (hpPercent <= 0.20f) {
                     capturado = true;
+                }
             }
         } else {
             // Pokeball clásica
-            if (hpPercent <= 0.20f)
+            if (hpPercent <= 0.20f) {
                 capturado = true;
+            }
         }
 
-        // Mmensajes de captura de pokemon
+        // Mensajes de captura de pokemon
         if (capturado) {
             explorador.getRegistro().registrarAccion(pokemonEnemigo.getNombre(), true);
             explorador.agregarAlEquipo(pokemonEnemigo);
@@ -589,16 +603,17 @@ public class BattleScreen extends ScreenAdapter {
     }
 
     /**
-     * Ejecuta un movimiento del jugador.
-     * Calcula daño, verifica velocidad para orden de turnos y actualiza interfaz.
+     * Ejecuta un movimiento del jugador. Calcula daño, verifica velocidad para
+     * orden de turnos y actualiza interfaz.
      *
      * @param moveIndex Índice del movimiento en la lista del Pokémon (0-3).
      */
     private void performMove(int moveIndex) {
         showMoveMenu = false;
         List<Movimiento> movs = pokemonJugador.getMovimientos();
-        if (moveIndex >= movs.size())
+        if (moveIndex >= movs.size()) {
             return;
+        }
 
         Movimiento mov = movs.get(moveIndex);
 
@@ -663,12 +678,13 @@ public class BattleScreen extends ScreenAdapter {
     }
 
     /**
-     * Lógica del turno del enemigo (IA simple).
-     * Selecciona un ataque aleatorio y lo ejecuta contra el jugador.
+     * Lógica del turno del enemigo. Selecciona un ataque aleatorio
+     * y lo ejecuta contra el jugador.
      */
     private void performEnemyTurn() {
-        if (currentState != BattleState.ENEMY_TURN)
+        if (currentState != BattleState.ENEMY_TURN) {
             return;
+        }
 
         // El enemigo usa un ataque aleatorio
         List<Movimiento> movimientos = pokemonEnemigo.getMovimientos();
@@ -705,9 +721,8 @@ public class BattleScreen extends ScreenAdapter {
     }
 
     /**
-     * Verifica si algún Pokémon se ha debilitado.
-     * Otorga recompensas y decide si termina la batalla.
-     * Req #6: Lógica especial para Arceus.
+     * Verifica si algún Pokémon se ha debilitado. Otorga recompensas y decide
+     * si termina la batalla.
      */
     private void checkBattleStatus() {
         if (pokemonEnemigo.getHpActual() <= 0) {
@@ -789,10 +804,12 @@ public class BattleScreen extends ScreenAdapter {
         currentState = BattleState.END_BATTLE;
 
         // Resetear modificadores temporales (Elixir)
-        if (pokemonJugador != null)
+        if (pokemonJugador != null) {
             pokemonJugador.resetModificadoresTemporales();
-        if (pokemonEnemigo != null)
+        }
+        if (pokemonEnemigo != null) {
             pokemonEnemigo.resetModificadoresTemporales();
+        }
 
         // Si derrotamos a Arceus, mostrar el diálogo final
         if (victory && pokemonEnemigo.getNombre().equalsIgnoreCase("Arceus")) {
@@ -803,12 +820,12 @@ public class BattleScreen extends ScreenAdapter {
                 }
                 Gdx.app.postRunnable(() -> {
                     String[] finalDialog = {
-                            "Has derrotado a Arceus y su poder ha estabilizado todas las realidades...",
-                            "el Upside Down retrocede, la magia vuelve a Hogwarts y el ritmo regresa a las calles...",
-                            "Miras tu Pokédex y entiendes que nunca fue una simple misión, sino que te convertiste en el guardián de todas estas historias.",
-                            "Misión cumplida, " + explorador.getNombre() + ", el destino de los mundos está a salvo, y tu nombre ha quedado grabado en la esencia misma de la historia.",
-                            "Porque al final, el camino siempre estuvo claro...",
-                            "¡Atrápalos a todos!"
+                        "Has derrotado a Arceus y su poder ha estabilizado todas las realidades...",
+                        "el Upside Down retrocede, la magia vuelve a Hogwarts y el ritmo regresa a las calles...",
+                        "Miras tu Pokédex y entiendes que nunca fue una simple misión, sino que te convertiste en el guardián de todas estas historias.",
+                        "Misión cumplida, " + explorador.getNombre() + ", el destino de los mundos está a salvo, y tu nombre ha quedado grabado en la esencia misma de la historia.",
+                        "Porque al final, el camino siempre estuvo claro...",
+                        "¡Atrápalos a todos!"
                     };
                     // Después de derrotar a Arceus, ir a MainMenuScreen y reproducir audiofinal
                     game.setScreen(new StoryDialogScreen(game, "fondoFinal.png", finalDialog,
@@ -833,10 +850,10 @@ public class BattleScreen extends ScreenAdapter {
     }
 
     /**
-     * Actualiza el viewport y la disposición de los botones al cambiar el tamaño de
-     * ventana.
+     * Actualiza el viewport y la disposición de los botones al cambiar el
+     * tamaño de ventana.
      *
-     * @param width  Nuevo ancho.
+     * @param width Nuevo ancho.
      * @param height Nuevo alto.
      */
     @Override
@@ -847,9 +864,8 @@ public class BattleScreen extends ScreenAdapter {
     }
 
     /**
-     * Ciclo principal de renderizado.
-     * Dibuja el fondo, combatientes, interfaz y maneja animaciones y
-     * temporizadores.
+     * Ciclo principal de renderizado. Dibuja el fondo, combatientes, interfaz y
+     * maneja animaciones y temporizadores.
      *
      * @param delta Tiempo desde el último frame.
      */
@@ -923,7 +939,6 @@ public class BattleScreen extends ScreenAdapter {
             float duration = 1.5f;
             float progress = Math.min(animTimer / duration, 1.0f);
 
-
             float currentX = ballX + (ballTargetX - ballX) * progress;
 
             float arcHeight = 150f;
@@ -993,8 +1008,10 @@ public class BattleScreen extends ScreenAdapter {
                 // Ajuste de texto básico
                 font.draw(game.batch, desc, 100, yOffset);
                 yOffset -= 30;
-                if (yOffset < 100)
+                if (yOffset < 100) {
                     break; // Límite de pantalla
+
+                }
             }
         }
 
@@ -1098,32 +1115,45 @@ public class BattleScreen extends ScreenAdapter {
     @Override
     public void dispose() {
         font.dispose();
-        if (buttonBg != null)
+        if (buttonBg != null) {
             buttonBg.dispose();
-        if (boxBg != null)
+        }
+        if (boxBg != null) {
             boxBg.dispose();
-        if (borderBg != null)
+        }
+        if (borderBg != null) {
             borderBg.dispose();
-        if (hpBarBg != null)
+        }
+        if (hpBarBg != null) {
             hpBarBg.dispose();
-        if (hpBarFill != null)
+        }
+        if (hpBarFill != null) {
             hpBarFill.dispose();
-        if (selectedBorder != null)
+        }
+        if (selectedBorder != null) {
             selectedBorder.dispose();
-        if (baseCircleTexture != null)
+        }
+        if (baseCircleTexture != null) {
             baseCircleTexture.dispose();
-        if (backgroundTexture != null)
+        }
+        if (backgroundTexture != null) {
             backgroundTexture.dispose();
-        if (enemyTexture != null)
+        }
+        if (enemyTexture != null) {
             enemyTexture.dispose();
-        if (playerBackTexture != null)
+        }
+        if (playerBackTexture != null) {
             playerBackTexture.dispose();
-        if (statusBarTexture != null)
+        }
+        if (statusBarTexture != null) {
             statusBarTexture.dispose();
-        if (pokeballTexture != null)
+        }
+        if (pokeballTexture != null) {
             pokeballTexture.dispose();
-        if (heavyballTexture != null && heavyballTexture != pokeballTexture)
+        }
+        if (heavyballTexture != null && heavyballTexture != pokeballTexture) {
             heavyballTexture.dispose();
+        }
         if (battleMusic != null) {
             battleMusic.dispose();
         }

@@ -1,44 +1,44 @@
 package com.mypokemon.game.pantallas;
 
-import com.mypokemon.game.PokemonMain;
-import com.mypokemon.game.Explorador;
-import com.mypokemon.game.BasePokemonData;
-import com.mypokemon.game.EspeciePokemon;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
-
-import java.util.TreeMap;
-import java.util.List;
-import java.util.Map;
+import com.mypokemon.game.BasePokemonData;
+import com.mypokemon.game.EspeciePokemon;
+import com.mypokemon.game.Explorador;
+import com.mypokemon.game.PokemonMain;
 
 /**
- * Pantalla de la Pokédex.
- * Muestra la información de los Pokémon avistados y capturados, con navegación
- * en cuadrícula.
+ * Pantalla de la Pokédex. Muestra la información de los Pokémon avistados y
+ * capturados, con navegación en cuadrícula.
  */
 public class PokedexScreen extends NavigableScreen {
-    private Texture background;
-    private Texture entryBg;
-    private Texture whitePixel;
-    private BitmapFont fontTitle;
-    private BitmapFont fontText;
-    private BitmapFont fontStats;
 
-    private List<String> capturedNames;
-    private Map<String, Texture> textureCache = new TreeMap<>();
+    private final Texture background;
+    private final Texture entryBg;
+    private final Texture whitePixel;
+    private final BitmapFont fontTitle;
+    private final BitmapFont fontText;
+    private final BitmapFont fontStats;
+
+    private final List<String> capturedNames;
+    private final Map<String, Texture> textureCache = new TreeMap<>();
+    private final Map<String, Texture> typeTextureCache = new TreeMap<>();
     private int selectedIndex = 0;
 
-    private OrthographicCamera camera;
-    private Viewport viewport;
+    private final OrthographicCamera camera;
+    private final Viewport viewport;
     private final float VIRTUAL_WIDTH = 1280;
     private final float VIRTUAL_HEIGHT = 720;
 
@@ -46,15 +46,16 @@ public class PokedexScreen extends NavigableScreen {
     private int selectedGridX = 0;
     private int selectedGridY = 0;
     private final int GRID_COLS = 6;
-    private final int GRID_ROWS = 4; // Changed to 4 rows
+    private final int GRID_ROWS = 4;
 
     /**
-     * Constructor de la pantalla de Pokédex.
-     * Carga fuentes y texturas necesarias.
+     * Constructor de la pantalla de Pokédex. Carga fuentes y texturas
+     * necesarias.
      *
-     * @param game         Juego principal.
+     * @param game Juego principal.
      * @param returnScreen Pantalla anterior.
-     * @param explorador   Datos del jugador para acceder al registro de la Pokédex.
+     * @param explorador Datos del jugador para acceder al registro de la
+     * Pokédex.
      */
     public PokedexScreen(PokemonMain game, Screen returnScreen, Explorador explorador) {
         super(game, returnScreen);
@@ -73,7 +74,7 @@ public class PokedexScreen extends NavigableScreen {
         fontStats = new BitmapFont();
         fontStats.getData().setScale(1.2f);
 
-        // Textures
+        // Texturas
         background = loadTexture("fondoPokedex.png");
 
         com.badlogic.gdx.graphics.Pixmap pixmap = new com.badlogic.gdx.graphics.Pixmap(1, 1,
@@ -88,8 +89,8 @@ public class PokedexScreen extends NavigableScreen {
     }
 
     /**
-     * Renderiza la interfaz de la Pokédex.
-     * Muestra la lista de Pokémon en cuadrícula y el detalle del seleccionado.
+     * Renderiza la interfaz de la Pokédex. Muestra la lista de Pokémon en
+     * cuadrícula y el detalle del seleccionado.
      *
      * @param delta Tiempo transcurrido.
      */
@@ -102,23 +103,27 @@ public class PokedexScreen extends NavigableScreen {
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.UP)) {
             selectedGridY--;
-            if (selectedGridY < 0)
+            if (selectedGridY < 0) {
                 selectedGridY = GRID_ROWS - 1;
+            }
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.DOWN)) {
             selectedGridY++;
-            if (selectedGridY >= GRID_ROWS)
+            if (selectedGridY >= GRID_ROWS) {
                 selectedGridY = 0;
+            }
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT)) {
             selectedGridX--;
-            if (selectedGridX < 0)
+            if (selectedGridX < 0) {
                 selectedGridX = GRID_COLS - 1;
+            }
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT)) {
             selectedGridX++;
-            if (selectedGridX >= GRID_COLS)
+            if (selectedGridX >= GRID_COLS) {
                 selectedGridX = 0;
+            }
         }
 
         selectedIndex = selectedGridY * GRID_COLS + selectedGridX;
@@ -132,7 +137,6 @@ public class PokedexScreen extends NavigableScreen {
             game.batch.draw(background, 0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
         }
 
-
         game.batch.setColor(Color.WHITE);
 
         // Info Panel
@@ -141,14 +145,13 @@ public class PokedexScreen extends NavigableScreen {
         float infoW = 340;
         float infoH = 190;
 
-
         String currentPokemonName = (selectedIndex < capturedNames.size()) ? capturedNames.get(selectedIndex) : null;
 
         if (currentPokemonName != null) {
             BasePokemonData data = BasePokemonData.get(currentPokemonName);
             EspeciePokemon registro = explorador.getRegistro().getRegistro().get(currentPokemonName);
 
-            // Load/Get Texture for Big Display
+            // Cargar textura para el display grande
             String pName = currentPokemonName;
             if (!textureCache.containsKey(pName)) {
                 try {
@@ -166,10 +169,10 @@ public class PokedexScreen extends NavigableScreen {
             }
 
             fontTitle.setColor(Color.WHITE);
-            fontTitle.getData().setScale(1.2f); // Slightly smaller to fit
+            fontTitle.getData().setScale(1.2f);
             fontTitle.draw(game.batch, currentPokemonName.toUpperCase(), infoX + 20, infoY + infoH - 30);
 
-            // Region determination
+            // Determinación de la región
             String region = "OneFerxxo";
 
             fontText.setColor(Color.CYAN);
@@ -182,7 +185,30 @@ public class PokedexScreen extends NavigableScreen {
             fontText.draw(game.batch, "NIVEL INV: " + nivelInv + "/10",
                     infoX + 20, infoY + infoH - 95);
 
-            // Stats removed as requested
+            // Mostrar imagen del tipo a la derecha del texto
+            if (data != null && data.tipo != null) {
+                String[] tipos = data.tipo.split(" / ");
+                float tipoX = infoX + 220;
+                float tipoY = infoY + infoH - 78;
+                float tipoWidth = 100;
+                float tipoHeight = 26;
+                float tipoSpacingY = 30;
+
+                for (int i = 0; i < tipos.length; i++) {
+                    String tipoKey = tipos[i].trim();
+                    if (!typeTextureCache.containsKey(tipoKey)) {
+                        try {
+                            typeTextureCache.put(tipoKey, new Texture(Gdx.files.internal("Tipo " + tipoKey + ".png")));
+                        } catch (Exception e) {
+                            Gdx.app.error("PokedexScreen", "Error loading type texture: Tipo " + tipoKey + ".png");
+                        }
+                    }
+                    Texture tipoTexture = typeTextureCache.get(tipoKey);
+                    if (tipoTexture != null) {
+                        game.batch.draw(tipoTexture, tipoX, tipoY - (i * tipoSpacingY), tipoWidth, tipoHeight);
+                    }
+                }
+            }
 
             fontText.setColor(Color.WHITE);
             fontText.getData().setScale(0.9f);
@@ -192,7 +218,7 @@ public class PokedexScreen extends NavigableScreen {
             }
         }
 
-        // Grid (Right side - Aligned with image boxes)
+        // Grid
         float gridStartX = 530;
         float gridStartY = 420;
         float boxSize = 100;
@@ -204,15 +230,15 @@ public class PokedexScreen extends NavigableScreen {
                 float bx = gridStartX + col * (boxSize + spacing);
                 float by = gridStartY - row * (boxSize + spacing);
 
-                // Draw Grid Box Background
+                // Dibujar fondo de la caja de la cuadrícula
                 game.batch.setColor(0, 0, 0, 0.4f);
                 game.batch.draw(whitePixel, bx, by, boxSize, boxSize);
                 game.batch.setColor(Color.WHITE);
 
-                // Selection Highlight
+                // Resaltar selección
                 if (row == selectedGridY && col == selectedGridX) {
                     game.batch.setColor(Color.YELLOW);
-                    // Draw outer border
+                    // Dibujar borde exterior
                     game.batch.draw(whitePixel, bx - 3, by - 3, boxSize + 6, 3);
                     game.batch.draw(whitePixel, bx - 3, by + boxSize, boxSize + 6, 3);
                     game.batch.draw(whitePixel, bx - 3, by - 3, 3, boxSize + 6);
@@ -252,16 +278,24 @@ public class PokedexScreen extends NavigableScreen {
     @Override
     public void dispose() {
         super.dispose();
-        if (entryBg != null)
+        if (entryBg != null) {
             entryBg.dispose();
-        if (whitePixel != null)
+        }
+        if (whitePixel != null) {
             whitePixel.dispose();
+        }
         fontTitle.dispose();
         fontText.dispose();
         fontStats.dispose();
         for (Texture t : textureCache.values()) {
-            if (t != null)
+            if (t != null) {
                 t.dispose();
+            }
+        }
+        for (Texture t : typeTextureCache.values()) {
+            if (t != null) {
+                t.dispose();
+            }
         }
     }
 }

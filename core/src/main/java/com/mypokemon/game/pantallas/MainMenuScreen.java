@@ -1,51 +1,49 @@
 package com.mypokemon.game.pantallas;
 
-import com.mypokemon.game.PokemonMain;
-
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
+import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
+import com.mypokemon.game.PokemonMain;
 
 /**
- * Pantalla del menú principal del juego.
- * Permite iniciar nueva partida, cargar progreso, ver ayuda y configurar
- * opciones.
+ * Pantalla del menú principal del juego. Permite iniciar nueva partida, cargar
+ * progreso, ver ayuda y configurar opciones.
  */
 public class MainMenuScreen extends BaseScreen {
 
     Texture background;
 
-    // Arrays to hold textures for each option
+    // Arrays para guardar las texturas de cada opcion
     Texture[] normalTextures;
     Texture[] selectedTextures;
 
-    // Menu Options
-    String[] options = { "PLAY", "CARGAR", "HELP", "ABOUT", "EXIT" };
-    String[] filePrefixes = { "boton_jugar", "boton_cargar", "boton_ayuda", "boton_acercade", "boton_salir" };
+    // Opciones del menu
+    String[] options = {"PLAY", "CARGAR", "HELP", "ABOUT", "EXIT"};
+    String[] filePrefixes = {"boton_jugar", "boton_cargar", "boton_ayuda", "boton_acercade", "boton_salir"};
 
     int currentOption = -1;
     float fadeAlpha = 0f;
     boolean isStarting = false;
 
-    // Layout constants
+    // Constantes de layout
     float menuBoxWidth = 370;
     float menuBoxHeight = 260;
 
-    // Camera and Viewport for fixed aspect ratio
+    // Camara y Viewport para relacion de aspecto fija
     private OrthographicCamera camera;
     private Viewport viewport;
     private static final float VIRTUAL_WIDTH = 1280f;
     private static final float VIRTUAL_HEIGHT = 720f;
 
     /**
-     * Constructor del menú principal.
-     * Carga las texturas de los botones y configura la cámara.
+     * Constructor del menú principal. Carga las texturas de los botones y
+     * configura la cámara.
      *
      * @param game Referencia a la clase principal del juego.
      */
@@ -58,7 +56,7 @@ public class MainMenuScreen extends BaseScreen {
             Gdx.app.log("MainMenu", "Could not load menu_bg.jpg: " + e.getMessage());
         }
 
-        // Load button textures
+        // Cargar texturas de los botones
         normalTextures = new Texture[options.length];
         selectedTextures = new Texture[options.length];
 
@@ -72,7 +70,7 @@ public class MainMenuScreen extends BaseScreen {
             }
         }
 
-        // Setup camera and viewport
+        // Configurar camara y viewport
         camera = new OrthographicCamera();
         viewport = new FitViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, camera);
         viewport.apply();
@@ -81,8 +79,8 @@ public class MainMenuScreen extends BaseScreen {
     }
 
     /**
-     * Se llama cuando la pantalla se muestra.
-     * Desactiva el procesador de entrada global.
+     * Se llama cuando la pantalla se muestra. Desactiva el procesador de
+     * entrada global.
      */
     @Override
     public void show() {
@@ -96,27 +94,56 @@ public class MainMenuScreen extends BaseScreen {
      */
     @Override
     public void render(float delta) {
-        // Update Logic
+        // Lógica de actualización
         ScreenUtils.clear(0f, 0f, 0f, 1f);
 
-        // Calculate layout variables for rendering
+        // Calcular variables de layout para renderizado
         float screenWidth = VIRTUAL_WIDTH;
         float screenHeight = VIRTUAL_HEIGHT;
 
         float buttonWidth = 300;
         float buttonHeight = 80;
-        float spacing = -15; // Negative spacing to bring them closer
+        float spacing = -15;
         float totalMenuHeight = (options.length * buttonHeight) + ((options.length - 1) * spacing);
         float startY = (screenHeight + totalMenuHeight) / 2 - 100;
 
-        // Keyboard Selection Logic
+        // Detección del mouse/cursor
+        int mouseScreenX = Gdx.input.getX();
+        int mouseScreenY = Gdx.input.getY();
+
+        // Convertir coordenadas de pantalla a coordenadas del mundo
+        com.badlogic.gdx.math.Vector3 worldCoords = new com.badlogic.gdx.math.Vector3(mouseScreenX, mouseScreenY, 0);
+        camera.unproject(worldCoords, viewport.getScreenX(), viewport.getScreenY(), viewport.getScreenWidth(), viewport.getScreenHeight());
+
+        float mouseX = worldCoords.x;
+        float mouseY = worldCoords.y;
+
+        // Verifica si el mouse está sobre algún botón
+        int hoveredOption = -1;
+        for (int i = 0; i < options.length; i++) {
+            float buttonY = startY - (i * (buttonHeight + spacing)) - buttonHeight;
+            float buttonX = (screenWidth - buttonWidth) / 2;
+
+            if (mouseX >= buttonX && mouseX <= buttonX + buttonWidth
+                    && mouseY >= buttonY && mouseY <= buttonY + buttonHeight) {
+                hoveredOption = i;
+                break;
+            }
+        }
+
+        if (hoveredOption != -1) {
+            currentOption = hoveredOption;
+        }
+
+        //  Lógica de selección por teclado
         if (Gdx.input.isKeyJustPressed(Input.Keys.UP) || Gdx.input.isKeyJustPressed(Input.Keys.W)) {
             if (currentOption == -1) {
                 currentOption = options.length - 1;
             } else {
                 currentOption--;
-                if (currentOption < 0)
+                if (currentOption < 0) {
                     currentOption = options.length - 1;
+                }
             }
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.DOWN) || Gdx.input.isKeyJustPressed(Input.Keys.S)) {
@@ -124,15 +151,17 @@ public class MainMenuScreen extends BaseScreen {
                 currentOption = 0;
             } else {
                 currentOption++;
-                if (currentOption >= options.length)
+                if (currentOption >= options.length) {
                     currentOption = 0;
+                }
             }
         }
 
-        // Action Logic
+        // Lógica de acción (teclado y click)
         boolean enter = Gdx.input.isKeyJustPressed(Input.Keys.ENTER) || Gdx.input.isKeyJustPressed(Input.Keys.SPACE);
+        boolean mouseClick = Gdx.input.justTouched();
 
-        if (currentOption != -1 && enter) {
+        if (currentOption != -1 && (enter || mouseClick)) {
             if (currentOption == 0) {
                 game.setScreen(new EleccionJuegoScreen(game));
                 dispose();
@@ -154,7 +183,7 @@ public class MainMenuScreen extends BaseScreen {
             }
         }
 
-        // Draw Logic
+        // Lógica de dibujo
         ScreenUtils.clear(0f, 0f, 0f, 1f);
 
         camera.update();
@@ -173,17 +202,18 @@ public class MainMenuScreen extends BaseScreen {
             Texture textureToDraw = null;
             boolean showSelected = false;
 
-
             if (i == currentOption) {
                 showSelected = true;
             }
 
             if (showSelected) {
-                if (selectedTextures[i] != null)
+                if (selectedTextures[i] != null) {
                     textureToDraw = selectedTextures[i];
+                }
             } else {
-                if (normalTextures[i] != null)
+                if (normalTextures[i] != null) {
                     textureToDraw = normalTextures[i];
+                }
             }
 
             if (textureToDraw != null) {
@@ -194,10 +224,11 @@ public class MainMenuScreen extends BaseScreen {
                 float textX = (screenWidth - layout.width) / 2;
                 float textY = buttonY + (buttonHeight + layout.height) / 2;
 
-                if (i == currentOption)
+                if (i == currentOption) {
                     game.font.setColor(Color.YELLOW);
-                else
+                } else {
                     game.font.setColor(Color.WHITE);
+                }
 
                 game.font.draw(game.batch, layout, textX, textY);
             }
@@ -207,10 +238,10 @@ public class MainMenuScreen extends BaseScreen {
     }
 
     /**
-     * Se llama cuando cambia el tamaño de la ventana.
-     * Mantiene la relación de aspecto usando un FitViewport.
+     * Se llama cuando cambia el tamaño de la ventana. Mantiene la relación de
+     * aspecto usando un FitViewport.
      *
-     * @param width  Nuevo ancho.
+     * @param width Nuevo ancho.
      * @param height Nuevo alto.
      */
     @Override
@@ -224,17 +255,22 @@ public class MainMenuScreen extends BaseScreen {
      */
     @Override
     public void dispose() {
-        if (background != null)
+        if (background != null) {
             background.dispose();
+        }
         if (normalTextures != null) {
-            for (Texture t : normalTextures)
-                if (t != null)
+            for (Texture t : normalTextures) {
+                if (t != null) {
                     t.dispose();
+                }
+            }
         }
         if (selectedTextures != null) {
-            for (Texture t : selectedTextures)
-                if (t != null)
+            for (Texture t : selectedTextures) {
+                if (t != null) {
                     t.dispose();
+                }
+            }
         }
     }
 }

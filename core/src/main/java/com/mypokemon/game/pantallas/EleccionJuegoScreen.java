@@ -1,21 +1,20 @@
 package com.mypokemon.game.pantallas;
 
-import com.mypokemon.game.PokemonMain;
-
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
+import com.mypokemon.game.PokemonMain;
 
 /**
  * Pantalla que permite al usuario elegir entre el modo Solitario y el modo
- * Compartido (Multijugador).
- * También maneja la entrada del nombre para nuevas partidas en solitario.
+ * Compartido (Multijugador). También maneja la entrada del nombre para nuevas
+ * partidas en solitario.
  */
 public class EleccionJuegoScreen extends BaseScreen {
 
@@ -43,8 +42,8 @@ public class EleccionJuegoScreen extends BaseScreen {
     private static final float VIRTUAL_HEIGHT = 720f;
 
     /**
-     * Constructor de la pantalla.
-     * Carga recursos y configura el procesador de entrada para texto.
+     * Constructor de la pantalla. Carga recursos y configura el procesador de
+     * entrada para texto.
      *
      * @param game Instancia principal del juego.
      */
@@ -139,21 +138,50 @@ public class EleccionJuegoScreen extends BaseScreen {
 
         // Entrada de los botones
         if (!isAskingName) {
+            // Detección Cursor
+            int mouseScreenX = Gdx.input.getX();
+            int mouseScreenY = Gdx.input.getY();
+
+            // Convertir coordenadas de pantalla a coordenadas del mundo
+            com.badlogic.gdx.math.Vector3 worldCoords = new com.badlogic.gdx.math.Vector3(mouseScreenX, mouseScreenY, 0);
+            camera.unproject(worldCoords, viewport.getScreenX(), viewport.getScreenY(), viewport.getScreenWidth(), viewport.getScreenHeight());
+
+            float mouseX = worldCoords.x;
+            float mouseY = worldCoords.y;
+
+            // Verifica si el cursor está sobre algún botón
+            int hoveredOption = -1;
+            if (mouseX >= centerX && mouseX <= centerX + buttonWidth) {
+                if (mouseY >= solitarioY && mouseY <= solitarioY + buttonHeight) {
+                    hoveredOption = OPTION_SOLITARIO;
+                } else if (mouseY >= compartidaY && mouseY <= compartidaY + buttonHeight) {
+                    hoveredOption = OPTION_COMPARTIDA;
+                }
+            }
+
+            if (hoveredOption != -1) {
+                currentOption = hoveredOption;
+            }
 
             if (Gdx.input.isKeyJustPressed(Input.Keys.UP) || Gdx.input.isKeyJustPressed(Input.Keys.W)) {
-                if (currentOption == -1)
+                if (currentOption == -1) {
                     currentOption = OPTION_COMPARTIDA;
-                else if (currentOption == OPTION_COMPARTIDA)
+                } else if (currentOption == OPTION_COMPARTIDA) {
                     currentOption = OPTION_SOLITARIO;
+                }
             }
             if (Gdx.input.isKeyJustPressed(Input.Keys.DOWN) || Gdx.input.isKeyJustPressed(Input.Keys.S)) {
-                if (currentOption == -1)
+                if (currentOption == -1) {
                     currentOption = OPTION_SOLITARIO;
-                else if (currentOption == OPTION_SOLITARIO)
+                } else if (currentOption == OPTION_SOLITARIO) {
                     currentOption = OPTION_COMPARTIDA;
+                }
             }
 
-            if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
+            boolean enter = Gdx.input.isKeyJustPressed(Input.Keys.ENTER);
+            boolean mouseClick = Gdx.input.justTouched(); // Deteccion click
+
+            if (enter || mouseClick) {
                 if (currentOption == OPTION_SOLITARIO) {
                     isAskingName = true;
                     inputName = ""; // Reset
@@ -185,12 +213,14 @@ public class EleccionJuegoScreen extends BaseScreen {
         }
 
         Texture texSolitario = (currentOption == OPTION_SOLITARIO) ? solitarioSelected : solitarioNormal;
-        if (texSolitario != null)
+        if (texSolitario != null) {
             game.batch.draw(texSolitario, centerX, solitarioY, buttonWidth, buttonHeight);
+        }
 
         Texture texCompartida = (currentOption == OPTION_COMPARTIDA) ? compartidaSelected : compartidaNormal;
-        if (texCompartida != null)
+        if (texCompartida != null) {
             game.batch.draw(texCompartida, centerX, compartidaY, buttonWidth, buttonHeight);
+        }
 
         game.batch.setColor(Color.WHITE);
         game.batch.end();
@@ -203,7 +233,7 @@ public class EleccionJuegoScreen extends BaseScreen {
             shapeRenderer.setProjectionMatrix(game.batch.getProjectionMatrix());
             shapeRenderer.begin(com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType.Filled);
 
-            // Backdrop
+            // Fondo
             shapeRenderer.setColor(0, 0, 0, 0.7f);
             shapeRenderer.rect(0, 0, screenWidth, screenHeight);
 
@@ -233,12 +263,12 @@ public class EleccionJuegoScreen extends BaseScreen {
 
             // Titulo
             game.font.setColor(Color.BLACK);
-            // Only Solitario asks for name here now
+            // En caso de Solitario pide nombre
             String title = "¿Nombre de la partida?";
             game.font.draw(game.batch, title, boxX, boxY + boxH - 30, boxW,
                     com.badlogic.gdx.utils.Align.center, false);
 
-            // Input
+            // Entrada
             game.font.setColor(Color.BLACK);
             game.font.draw(game.batch, inputName + (System.currentTimeMillis() % 1000 > 500 ? "|" : ""), fieldX + 10,
                     fieldY + 28);
@@ -262,8 +292,8 @@ public class EleccionJuegoScreen extends BaseScreen {
     }
 
     /**
-     * Inicia una partida en modo Solitario.
-     * Valida el nombre y transiciona a la pantalla de Introducción.
+     * Inicia una partida en modo Solitario. Valida el nombre y transiciona a la
+     * pantalla de Introducción.
      */
     private void startSoloGame() {
         if (inputName.trim().isEmpty()) {
@@ -302,17 +332,23 @@ public class EleccionJuegoScreen extends BaseScreen {
      */
     @Override
     public void dispose() {
-        if (background != null)
+        if (background != null) {
             background.dispose();
-        if (solitarioNormal != null)
+        }
+        if (solitarioNormal != null) {
             solitarioNormal.dispose();
-        if (solitarioSelected != null)
+        }
+        if (solitarioSelected != null) {
             solitarioSelected.dispose();
-        if (compartidaNormal != null)
+        }
+        if (compartidaNormal != null) {
             compartidaNormal.dispose();
-        if (compartidaSelected != null)
+        }
+        if (compartidaSelected != null) {
             compartidaSelected.dispose();
-        if (shapeRenderer != null)
+        }
+        if (shapeRenderer != null) {
             shapeRenderer.dispose();
+        }
     }
 }
